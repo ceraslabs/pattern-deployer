@@ -1,0 +1,602 @@
+require "base_deployer"
+require "chef_node_deployer"
+require "chef_cookbook"
+require "topology_wrapper"
+
+
+# A graph to keep track of the run-time state of each nodes
+class TopologyDeployer < BaseDeployer
+  class Edge
+    def initialize(from, to, type)
+      validate_type!(type)
+
+      @from = from
+      @to = to
+      @type = type
+
+      from[type] ||= Array.new
+      from[type] << to.get_id unless from[type].include?(to.get_id)
+    end
+
+    def get_source
+      @from
+    end
+
+    def get_destination
+      @to
+    end
+
+    def get_type
+      @type
+    end
+
+    def notify(key, value)
+      @to[@from.get_id] ||= Hash.new
+      @to[@from.get_id][key] = value
+      @to.save
+    end
+
+    protected
+
+    @@valid_types = [:vpn_servers, :container_node, :vpn_connected_nodes, :nested_nodes, :vpn_clients,
+                     :snort_pairs, :snort_nodes, :database_node, :web_servers, :balancer_members,
+                     :balancer, :chef_server, :chef_client]
+
+    def validate_type!(type)
+      raise "Unexpected type of edge #{type}" unless @@valid_types.include?(type)
+    end
+  end
+
+  class Vertex
+    WAITING     = 1 if not defined?(WAITING)
+    RUNNING     = 2 if not defined?(RUNNING)
+    FINISHED    = 3 if not defined?(FINISHED)
+    FAILED      = 4 if not defined?(FAILED)
+    NOT_STARTED = 5 if not defined?(NOT_STARTED)
+
+    def initialize(name, node_deployer, topology_deployer)
+      @edges = Array.new
+      @name = name
+      @state = WAITING
+      @deployer = node_deployer
+      topology_deployer << node_deployer
+    end
+
+    def get_name
+      return @name
+    end
+
+    def get_id
+      @deployer.get_id
+    end
+
+    def get_node_id
+      @deployer.get_id
+    end
+
+    def each_edge(type = nil, &block)
+      get_edges(type).each(&block)
+    end
+
+    def get_edges(type = nil)
+      @edges.select do |edge|
+        type.nil? || type == edge.get_type
+      end
+    end
+
+    def has_key?(key)
+      @deployer.has_key?(key)
+    end
+
+    def [](key)
+      @deployer[key]
+    end
+
+    def []=(key, value)
+      @deployer[key] = value
+    end
+
+    def ==(vertex)
+      raise "Unexpected type of vertex: #{vertex.class}" if vertex.class != Vertex
+      raise "get_id return nil" if self.get_id.nil? || vertex.get_id.nil?
+      return self.get_id == vertex.get_id
+    end
+
+    def connect(vertex, type)
+      self.each_edge(type) do |edge|
+        return if edge.get_destination == vertex
+      end
+
+      @edges << Edge.new(self, vertex, type)
+    end
+
+    def save
+      @deployer.save
+    end
+
+    def get_state
+      @state
+    end
+
+    def set_state(state)
+      @state = state
+    end
+
+    def get_deployer_state
+      @deployer.get_state
+    end
+
+    def prepare_deploy
+      @deployer.prepare_deploy
+    end
+
+    def success?
+      @deployer.get_state == State::DEPLOY_SUCCESS
+    end
+
+    def on_success
+      @state = FINISHED
+    end
+
+    def failed?
+      @deployer.get_state == State::DEPLOY_FAIL
+    end
+
+    def on_failed
+      @state = FAILED
+    end
+
+    def can_start?
+      if @state == WAITING
+        return get_depending_vertice.all?{|parent| parent.get_state == FINISHED}
+      else
+        return false
+      end
+    end
+
+    def start
+      @deployer.deploy
+      @state = RUNNING
+    end
+
+    def terminate
+      @deployer.undeploy
+    end
+
+    def depending_vertex_failed?
+      if @state == WAITING
+        return get_depending_vertice.any?{|parent| parent.get_state == FAILED}
+      else
+        return false
+      end
+    end
+
+    def on_depending_vertex_failed
+      @state = FAILED
+    end
+
+    def get_err_msg
+      @deployer.get_deploy_error
+    end
+
+    #def connect_vpn_client(vertex)
+    #  self.connect(vertex, "vpn_clients")
+    #  vertex.connect(self, "vpn_servers")
+    #  self.vpn_connect(vertex)
+    #end
+
+    #def connect_snort_pair(vertex, first, second)
+    #  self.connect(first, "snort_pairs")
+    #  self.connect(second, "snort_pairs")
+    #  first.connect(self, "snort_nodes")
+    #  second.connect(self, "snort_nodes")
+    #  first.vpn_connect(second)
+    #end
+
+    #def sync_vpn_connection(container)
+    #  container.get_adjacent_vertice("vpn_connected_nodes").each do |vertex|
+    #    nested_instance.vpn_connect(vertex)
+    #  end
+    #end
+
+    def notify_adjacent_vertice(key, value, connect_type = nil)
+      self.each_edge(connect_type) do |edge|
+        edge.notify(key, value)
+      end
+    end
+
+    def on_vpn_client_ip(vpn_server_id, vpnip)
+      #self.get_adjacent_vertice("vpn_servers").each do |vertex|
+      #  if vertex.get_id == vpn_server
+      #    my_id = self.get_id
+      #    vertex[my_id][:vpnip] = vpnip
+      #    vertex.save
+      #  end
+      #end
+
+      self.each_edge(:vpn_servers) do |edge|
+        edge.notify(:vpnip, vpnip) if edge.get_destination.get_id == vpn_server_id
+      end
+    end
+
+    def get_depending_vertice
+      # list of types of edges that indicate dependencies between vertice
+      target_types = [:container_node, :chef_server]
+
+      vertice = Array.new
+      self.get_edges.each do |edge|
+        next unless target_types.include?(edge.get_type)
+        next if self.get_id == edge.get_destination.get_id
+        vertice << edge.get_destination
+      end
+      vertice
+    end
+
+    def vpn_connected?(vertex)
+      self.get_vpn_connected_vertice.include?(vertex)
+    end
+
+    def get_vpn_connected_vertice
+      self.get_edges(:vpn_connected_nodes).map do |edge|
+        edge.get_destination
+      end
+    end
+
+    #def to_s
+    #  str = "Name: #{@name}, parent: ["
+    #  get_parent.each { |p| str += "#{p.get_name}, " }
+    #  str += "], edge:"
+    #  @edges.each do |edge|
+    #    str += edge.get_type.to_s
+    #  end
+    #  return str
+    #end
+  end
+
+
+  def initialize(topology, resources, options = {})
+    @topology = topology
+    @resources = resources
+    super()
+
+    #nodes_to_deploy = options[:nodes_to_deploy]
+    #nodes_to_update = options[:nodes_to_update]
+    #if nodes_to_deploy
+    #  nodes_to_deploy.each do |name|
+    #    is_new = true
+    #    vertex = Vertex.new(name, is_new)
+    #    @vertice[name] = vertex
+    #  end
+    #end
+    #if nodes_to_update
+    #  nodes_to_update.each do |name|
+    #    node_copies = topology.get_all_copies(name)
+    #    node_copies.each do |name|
+    #      is_new = false
+    #      vertex = Vertex.new(name, is_new)
+    #      @vertice[name] = vertex
+    #    end
+    #  end
+    #end
+    #if nodes_to_deploy.nil? && nodes_to_update.nil?
+
+    @vertice = create_vertice(topology, resources)
+  end
+
+  def create_vertice(topology, resources)
+    # load all nodes from XML to the graph
+    vertice = Hash.new
+    topology.get_nodes.each do |node_id|
+      node_info = topology.get_node_info(node_id)
+      services = topology.get_services(node_id)
+
+      topology.get_all_copies(node_id).each do |extended_node_id|
+        node_deployer = ChefNodeDeployer.new(extended_node_id, node_info, services, resources, self)
+        vertex = Vertex.new(extended_node_id, node_deployer, self)
+        vertice[extended_node_id] = vertex
+      end
+    end
+
+    vertice
+  end
+
+  def load_certificates(certificates)
+    @vertice.each do |vertex_id, vertex|
+      server_cert = certificates["server_certs"].find do |cert|
+        cert["server_id"] == vertex_id
+      end
+      vertex["server_cert"] = server_cert if server_cert
+
+      vertex["client_certs"] = certificates["client_certs"].select do |cert|
+        cert["from"] == vertex_id 
+      end
+
+      vertex.save
+    end
+  end
+
+  def get_id
+    self.class.get_id(get_topology_id)
+  end
+
+  def self.get_id(topology_id)
+    prefix = super()
+    [prefix, "topology", topology_id].join("_")
+  end
+
+  def get_topology
+    @topology
+  end
+
+  def get_topology_id
+    @topology.get_topology_id
+  end
+
+  def deployable?
+    # check circular dependencies by using breadth first search algorithm
+    has_circle = false
+    @vertice.each do |vertex_name, vertex|
+      visited = Set.new
+      queue = Queue.new
+
+      visited << vertex_name
+      queue << vertex
+
+      until queue.empty? do
+        v = queue.pop
+        v.get_depending_vertice.each do |c|
+		  next if v.get_id == c.get_id # skip self reference
+          has_circle = true if c.get_name == vertex_name
+          unless visited.include?(c.get_name)
+            visited << c.get_name
+            queue << c
+          end
+        end
+      end
+    end
+    return has_circle
+  end
+
+  def prepare_deploy
+    super()
+
+    #connect_vertice
+    #prepare_topology_info
+    #@vertice.each_value do |vertex|
+    #  vertex.save
+    #end
+    load_topology_info
+    prepare_cookbook
+  end
+
+  def deploy
+    #set_state(State::DEPLOYING)
+    @worker_thread = Thread.new do
+      deploy_helper
+    end
+  end
+
+  def deploy_helper
+    vertice = @vertice.values
+    deployment_finished = false
+    deployment_fail = false
+
+    num_of_iters = Rails.application.config.chef_max_deploy_time / 10
+    for i in 1 .. num_of_iters
+      vertice.each do |vertex|
+        vertex.on_success if vertex.success?
+        vertex.on_failed if vertex.failed?
+      end
+
+      deployment_finished = true
+      deployment_fail = false
+      vertice.each do |vertex|
+        vertex.start if vertex.can_start?
+        vertex.on_depending_vertex_failed if vertex.depending_vertex_failed?
+
+        deployment_finished = false if vertex.get_state == Vertex::WAITING || vertex.get_state == Vertex::RUNNING
+        deployment_fail = true if vertex.get_state == Vertex::FAILED
+      end
+
+      # exit if all the nodes finished
+      if deployment_finished
+        if deployment_fail
+          on_deploy_failed(get_deploy_error)
+        else
+          on_deploy_success
+        end
+
+        break
+      end
+
+      # scan the topology every 10 second
+      sleep 10
+    end
+  rescue Exception => ex
+    #debug
+    puts ex.message
+    puts ex.backtrace[0..10].join("\n")
+  end
+
+  def undeploy
+    @topology = nil
+    @resources = nil
+    @vertice = nil
+    super()
+  end
+
+  def wait(timeout)
+    @worker_thread.join(timeout)
+
+    if deploy_finished?
+      return true
+    else
+      return false
+    end
+  end
+
+  def on_data(key, value, vertex_name)
+    vertex = @vertice[vertex_name]
+    if key == :public_ip || key == :private_ip
+      vertex.notify_adjacent_vertice(key, value)
+    elsif key == :vpn_client_ip
+      vertex.on_vpn_client_ip(value[:vpn_server], value[:vpnip])
+    elsif key == :vpn_server_ip
+      vertex.notify_adjacent_vertice(:vpnip, value, :vpn_connected_nodes)
+    end
+  end
+
+
+  protected
+
+  def load_topology_info
+    establish_connection
+    set_vpnips
+    set_port_redirs
+    set_web_server_info
+    set_database_info
+
+    # save everything above
+    @vertice.each_value{|vertex| vertex.save}
+  end
+
+  def establish_connection
+    # load nested instance, outer instance dependencies
+    @topology.get_nested_node_refs.each do |ref|
+      nested_instance = @vertice[ref['from']]
+      container = @vertice[ref['to']]
+      nested_instance.connect(container, :container_node)
+      container.connect(nested_instance, :nested_nodes)
+    end
+
+    # load openvpn client-server relationships
+    @topology.get_openvpn_client_server_refs.each do |ref|
+      openvpn_client = @vertice[ref['from']]
+      openvpn_server = @vertice[ref['to']]
+      openvpn_server.connect(openvpn_client, :vpn_clients)
+      openvpn_client.connect(openvpn_server, :vpn_servers)
+      vpn_connect(openvpn_client, openvpn_server)
+    end
+
+    # load snort pair
+    @topology.get_snort_pairs.each do |pair|
+      snort = @vertice[pair['snort_node']]
+      snort_pair1 = @vertice[pair['pair1']]
+      snort_pair2 = @vertice[pair['pair2']]
+
+      snort.connect(snort_pair1, :snort_pairs)
+      snort.connect(snort_pair2, :snort_pairs)
+      snort_pair1.connect(snort, :snort_nodes)
+      snort_pair2.connect(snort, :snort_nodes)
+      vpn_connect(snort_pair1, snort_pair2) if snort_pair1.vpn_connected?(snort)
+    end
+
+    # The vpn connectivity of nested instance should be the same as its container.
+    # Therefore, we need to sync the vpn connection
+    @topology.get_nested_node_refs.each do |ref|
+      nested_instance = @vertice[ref['from']]
+      container = @vertice[ref['to']]
+      sync_vpn_connection(nested_instance, container)
+    end
+
+    #load appserver-database relationships
+    @topology.get_webserver_database_refs.each do |ref|
+      web_server = @vertice[ref['from']]
+      database = @vertice[ref['to']]
+      web_server.connect(database, :database_node)
+      database.connect(web_server, :web_servers)
+    end
+
+    #load balancer-member relationships
+    @topology.get_load_balancer_memeber_refs.each do |ref|
+      balancer = @vertice[ref['from']]
+      member = @vertice[ref['to']]
+      balancer.connect(member, :balancer_members)
+      member.connect(balancer, :balancer)
+    end
+
+    #load chef_client-chef_server relationships
+    @topology.get_chef_server_refs.each do |ref|
+      chef_client = @vertice[ref['from']]
+      chef_server = @vertice[ref['to']]
+      chef_client.connect(chef_server, :chef_server)
+      chef_server.connect(chef_client, :chef_client)
+    end
+  end
+
+  def vpn_connect(vertex1, vertex2)
+    vertex1.connect(vertex2, :vpn_connected_nodes)
+    vertex2.connect(vertex1, :vpn_connected_nodes)
+  end
+
+  def sync_vpn_connection(vertex1, vertex2)
+    vertex1.get_adjacent_vertice(:vpn_connected_nodes).each do |v1|
+      vertex2.get_adjacent_vertice(:vpn_connected_nodes).each do |v2|
+        vpn_connect(v1, v2) if v1 != v2
+      end
+    end
+  end
+
+  def set_vpnips
+    # load vpnips into databag
+    @topology.get_vpnips.each do |vertex_id, vpnip|
+      vertex = @vertice[vertex_id]
+      vertex[:vpn_server_ip] = vpnip
+      on_data(:vpn_server_ip, vpnip, vertex_id)
+    end
+  end
+
+  def set_port_redirs
+    # load port redirections into databag
+    @topology.get_port_redirs.each do |vertex_id, redir|
+      target = @vertice[vertex_id]
+      target["port_redir"] = redir
+    end
+  end
+
+  def set_web_server_info
+    @topology.get_war_files.each do |vertex_id, file|
+      vertex = @vertice[vertex_id]
+      vertex[FileType::WAR_FILE] = file #TODO support multiple war files
+    end
+  end
+
+  def set_database_info
+    @topology.get_databases.each do |vertex_id, database_info|
+      vertex = @vertice[vertex_id]
+      vertex["database"] = database_info
+      if database_info.has_key?("script")
+        vertex[FileType::SQL_SCRIPT_FILE] = {"name" => database_info["script"]}
+      end
+    end
+  end
+
+  def prepare_cookbook
+    cookbook = ChefCookbookWrapper.create("NestedQEMU")
+    raise "Cannot find cookbook NestedQEMU" unless cookbook
+    @vertice.each_value do |vertex|
+      [FileType::WAR_FILE, FileType::SQL_SCRIPT_FILE].each do |file_type|
+        next unless vertex.has_key?(file_type)
+
+        file_name = vertex[file_type]["name"]
+        file = @resources.get_file(file_name, file_type)
+        if file.nil? || !File.exists?(file.get_file_path)
+          err_msg = "The file #{file_name} does not exist. Please upload that file before deploy"
+          raise DeploymentError.new(:message => err_msg)
+        end
+        cookbook.add_cookbook_file(file_name, file.get_file_path)
+      end
+    end
+
+    cookbook.save
+  end
+
+  def deploy_finished?
+    state = get_state
+    return (state == State::DEPLOY_SUCCESS || state == State::DEPLOY_FAIL)
+  end
+
+  def deploy_success?
+    get_state == State::DEPLOY_SUCCESS
+  end
+end

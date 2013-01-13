@@ -1,0 +1,133 @@
+<topology id="myTopology">
+  <instance_templates>
+    <template id="base_instance">
+      <service name="ossec_client"/>
+    </template>
+
+    <template id="database_container_instance">
+      <extend template="base_instance"/>
+      <service name="virsh">
+        <port_redirection protocol="tcp" from="3306" to="3306"/>
+      </service>
+    </template>
+    <template id="application_container_instance">
+      <extend template="base_instance"/>
+      <service name="virsh">
+        <port_redirection protocol="tcp" from="80" to="80"/>
+      </service>
+    </template>
+
+    <template id="ec2_instance">
+      <extend template="base_instance"/>
+      <system>EC2</system>
+      <security_groups>quicklaunch-1</security_groups>
+      <image>ami-1708bd7e</image>
+      <key_pairs_id>hongbin-chef-ec2</key_pairs_id>
+      <identity_file>~/.ssh/hongbin-chef-ec2.pem</identity_file>
+      <ssh_user>ubuntu</ssh_user>
+      <availability_zone>us-east-1d</availability_zone>
+    </template>
+    <template id="ec2_medium_instance">
+      <extend template="ec2_instance"/>
+      <instance_type>m1.medium</instance_type>
+    </template>
+    <template id="ec2_small_instance">
+      <extend template="ec2_instance"/>
+      <instance_type>m1.small</instance_type>
+    </template>
+    <template id="ec2_micro_instance">
+      <extend template="ec2_instance"/>
+      <instance_type>t1.micro</instance_type>
+    </template>
+
+    <template id="openstack_instance">
+      <extend template="base_instance"/>
+      <system>OpenStack</system>
+      <image_id>11</image_id>
+      <key_pairs_id>hongbin-openstack</key_pairs_id>
+      <identity_file>~/.ssh/hongbin-openstack.pem</identity_file>
+      <ssh_user>ubuntu</ssh_user>
+    </template>
+    <template id="openstack_small_instance">
+      <extend template="openstack_instance"/>
+      <instance_type_id>2</instance_type_id>
+    </template>
+    <template id="openstack_medium_instance">
+      <extend template="openstack_instance"/>
+      <instance_type_id>3</instance_type_id>
+    </template>
+
+    <template id="nested_instance">
+      <ssh_user>ubuntu</ssh_user>
+      <port>5555</port>
+      <password>ubuntu1</password>
+    </template>
+  </instance_templates>
+      <node id="NestedQEMU_data_host">
+        <use_template name="ec2_small_instance"/>
+        <use_template name="database_container_instance"/>
+        <service name="openvpn_server">
+          <vpnip>10.8.1.1</vpnip>
+        </service>
+      </node>
+      <node id="NestedQEMU_inner_data_host">
+        <use_template name="nested_instance"/>
+        <service name="database_server"/>
+        <nest_within node="NestedQEMU_data_host"/>
+      </node>
+	  <node id="NestedQEMU_web_balancer">
+        <use_template name="ec2_small_instance"/>
+        <use_template name="application_container_instance"/>
+        <service name="openvpn_server">
+          <vpnip>10.8.0.1</vpnip>
+        </service>
+        <service name="snort_prepost"/>
+      </node>
+	  <container id="web_host_container" num_of_copies="2">
+        <node id="NestedQEMU_web_host">
+          <use_template name="ec2_small_instance"/>
+          <use_template name="application_container_instance"/>
+          <service name="openvpn_client">
+            <openvpn_server node="NestedQEMU_data_host"/>
+            <openvpn_server node="NestedQEMU_web_balancer"/>
+          </service>
+        </node>
+        <node id="NestedQEMU_inner_web_host">
+          <use_template name="nested_instance"/>
+          <service name="web_server">
+            <database node="NestedQEMU_inner_data_host"/>
+          </service>
+          <nest_within node="NestedQEMU_web_host"/>
+        </node>
+      </container>
+      <node id="NestedQEMU_inner_web_balancer">
+        <use_template name="nested_instance"/>
+        <service name="web_balancer">
+          <member node="NestedQEMU_inner_web_host"/>
+        </service>
+        <nest_within node="NestedQEMU_web_balancer"/>
+      </node>
+    <node id="NestedQEMU_front_end_balancer">
+      <use_template name="ec2_micro_instance"/>
+      <service name="openvpn_server">
+        <vpnip>10.8.5.1</vpnip>
+      </service>
+      <service name="snort_prepost"/>
+      <service name="front_end_balancer">
+        <member node="NestedQEMU_inner_web_balancer"/>
+      </service>
+      <service name="dns_client"/>
+    </node>
+    <node id="NestedQEMU_snort">
+      <use_template name="ec2_micro_instance"/>
+      <service name="openvpn_client">
+        <openvpn_server node="NestedQEMU_front_end_balancer"/>
+        <openvpn_server node="NestedQEMU_web_balancer"/>
+      </service>
+      <service name="snort">
+        <snort_pair_first node="NestedQEMU_front_end_balancer"/>
+        <snort_pair_second node="NestedQEMU_web_balancer"/>
+      </service>
+    </node>
+</topology>
+

@@ -1,0 +1,79 @@
+user1:
+  id: 1
+  email: user1@test.com
+  encrypted_password: $2a$10$6PHPVJSyANYDx0nOduvPm.YdnUUr.yWKzsQFcm32cPR5PU6bddHcy
+  reset_password_token:
+  reset_password_sent_at:
+  remember_created_at:
+  sign_in_count: 12
+  current_sign_in_at: 2012-11-30 19:10:10 Z
+  last_sign_in_at: 2012-11-30 15:34:11 Z
+  current_sign_in_ip: 199.222.44.55
+  last_sign_in_ip: 199.222.44.55
+  created_at: 2012-11-27 22:09:07 Z
+  updated_at: 2012-11-30 19:10:10 Z
+  role: user
+
+user2:
+  id: 2
+  email: user2@test.com
+  encrypted_password: $2a$10$6PHPVJSyANYDx0nOduvPm.YdnUUr.yWKzsQFcm32cPR5PU6bddHcy
+  reset_password_token:
+  reset_password_sent_at:
+  remember_created_at:
+  sign_in_count: 12
+  current_sign_in_at: 2012-11-30 19:10:10 Z
+  last_sign_in_at: 2012-11-30 15:34:11 Z
+  current_sign_in_ip: 199.222.44.55
+  last_sign_in_ip: 199.222.44.55
+  created_at: 2012-11-27 22:09:07 Z
+  updated_at: 2012-11-30 19:10:10 Z
+  role: user
+
+admin:
+  id: 3
+  email: admin@test.com
+  encrypted_password: $2a$10$6PHPVJSyANYDx0nOduvPm.YdnUUr.yWKzsQFcm32cPR5PU6bddHcy
+  reset_password_token:
+  reset_password_sent_at:
+  remember_created_at:
+  sign_in_count: 12
+  current_sign_in_at: 2012-11-30 19:10:10 Z
+  last_sign_in_at: 2012-11-30 15:34:11 Z
+  current_sign_in_ip: 199.222.44.55
+  last_sign_in_ip: 199.222.44.55
+  created_at: 2012-11-27 22:09:07 Z
+  updated_at: 2012-11-30 19:10:10 Z
+  role: admin
+
+integration_user1:
+  id: 4
+  email: integration_user1@test.com
+  encrypted_password: $2a$10$6PHPVJSyANYDx0nOduvPm.YdnUUr.yWKzsQFcm32cPR5PU6bddHcy
+  reset_password_token:
+  reset_password_sent_at:
+  remember_created_at:
+  sign_in_count: 12
+  current_sign_in_at: 2012-11-30 19:10:10 Z
+  last_sign_in_at: 2012-11-30 15:34:11 Z
+  current_sign_in_ip: 199.222.44.55
+  last_sign_in_ip: 199.222.44.55
+  created_at: 2012-11-27 22:09:07 Z
+  updated_at: 2012-11-30 19:10:10 Z
+  role: user
+
+integration_user2:
+  id: 5
+  email: integration_user2@test.com
+  encrypted_password: $2a$10$6PHPVJSyANYDx0nOduvPm.YdnUUr.yWKzsQFcm32cPR5PU6bddHcy
+  reset_password_token:
+  reset_password_sent_at:
+  remember_created_at:
+  sign_in_count: 12
+  current_sign_in_at: 2012-11-30 19:10:10 Z
+  last_sign_in_at: 2012-11-30 15:34:11 Z
+  current_sign_in_ip: 199.222.44.55
+  last_sign_in_ip: 199.222.44.55
+  created_at: 2012-11-27 22:09:07 Z
+  updated_at: 2012-11-30 19:10:10 Z
+  role: user

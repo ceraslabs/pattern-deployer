@@ -1,0 +1,6 @@
+inherit: 
+  id: 1
+  template_id: 1
+  base_template_id: 2
+  #created_at: 2012-10-07 22:09:44 Z
+  #updated_at: 2012-10-07 22:09:44 Z

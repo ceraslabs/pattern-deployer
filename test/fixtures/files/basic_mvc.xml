@@ -1,0 +1,58 @@
+<topology id="basic_mvc">
+  <instance_templates>
+    <template id="ec2_instance">
+      <system>EC2</system>
+      <security_groups>test_group</security_groups>
+      <image>test_image</image>
+      <key_pairs_id>test_ec2</key_pairs_id>
+      <ssh_user>test_user</ssh_user>
+      <availability_zone>any_zone</availability_zone>
+    </template>
+    <template id="ec2_medium_instance">
+      <extend template="ec2_instance"/>
+      <instance_type>m1.medium</instance_type>
+    </template>
+    <template id="ec2_small_instance">
+      <extend template="ec2_instance"/>
+      <instance_type>m1.small</instance_type>
+    </template>
+    <template id="ec2_micro_instance">
+      <extend template="ec2_instance"/>
+      <instance_type>t1.micro</instance_type>
+    </template>
+
+    <template id="openstack_instance">
+      <system>OpenStack</system>
+      <image_id>1</image_id>
+      <key_pairs_id>test_openstack</key_pairs_id>
+      <ssh_user>test_user</ssh_user>
+    </template>
+    <template id="openstack_small_instance">
+      <extend template="openstack_instance"/>
+      <instance_type_id>2</instance_type_id>
+    </template>
+    <template id="openstack_medium_instance">
+      <extend template="openstack_instance"/>
+      <instance_type_id>3</instance_type_id>
+    </template>
+  </instance_templates>
+  <node id="data_host">
+    <use_template name="ec2_small_instance"/>
+    <service name="database_server"/>
+  </node>
+  <node id="web_balancer">
+    <use_template name="ec2_micro_instance"/>
+    <service name="web_balancer">
+      <member node="web_host"/>
+    </service>
+  </node>
+  <container id="web_host_container" num_of_copies="2">
+    <node id="web_host">
+      <use_template name="ec2_small_instance"/>
+      <service name="web_server">
+        <database node="data_host"/>
+      </service>
+    </node>
+  </container>
+</topology>
+

@@ -1,0 +1,24 @@
+<%= render "devise/shared/header" %>
+
+<div id="main_content">
+<div id="reg_content">
+  <%= form_for resource, :as => resource_name, :url => registration_path(resource_name), :html => { :id => "reg_form" } do |f| %>
+    <h3><%= resource_name.to_s.humanize %> sign up</h3>
+
+    <div class="error"><%= devise_error_messages! %></div><br/>
+
+    <div><%= f.label :email %><br />
+    <%= f.email_field :email %></div>
+
+    <div><%= f.label :password %><br />
+    <%= f.password_field :password %></div>
+
+    <div><%= f.label :password_confirmation %><br />
+    <%= f.password_field :password_confirmation %></div>
+
+    <div><%= f.submit "Sign up" %></div>
+
+    <div id="links"><%= render "devise/shared/links" %></div>
+  <% end %>
+</div>
+</div>

@@ -1,0 +1,23 @@
+m1_small:  
+  id: 1
+  template_id: ec2_small_instance
+  attrs: {instance_type: m1.small}
+  topology_id: 1
+  user_id: 1
+
+db_container:
+  id: 2
+  template_id: database_container
+  attrs: {}
+  topology_id: 1
+  user_id: 1
+
+nested_instance:
+  id: 3
+  template_id: nested_instance
+  attrs:
+    ssh_user: test_user
+    password: test_pwd
+    port: 5555
+  topology_id: 1
+  user_id: 1

@@ -1,0 +1,17 @@
+openvpn:
+  id: 1
+  name: openvpn
+  state: undeployed
+  user_id: 1
+
+dns:
+  id: 2
+  name: dns
+  state: undeployed
+  user_id: 1
+
+host_protection:
+  id: 3
+  name: host_protection
+  state: undeployed
+  user_id: 1

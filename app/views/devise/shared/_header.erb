@@ -1,0 +1,18 @@
+<div id="header">
+<div id="head">
+  <h1>Pattern-base application deployer</h1>
+  <div id="topbar">
+    <% if user_signed_in? %>
+      <%= link_to "Get started", get_started_index_path %>
+      <%= link_to "API Doc", doc_index_path %>
+      <%= link_to "Sign out", destroy_user_session_path %>
+      <% if current_user.admin? %>
+        <%= link_to "Admin panel", rails_admin_path %>
+      <% end %>
+    <% else %>
+      <%= link_to "Sign in", new_user_session_path %>
+      <%= link_to "Sign up", new_user_registration_path %>
+    <% end %>
+  </div>
+</div>
+</div>

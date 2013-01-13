@@ -1,0 +1,19 @@
+web_host:
+  id: 1
+  node_id: web_host
+  attrs: {}
+  parent_id: 1
+  parent_type: Container
+  container_node_id:
+  user_id: 1
+  topology_id: 1
+
+data_host:
+  id: 2
+  node_id: data_host
+  attrs: {}
+  parent_id: 1
+  parent_type: Topology
+  container_node_id:
+  user_id: 1
+  topology_id: 1

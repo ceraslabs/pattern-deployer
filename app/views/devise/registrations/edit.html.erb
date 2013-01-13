@@ -1,0 +1,31 @@
+<%= render "devise/shared/header" %>
+
+<div id="main_content">
+<div id="edit_content">
+  <%= form_for(resource, :as => resource_name, :url => registration_path(resource_name), :html => { :method => :put, :id => "edit_form" }) do |f| %>
+    <h3>Edit <%= resource_name.to_s.humanize %></h3>
+
+    <div class="error"><%= devise_error_messages! %></div></br>
+
+    <div><%= f.label :email %><br />
+    <%= f.email_field :email %></div>
+
+    <div><%= f.label :password %> <i>(leave blank if you don't want to change it)</i><br />
+    <%= f.password_field :password, :autocomplete => "off" %></div>
+
+    <div><%= f.label :password_confirmation %><br />
+    <%= f.password_field :password_confirmation %></div>
+
+    <div><%= f.label :current_password %> <i>(we need your current password to confirm your changes)</i><br />
+    <%= f.password_field :current_password %></div>
+
+    <div><%= f.submit "Update" %></div>
+
+    <div>
+    <p>Unhappy? <%= link_to "Cancel my account", registration_path(resource_name), :data => { :confirm => "Are you sure?" }, :method => :delete %>.</p>
+    </div>
+
+    <div id="logout_link"><%= link_to "Logout", destroy_user_session_path %></div>
+  <% end %>
+</div>
+</div>

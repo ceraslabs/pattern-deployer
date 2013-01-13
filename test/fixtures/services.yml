@@ -1,0 +1,17 @@
+mysql: 
+  id: 1
+  service_id: database_server
+  properties: []
+  service_container_id: 1
+  service_container_type: Node
+  user_id: 1
+  topology_id: 1
+
+tomcat: 
+  id: 2
+  service_id: web_server
+  properties: []
+  service_container_id: 2
+  service_container_type: Node
+  user_id: 1
+  topology_id: 1

@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wmh="http://www.wmhelp.com/2003/eGenerator" elementFormDefault="qualified">
+  <xs:element name="topology">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="description" minOccurs="0"/>
+        <xs:element ref="instance_templates"/>
+        <xs:group ref="node_container_group" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <!-- instance template reference must be valid -->
+    <xs:key name="my_instance_template">
+      <xs:selector xpath="./instance_templates/*"/>
+      <xs:field xpath="@id"/>
+    </xs:key>
+    <xs:keyref name="extend_my_instance_template" refer="my_instance_template">
+      <xs:selector xpath="./instance_templates/template/extend"/>
+      <xs:field xpath="@template"/>
+    </xs:keyref>
+    <xs:keyref name="use_my_instance_template" refer="my_instance_template">
+      <xs:selector xpath=".//use_template"/>
+      <xs:field xpath="@name"/>
+    </xs:keyref>
+
+    <!-- node reference must be valid -->
+    <xs:key name="my_node">
+      <xs:selector xpath=".//node"/>
+      <xs:field xpath="@id"/>
+    </xs:key>
+    <xs:keyref name="openvpn_server_ref" refer="my_node">
+      <xs:selector xpath=".//openvpn_server"/>
+      <xs:field xpath="@node"/>
+    </xs:keyref>
+    <xs:keyref name="nested_instance_ref" refer="my_node">
+      <xs:selector xpath=".//nest_within"/>
+      <xs:field xpath="@node"/>
+    </xs:keyref>
+    <xs:keyref name="snort_pair_node1" refer="my_node">
+      <xs:selector xpath=".//snort_pair_first"/>
+      <xs:field xpath="@node"/>
+    </xs:keyref>
+    <xs:keyref name="snort_pair_node2" refer="my_node">
+      <xs:selector xpath=".//snort_pair_second"/>
+      <xs:field xpath="@node"/>
+    </xs:keyref>
+    <xs:keyref name="lb_member_node" refer="my_node">
+      <xs:selector xpath=".//member"/>
+      <xs:field xpath="@node"/>
+    </xs:keyref>
+    <xs:keyref name="database_node" refer="my_node">
+      <xs:selector xpath=".//database"/>
+      <xs:field xpath="@node"/>
+    </xs:keyref>
+    <xs:keyref name="chef_server_node" refer="my_node">
+      <xs:selector xpath=".//chef_server"/>
+      <xs:field xpath="@node"/>
+    </xs:keyref>
+    
+    <!-- vpnip must be unique -->
+    <xs:unique name="unique_vpnip">
+      <xs:selector xpath=".//vpnip"/>
+      <xs:field xpath="."/>
+    </xs:unique>
+  </xs:element>
+
+  <xs:element name="description" type="xs:string"/>
+  <xs:element name="instance_templates">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="template" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:group name="template_elements">
+    <xs:choice>
+      <xs:element ref="extend"/>
+      <xs:element ref="service"/>
+      <xs:group ref="instance_attributes" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:choice>
+  </xs:group>
+  <xs:element name="template">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:group ref="template_elements" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:group name="snort_pair_group">
+    <xs:sequence>
+      <xs:element ref="snort_pair_first"/>
+      <xs:element ref="snort_pair_second"/>
+    </xs:sequence>
+  </xs:group>
+  <xs:group name="service_elements">
+    <xs:choice>
+      <xs:element ref="vpnip"/>
+      <xs:element ref="war_file"/>
+      <xs:element ref="script"/>
+      <xs:element ref="openvpn_server"/>
+      <xs:group ref ="snort_pair_group"/>
+      <xs:element ref="member"/>
+      <xs:element ref="port_redirection"/>
+      <xs:element ref="database_connection"/>
+      <xs:group ref="database_elements"/>
+      <xs:element ref="server"/>
+    </xs:choice>
+  </xs:group>
+  <xs:element name="service">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:group ref="service_elements" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="name" use="required">
+        <xs:simpleType>
+          <!-- A list of supported services -->
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="openvpn_server"/>
+            <xs:enumeration value="openvpn_client"/>
+            <xs:enumeration value="database_server"/>
+            <xs:enumeration value="web_balancer"/>
+            <xs:enumeration value="web_server"/>
+            <xs:enumeration value="snort_prepost"/>
+            <xs:enumeration value="snort"/>
+            <xs:enumeration value="front_end_balancer"/>
+            <xs:enumeration value="ossec_client"/>
+            <xs:enumeration value="virsh"/>
+            <xs:enumeration value="dns_client"/>
+            <xs:enumeration value="server_installation"/>
+            <xs:enumeration value="standalone_installation"/>
+            <xs:enumeration value="client_installation"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="extend">
+    <xs:complexType>
+      <xs:attribute name="template" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:group name="instance_attributes">
+    <xs:choice>
+      <xs:element ref="cloud"/>
+      <xs:element ref="security_groups"/>
+      <xs:element ref="image_id"/>
+      <xs:element ref="key_pair_id"/>
+      <xs:element ref="ssh_user"/>
+      <xs:element ref="availability_zone"/>
+      <xs:element ref="instance_type"/>
+      <xs:element ref="port"/>
+      <xs:element ref="password"/>
+    </xs:choice>
+  </xs:group>
+  <xs:element name="port_redirection">
+    <xs:complexType>
+      <xs:attribute name="protocol" type="xs:string" use="required"/>
+      <xs:attribute name="from" type="xs:string" use="required"/>
+      <xs:attribute name="to" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="cloud" type="xs:string"/>
+  <xs:element name="security_groups" type="xs:string"/>
+  <xs:element name="image_id" type="xs:string"/>
+  <xs:element name="key_pair_id" type="xs:string"/>
+  <xs:element name="ssh_user" type="xs:string"/>
+  <xs:element name="availability_zone" type="xs:string"/>
+  <xs:element name="instance_type" type="xs:string"/>
+  <xs:element name="port" type="xs:string"/>
+  <xs:element name="password" type="xs:string"/>
+  <xs:element name="timeout" type="xs:string"/>
+  <xs:element name="container">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="node" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:string" use="required"/>
+      <xs:attribute name="num_of_copies" type="xs:string" use="optional"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:group name="node_container_group">
+    <xs:choice>
+      <xs:element ref="container" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element ref="node" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:choice>
+  </xs:group>
+  <xs:group name="node_elements">
+    <xs:choice>
+      <xs:element ref="use_template"/>
+      <xs:element ref="service"/>
+      <xs:element ref="nest_within"/>
+      <xs:group ref="instance_attributes" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:choice>
+  </xs:group>
+  <xs:element name="node">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:group ref="node_elements" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="use_template">
+    <xs:complexType>
+      <xs:attribute name="name" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="vpnip">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attribute name="index" type="xs:integer" use="optional"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="war_file">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="file_name"/>
+        <xs:element ref="datasource" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="file_name" type="xs:string"/>
+  <xs:element name="datasource" type="xs:string"/>
+  <xs:element name="script" type="xs:string"/>
+  <xs:element name="nest_within">
+    <xs:complexType>
+      <xs:attribute name="node" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="member">
+    <xs:complexType>
+      <xs:attribute name="node" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="openvpn_server">
+    <xs:complexType>
+      <xs:attribute name="node" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="database_connection">
+    <xs:complexType>
+      <xs:attribute name="node" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="server">
+    <xs:complexType>
+      <xs:attribute name="node" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:group name="database_elements">
+    <xs:choice>
+      <xs:element name="database_system" type="xs:string"/>
+      <xs:element name="database_name" type="xs:string"/>
+      <xs:element name="database_user" type="xs:string"/>
+      <xs:element name="database_password" type="xs:string"/>
+    </xs:choice>
+  </xs:group>
+  <xs:element name="snort_pair_first">
+    <xs:complexType>
+      <xs:attribute name="node" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="snort_pair_second">
+    <xs:complexType>
+      <xs:attribute name="node" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
+

@@ -1,0 +1,23 @@
+sql:
+  id: 1
+  type: SqlScriptFile
+  key_pair_id:
+  for_cloud:
+  file_name: sql
+  user_id: 1
+
+keypair:
+  id: 2
+  type: IdentityFile
+  key_pair_id: keypair
+  for_cloud: ec2
+  file_name: keypair.pem
+  user_id: 1
+
+war:
+  id: 3
+  type: WarFile
+  key_pair_id:
+  for_cloud:
+  file_name: sample.war
+  user_id: 1

@@ -1,0 +1,13 @@
+my_topology: 
+  id: 1
+  topology_id: my_topology
+  description: This is my topology
+  state: undeployed
+  user_id: 1
+
+other: 
+  id: 2
+  topology_id: other
+  description: Another topology
+  state: undeployed
+  user_id: 2
