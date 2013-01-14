@@ -1,4 +1,10 @@
 GIT
+  remote: git://github.com/ceraslabs/chef-repo.git
+  revision: ed247e5124c7dfcb78c3a607d80cea8cdf8a1147
+  specs:
+    customized-chef-repo (0.0.0)
+
+GIT
   remote: git://github.com/ceraslabs/knife-openstack.git
   revision: eb9d127b882fc149e068b18cf0c3e4c8a5f12ddb
   specs:
@@ -242,6 +248,7 @@ DEPENDENCIES
   cancan
   chef (= 10.12.0)
   coffee-rails (~> 3.2.1)
+  customized-chef-repo!
   customized-knife-openstack!
   devise
   execjs
