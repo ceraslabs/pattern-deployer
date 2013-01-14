@@ -46,7 +46,7 @@ gem 'mysql2'
 
 gem 'chef', '10.12.0'
 gem 'knife-ec2'
-gem 'my-knife-openstack'
+gem 'customized-knife-openstack', :git => 'git://github.com/ceraslabs/knife-openstack.git'
 
 gem 'devise'
 gem 'fastercsv'

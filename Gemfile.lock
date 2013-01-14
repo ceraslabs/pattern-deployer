@@ -1,3 +1,11 @@
+GIT
+  remote: git://github.com/ceraslabs/knife-openstack.git
+  revision: eb9d127b882fc149e068b18cf0c3e4c8a5f12ddb
+  specs:
+    customized-knife-openstack (0.6.3)
+      chef (>= 0.10.10)
+      fog (~> 1.4)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -124,9 +132,6 @@ GEM
     mixlib-shellout (1.1.0)
     moneta (0.6.0)
     multi_json (1.3.6)
-    my-knife-openstack (0.0.0)
-      chef (>= 0.10.10)
-      fog (~> 1.4)
     mysql2 (0.3.11)
     nested_form (0.2.3)
     net-scp (1.0.4)
@@ -237,6 +242,7 @@ DEPENDENCIES
   cancan
   chef (= 10.12.0)
   coffee-rails (~> 3.2.1)
+  customized-knife-openstack!
   devise
   execjs
   fastercsv
@@ -245,7 +251,6 @@ DEPENDENCIES
   knife-ec2
   libxml-ruby
   markdown-rails
-  my-knife-openstack
   mysql2
   rails (= 3.2.8)
   rails_admin
