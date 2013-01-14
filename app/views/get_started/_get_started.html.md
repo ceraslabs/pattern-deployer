@@ -1,16 +1,15 @@
-# Pattern-based Deployer
+# Pattern-based Application Deployer
 
-This is an automated pattern-based deployer that deploy user-provided applications to the cloud.
-Our goals is to make the deployment of application painless.
-
-We let user to describe their applications as intuitive *pattern* and we deploy their applications accroding to the their *pattern*.
+This is an automated pattern-based application deployer that deploys user-provided applications to the cloud.
+Our goal is to make the deployment of applications painless.
+We allow a user to describe their application as an intuitive *pattern* which we then deploy automatically on their behalf.
 
 ## What is pattern
 
-We use the word *pattern* to describe: what software(s) need to install, what application component(s) need to deploy, what application configuration(s) need to tune, etc.
+We use the word *pattern* to describe: what software(s) needs to be installed, what application component(s) need to be deployed, what application configuration(s) need to be tuned, etc.
 The application *pattern* should be cloud-independent, platform-indepedent, flexiable, easy-to-read and easy-to-modify.
 
-We used XML document to describe *pattern*(But we don't means only XML can describe *pattern*). An example pattern is as following
+We use an XML document to describe the *pattern*. An example pattern is as follows:
 
     <topology id="simple_topology">
       <instance_templates>
@@ -41,14 +40,12 @@ We used XML document to describe *pattern*(But we don't means only XML can descr
       </node>
     </topology>
 
-This pattern describe a typical Java web application.
-We said the application is a topology, and each cloud instance is node.
-In brief, this pattern gives the following information.
+This pattern describe a typical Java web application in which:
 
-* A EC2 micro instance need to be launched 
-* A web server and a database server need to install in the instance.
+* An EC2 micro instance needs to be launched.
+* A web server and a database server need to be installed in the instance.
 * The web server will host a war file(myapp.war) which is provided by user.
-* An user-provided SQL script(mydb.sql) will be executed to setup the database(s)/table(s) in the database server.
+* A user-provided SQL script(mydb.sql) will be executed to setup the database(s)/table(s) in the database server.
 
 Here is a more complicated sample pattern
 
@@ -92,44 +89,44 @@ Here is a more complicated sample pattern
       </node>
     </topology>
 
-This pattern describe a typical application deployment with high availability.
+This pattern describes an application deployment with high availability.
 This pattern gives us the following information
 
-* User want to launch totally 4 instances in EC2. 
+* Four instances need to be launched
 * One for database server
-* Two for web server 
-* One for load balancer.
+* Two for web server
+* One for load balancer
 
-The logic behind the pattern is that if one web server is failed, the load balancer will route all request to another web server.
+The logic behind the pattern is that if one web server fails, the load balancer will route all request to the alternative web server.
 
-## Why pattern
+## Why patterns
 
-Currently, deploying applications to the cloud is normally done by writing a dedicated custom script(s) and running those script(s) to deploy.
+Currently, deploying applications to the cloud is done by writing a dedicated custom script(s) and running those script(s) to deploy.
 There are several disadvantages of this approach.
 
 * ####Cloud dependent
 
-If applications need to be deployed to different cloud, the deployment script(s) need to be re-written which incurs maintainence cost and it is error-prone.
+If applications need to be deployed to a different cloud, the deployment script(s) need to be re-written which incurs maintainence cost and is error-prone.
 
 * ####Application specific
 
-The deploying script(s) will only work for specific application and hard to be re-used.
+The deployment script(s) will only work for specific application and not easily re-used.
 
 * ####Complicated
 
-For deploying a large system, the deploying script(s) is likely to be complicated and error-prone.
+For deploying a large system, the deployment script(s) is likely to be complicated and error-prone.
 
 * ####Platform dependent
 
-The custom script(s) is likely to only work on specific platform and hard to port to another platform.
+The deployment script(s) is likely to work on a specific platform only.
 
-## Our passion
+## Our focus
 
-We were working on research & development of application on the cloud and we experienced the difficulties and complication application deployment.
-Therefore, we developed this tool and premote the pattern-based approach.
-We argue that pattern-based approach can reduce the complexity of application deployment, specifically on cloud.
+Our research focuses on building frameworks to facilitate the dynamic/automated/optimized management of applications on clouds.
+We have experienced, first hand, the difficulties and complications associated with application deployment to the cloud.
+Therefore, we have developed this tool to demonstrate and promote a pattern-based approach to the applicaiton deployment problem that we believe can reduce this complexity substantially.
 
-## How to Deploy
+## How to deploy
 
 1. Users need to sign in or sign up first.
 
@@ -140,14 +137,17 @@ We argue that pattern-based approach can reduce the complexity of application de
 ![submit_cred1](/assets/get_started/submit_cred1.png)
 ![submit_cred2](/assets/get_started/submit_cred2.png)
 
-2. Users need to upload their identity file. Users need to indicate the keypair and cloud this identity file for.
+2. Users need to upload their identity file. Users need to indicate the keypair and cloud that this identity file is for.
 ![id_file1](/assets/get_started/id_file1.png)
 ![id_file2](/assets/get_started/id_file2.png)
 
-3. Users need to upload their war file which contains the application to deploy.
+3. Users need to upload their war file which contains the application to be deployed.
 ![war](/assets/get_started/war.png)
 
-4. Users need to upload their SQL script that is used to setup the database.
+4. Users need to upload their SQL script that is used to setup the database for their application as defined in the war from the previous step.
+The uploaded script should contain a sequence of statements to be executed to setup the DB.
+Standard SQL statements will work for sure.
+Non-standard SQL statements may not work if it is not compatible with the installed DBMS.
 ![sql](/assets/get_started/sql.png)
 
 5. This is the key part. Users need to upload their *pattern*.
@@ -166,7 +166,7 @@ Work in progress
 
 ## Undeploy
 
-If you finished using your application, you'd better to undeploy it from the cloud.
+If you finished using your application, the 'undeploy' operation can be used to undeploy it and release all the unused resources back to the cloud provider(e.g. EC2).
 
 ![undeploy](/assets/get_started/undeploy.png)
 
@@ -181,9 +181,9 @@ For authentication, if you don't want to deal with session data in cookie, you c
 We provide an admin panel with the deployer. If you are admin, you can see the panel here.
 ![admin1](/assets/get_started/admin1.png)
 
-The first registered user becomes an admin automatically. 
-Admins can access all resources while normal users can access the resources they own.
-Admin can premote other user as admin as well. The procedure is as following.
+The first registered user becomes the admin user automatically.
+Admins can access all resources while normal users can only access the resources they own.
+Admin can premote other users to admin as well. The procedure is as follows:
 ![admin2](/assets/get_started/admin2.png)
 ![admin3](/assets/get_started/admin3.png)
 
@@ -192,4 +192,4 @@ The role is originally of "user". Change it to "admin" and save.
 
 ## Further detail.
 
-As you already saw, we provides an API doc along with the deployer. You can find more detail information there.
+Please reference the API documentation(http://YOUR-SERVER-DOMAIN/doc) for more detailed information.
