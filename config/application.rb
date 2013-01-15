@@ -71,6 +71,11 @@ module PatternDeployer
     # The location of chef repository
     config.chef_repo_dir = "#{Rails.root}/chef-repo"
 
+    # link chef-repo to the installed gem
+    unless File.exists?(config.chef_repo_dir)
+      FileUtils.ln_s Gem.loaded_specs["customized-chef-repo"].full_gem_path.strip, config.chef_repo_dir
+    end
+
     # Amazon EC2
     config.ec2 = "ec2"
 
