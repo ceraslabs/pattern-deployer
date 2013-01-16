@@ -4,7 +4,7 @@ This is an automated pattern-based application deployer that deploys user-provid
 Our goal is to make the deployment of applications painless.
 We allow a user to describe their application as an intuitive *pattern* which we then deploy automatically on their behalf.
 
-## What is pattern
+## What is a pattern?
 
 We use the word *pattern* to describe: what software(s) needs to be installed, what application component(s) need to be deployed, what application configuration(s) need to be tuned, etc.
 The application *pattern* should be cloud-independent, platform-indepedent, flexiable, easy-to-read and easy-to-modify.
@@ -44,8 +44,8 @@ This pattern describe a typical Java web application in which:
 
 * An EC2 micro instance needs to be launched.
 * A web server and a database server need to be installed in the instance.
-* The web server will host a war file(myapp.war) which is provided by user.
-* A user-provided SQL script(mydb.sql) will be executed to setup the database(s)/table(s) in the database server.
+* The web server will host a war file (e.g., myapp.war) which is provided by user.
+* A user-provided SQL script (e.g., mydb.sql) will be executed to setup the database(s)/table(s) in the database server.
 
 Here is a more complicated sample pattern
 
@@ -90,7 +90,7 @@ Here is a more complicated sample pattern
     </topology>
 
 This pattern describes an application deployment with high availability.
-This pattern gives us the following information
+This pattern gives us the following information:
 
 * Four instances need to be launched
 * One for database server
@@ -99,26 +99,26 @@ This pattern gives us the following information
 
 The logic behind the pattern is that if one web server fails, the load balancer will route all request to the alternative web server.
 
-## Why patterns
+## Why patterns?
 
 Currently, deploying applications to the cloud is done by writing a dedicated custom script(s) and running those script(s) to deploy.
 There are several disadvantages of this approach.
 
-* ####Cloud dependent
+####Cloud dependent
 
-If applications need to be deployed to a different cloud, the deployment script(s) need to be re-written which incurs maintainence cost and is error-prone.
+* If applications need to be deployed to a different cloud, the deployment script(s) need to be re-written which incurs maintainence cost and is error-prone.
 
-* ####Application specific
+####Application specific
 
-The deployment script(s) will only work for specific application and not easily re-used.
+* The deployment script(s) will only work for specific application and not easily re-used.
 
-* ####Complicated
+####Complicated
 
-For deploying a large system, the deployment script(s) is likely to be complicated and error-prone.
+* For deploying a large system, the deployment script(s) is likely to be complicated and error-prone.
 
-* ####Platform dependent
+####Platform dependent
 
-The deployment script(s) is likely to work on a specific platform only.
+* The deployment script(s) is likely to work on a specific platform only.
 
 ## Our focus
 
@@ -166,15 +166,15 @@ Work in progress
 
 ## Undeploy
 
-If you finished using your application, the 'undeploy' operation can be used to undeploy it and release all the unused resources back to the cloud provider(e.g. EC2).
+When you finish  using your application the 'undeploy' operation can be used to undeploy it from the cloud and release all the unused resources back to the cloud provider (e.g. EC2).
 
 ![undeploy](/assets/get_started/undeploy.png)
 
-## Can I programmatically deploy/undeploy?
+## Can I programmatically deploy/undeploy my application?
 
-Of course. As you may notice, what the deployer provides is an Restful Web Service, so you can just write a Restful client in your favor language to consume the service.
+Of course. The deployer provides a Restful Web Service, so you can just write a Restful client in your favourite language to consume this service.
 
-For authentication, if you don't want to deal with session data in cookie, you can use [HTTP Basic](http://en.wikipedia.org/wiki/Basic_access_authentication), which is a widely support anthentication method.
+For authentication, if you don't want to deal with session data in a cookie, you can use [HTTP Basic](http://en.wikipedia.org/wiki/Basic_access_authentication), which is a widely supported authentication method.
 
 ## Administration
 
@@ -183,11 +183,11 @@ We provide an admin panel with the deployer. If you are admin, you can see the p
 
 The first registered user becomes the admin user automatically.
 Admins can access all resources while normal users can only access the resources they own.
-Admin can premote other users to admin as well. The procedure is as follows:
+Admins can premote other users to admins as well. The procedure is as follows:
 ![admin2](/assets/get_started/admin2.png)
 ![admin3](/assets/get_started/admin3.png)
 
-The role is originally of "user". Change it to "admin" and save.
+The role is originally that of "user". Change it to "admin" and save.
 ![admin4](/assets/get_started/admin4.png)
 
 ## Further detail.
