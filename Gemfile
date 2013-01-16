@@ -53,7 +53,8 @@ gem "cancan"
 
 gem "libxml-ruby"
 
-gem "ruby-prof"
+# Uncommet this for performance test
+# gem "ruby-prof"
 
 gem "source2swagger"
 
