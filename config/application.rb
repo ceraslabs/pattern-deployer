@@ -101,7 +101,7 @@ module PatternDeployer
     config.bootstrap_templates_dir = [config.chef_repo_dir, ".chef", "bootstrap"].join("/")
 
     # The location of chef config file
-    config.chef_config_file = "/home/ubuntu/.chef/knife.rb"
+    config.chef_config_file = "#{Rails.root}/chef-repo/.chef/knife.rb"
 
     # The deployment of application pattern will stop if the deployment time is more than this.
     config.chef_max_deploy_time = 1800
