@@ -396,7 +396,7 @@ class ChefNodeDeployer < BaseDeployer
 
   def load_output
     chef_node = get_chef_node
-    if chef_node && chef_node.has_key?("output") && chef_node["output"].class == Hash
+    if chef_node && chef_node.has_key?("output")
       chef_node["output"].each do |key, value|
         self[key] = value
       end
