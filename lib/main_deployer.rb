@@ -147,6 +147,11 @@ class MainDeployer < BaseDeployer
 
   def prepare_deploy(topology_xml, supporting_services, resources)
     initialize_deployers(topology_xml, supporting_services, resources)
+
+    # Load the updated list of clients and nodes
+    ChefNodesManager.instance.reload
+    ChefClientsManager.instance.reload
+
     super()
   end
 

@@ -30,6 +30,11 @@ class SupportingServiceDeployer < BaseDeployer
 
   def prepare_deploy(resources)
     initialize_deployers(resources)
+
+    # Load the updated list of clients and nodes
+    ChefNodesManager.instance.reload
+    ChefClientsManager.instance.reload
+
     super()
   end
 

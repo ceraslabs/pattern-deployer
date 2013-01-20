@@ -118,8 +118,12 @@ class ChefNodesManager
       if @cache.has_key?(node_name)
         # This delete chef node and cleanup the cache, but it may talk to chef server twice
         chef_node = get_node(node_name)
+        if chef_node.nil?
+          raise "Node '#{node_name}' doesnot exist, so it cannot be deleted"
+        end
+
         chef_node.delete
-        @list_of_nodes.delete(node_name)
+        @cache.delete(node_name)
       else
         # This delete the node without cleaning the cache, and it talk to chef server just once
         node_delete = Chef::Knife::NodeDelete.new
@@ -127,6 +131,8 @@ class ChefNodesManager
         node_delete.config[:yes] = true
         node_delete.run
       end
+
+      @list_of_nodes.delete(node_name)
     end
   end
 
