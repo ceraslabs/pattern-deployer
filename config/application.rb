@@ -104,7 +104,7 @@ module PatternDeployer
     config.chef_config_file = "#{Rails.root}/chef-repo/.chef/knife.rb"
 
     # The deployment of application pattern will stop if the deployment time is more than this.
-    config.chef_max_deploy_time = 1800
+    config.chef_max_deploy_time = 3600
 
     # The timeout for waiting ip address of another deploying instance
     config.chef_wait_ip_timeout = 300
