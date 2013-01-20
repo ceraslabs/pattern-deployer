@@ -19,3 +19,4 @@ pickle-email-*.html
 /chef-repo/*
 .DS_Store
 /Gemfile.lock
+/uploaded_files
