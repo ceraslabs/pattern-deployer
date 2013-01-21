@@ -1,18 +1,18 @@
 <div id="header">
-<div id="head">
-  <h1>Pattern-Base Application Deployer</h1>
-  <div id="topbar">
+<div class="container">
+  <h1 id="logo"><%= link_to "Pattern-Base Application Deployer", root_path %></h1>
+  <ul id="nav">
     <% if user_signed_in? %>
-      <%= link_to "Get started", get_started_index_path %>
-      <%= link_to "API Doc", doc_index_path %>
-      <%= link_to "Sign out", destroy_user_session_path %>
+      <li><%= link_to "Get started", get_started_index_path, :class => "active" %></li>
+      <li><%= link_to "API Doc", doc_index_path %></li>
+      <li><%= link_to "Sign out", destroy_user_session_path %></li>
       <% if current_user.admin? %>
-        <%= link_to "Admin panel", rails_admin_path %>
+        <li><%= link_to "Admin panel", rails_admin_path %></li>
       <% end %>
     <% else %>
-      <%= link_to "Sign in", new_user_session_path %>
-      <%= link_to "Sign up", new_user_registration_path %>
+      <li><%= link_to "Sign in", new_user_session_path %></li>
+      <li><%= link_to "Sign up", new_user_registration_path %></li>
     <% end %>
-  </div>
+  </ul>
 </div>
 </div>
