@@ -22,3 +22,4 @@ pickle-email-*.html
 /uploaded_files
 /public/api-docs/*
 /public/api-docs.json
+/public/assets/
