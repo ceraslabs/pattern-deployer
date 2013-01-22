@@ -3,7 +3,7 @@
   <h1 id="logo"><%= link_to "Pattern-Base Application Deployer", root_path %></h1>
   <ul id="nav">
     <% if user_signed_in? %>
-      <li><%= link_to "Get started", get_started_index_path, :class => "active" %></li>
+      <li><%= link_to "Get started", "https://github.com/ceraslabs/pattern-deployer/wiki/Getting-Started", :class => "active" %></li>
       <li><%= link_to "API Doc", doc_index_path %></li>
       <li><%= link_to "Sign out", destroy_user_session_path %></li>
       <% if current_user.admin? %>
