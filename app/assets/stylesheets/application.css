@@ -118,10 +118,6 @@ div.error h2{
 #header {
   background-color: #83ad00;
   overflow: hidden;
-  -moz-box-shadow: #dddddd 0 2px 5px 3px;
-  -webkit-box-shadow: #dddddd 0 2px 5px 3px;
-  -o-box-shadow: #dddddd 0 2px 5px 3px;
-  box-shadow: #dddddd 0 2px 5px 3px;
 }
 
 #header .container {
@@ -222,10 +218,7 @@ div.error h2{
 	padding:0;
        background:#fff;
 	margin:0 auto;
-	border:5px solid #89bf04;
-	//-moz-box-shadow:0 0 5px #999;
-	//-webkit-box-shadow: 0 0 5px #999;
-	//box-shadow:0 0 5px #999;
+	border:5px solid #83ad00;
 	position:absolute;
        left:30px;
        top:110px;
@@ -246,7 +239,7 @@ div.error h2{
 #reg_content h3,
 #edit_content h3{
 	font-size:1.5em;
-	color:green;
+	color:#83ad00;
 	padding:7px 0 20px 40px;
 }
 #login_form,
