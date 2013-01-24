@@ -32,7 +32,6 @@ PatternDeployer::Application.routes.draw do
   end
 
   resources :doc, :only => [:index]
-  resources :get_started, :only => [:index]
 
   # The priority is based upon order of creation:
   # first created -> highest priority.
