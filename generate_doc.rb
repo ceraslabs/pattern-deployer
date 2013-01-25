@@ -1,62 +1,54 @@
 #!/usr/bin/ruby
 
 require "fileutils"
-
-def replace_localhost_with_url_in_file(file_path, url)
-  lines = IO.readlines(file_path).map do |line|
-    line.sub(/localhost/, url)
-  end
-  File.open(file_path, 'w') do |file|
-    file.puts lines
-  end
-end
+require 'json'
 
 
 # generate api docs from comment
-api_dir = "public/api-docs"
+api_dir = "app/views/api_docs"
 FileUtils.mkdir_p(api_dir)
-system "source2swagger -i app/controllers -e 'rb' -c '##~' -o #{api_dir}"
-Dir.new(api_dir).each do |file_name|
-  next unless file_name.match(/\.json$/)
-
-  # get rid of tailing .json in filename
-  new_file_name = file_name.sub(/\.json$/, "")
-  Dir.chdir(api_dir) do
-    FileUtils.mv(file_name, new_file_name)
+command = "source2swagger -i app/controllers -e 'rb' -c '##~' -o #{api_dir} >/dev/null"
+unless system command
+  unless system "bundle exec #{command}"
+    raise "Failed to generate doc with command #{command}"
   end
 end
 
-# get url
-hostname = `curl http://169.254.169.254/latest/meta-data/public-hostname`.strip
-raise "cannot get host name" if hostname.nil? || hostname.empty?
-url = "http://" + hostname
+# add .erb suffix to file names
+Dir.new(api_dir).each do |file_name|
+  next unless file_name.match(/\.json$/)
 
-# replace localhost with actual url
-files = Array.new
-Dir.foreach(api_dir) do |file_name|
-  next if File.directory?(file_name) || file_name == "." || file_name == ".."
-
-  file_path = "#{api_dir}/#{file_name}"
-  replace_localhost_with_url_in_file(file_path, url)
-  files << file_name
+  new_file_name = file_name.sub(/\.json$/, ".json.erb")
+  Dir.chdir(api_dir) do
+    File.open(file_name, "r") do |fin|
+      File.open(new_file_name, "w") do |fout|
+        json = fin.read
+        fout.write(JSON.pretty_generate(JSON.parse(json)))
+      end
+    end
+    FileUtils.rm(file_name)
+  end
 end
 
-# generate api-docs.json
-apis = files.map do |file_name|
-  %Q[ {"path":"/api-docs/#{file_name}", "description":"#{file_name}"} ]
+# collect the list of APIs
+apis = Array.new
+Dir.foreach(api_dir) do |file_name|
+  next if file_name == "." || file_name == ".." || file_name == "index.json.erb"
+  api_name = file_name.sub(/\.json.erb$/, "")
+  apis << %Q[{"path":"/api_docs/#{api_name}", "description":"#{api_name}"}]
 end
 
 json = <<-JSONTEXT
   {
     "apiVersion":"0.2",
     "swaggerVersion":"1.1",
-    "basePath":"#{url}",
+    "basePath":"<%= request.protocol + request.host_with_port %>",
     "apis":[
       #{apis.join(",\n")}
     ]
   }
 JSONTEXT
 
-File.open("public/api-docs.json", "w") do |out|
-  out.write(json)
+File.open("app/views/api_docs/index.json.erb", "w") do |out|
+  out.write(JSON.pretty_generate(JSON.parse(json)))
 end

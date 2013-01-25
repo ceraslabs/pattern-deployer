@@ -1,0 +1,284 @@
+{
+  "basePath": "<%= request.protocol + request.host_with_port %>",
+  "apiVersion": "1.1",
+  "apis": [
+    {
+      "description": "Show a list of containers definitions",
+      "operations": [
+        {
+          "parameters": [
+            {
+              "description": "The unique id of topology that container(s) belongs to",
+              "paramType": "path",
+              "allowMultiple": false,
+              "name": "topology_id",
+              "dataType": "integer",
+              "required": true
+            }
+          ],
+          "httpMethod": "GET",
+          "summary": "Show a list of containers definitions",
+          "deprecated": false,
+          "nickname": "get_list_of_containers",
+          "errorResponses": [
+            {
+              "reason": "user haven't logined",
+              "code": 401
+            },
+            {
+              "reason": "user doesnot have permission for this operation",
+              "code": 403
+            },
+            {
+              "reason": "some weird error occurs, possibly due to bug(s)",
+              "code": 500
+            }
+          ]
+        }
+      ],
+      "path": "/api/topologies/{topology_id}/containers"
+    },
+    {
+      "description": "Create a new containers definition",
+      "operations": [
+        {
+          "parameters": [
+            {
+              "description": "The unique id of topology which the list of containers belong to",
+              "paramType": "path",
+              "allowMultiple": false,
+              "name": "topology_id",
+              "dataType": "integer",
+              "required": true
+            },
+            {
+              "description": "This file should be an XML document to describe the container",
+              "paramType": "body",
+              "allowMultiple": false,
+              "name": "definition",
+              "dataType": "string",
+              "required": false
+            },
+            {
+              "description": "The name of the container to be created",
+              "paramType": "query",
+              "allowMultiple": false,
+              "name": "name",
+              "dataType": "string",
+              "required": false
+            },
+            {
+              "description": "The number of copies property. Each node inside this container will be scaled by this number of copies. Default is one",
+              "paramType": "query",
+              "allowMultiple": false,
+              "name": "num_of_copies",
+              "dataType": "integer",
+              "required": false
+            }
+          ],
+          "httpMethod": "POST",
+          "summary": "Create a new containers definition",
+          "deprecated": false,
+          "nickname": "create_container",
+          "errorResponses": [
+            {
+              "reason": "user provided invalid parameter(s)",
+              "code": 400
+            },
+            {
+              "reason": "user haven't logined",
+              "code": 401
+            },
+            {
+              "reason": "user doesnot have permission for this operation",
+              "code": 403
+            },
+            {
+              "reason": "some weird error occurs, possibly due to bug(s)",
+              "code": 500
+            }
+          ],
+          "notes": "Container is used to contain node(s). Node(s) inside container can be scaled by 'num_of_copies' attribute.  Users have 2 options to create a container: provide an XML definition or just provide the name(optionally together with the number of copies)."
+        }
+      ],
+      "path": "/api/topologies/{topology_id}/containers"
+    },
+    {
+      "description": "Get the container definition with id",
+      "operations": [
+        {
+          "parameters": [
+            {
+              "description": "The unique id of topology which the container belongs to",
+              "paramType": "path",
+              "allowMultiple": false,
+              "name": "topology_id",
+              "dataType": "integer",
+              "required": true
+            },
+            {
+              "description": "The unique id of container",
+              "paramType": "path",
+              "allowMultiple": false,
+              "name": "id",
+              "dataType": "integer",
+              "required": true
+            }
+          ],
+          "httpMethod": "GET",
+          "summary": "Get the container definition with id",
+          "deprecated": false,
+          "nickname": "get_container_by_id",
+          "errorResponses": [
+            {
+              "reason": "user provided invalid parameter(s)",
+              "code": 400
+            },
+            {
+              "reason": "user haven't logined",
+              "code": 401
+            },
+            {
+              "reason": "user doesnot have permission for this operation",
+              "code": 403
+            },
+            {
+              "reason": "some weird error occurs, possibly due to bug(s)",
+              "code": 500
+            }
+          ]
+        }
+      ],
+      "path": "/api/topologies/{topology_id}/containers/{id}"
+    },
+    {
+      "description": "Delete the container definition",
+      "operations": [
+        {
+          "parameters": [
+            {
+              "description": "The unique id of topology which the container belongs to",
+              "paramType": "path",
+              "allowMultiple": false,
+              "name": "topology_id",
+              "dataType": "integer",
+              "required": true
+            },
+            {
+              "description": "The unique id of container",
+              "paramType": "path",
+              "allowMultiple": false,
+              "name": "id",
+              "dataType": "integer",
+              "required": true
+            }
+          ],
+          "httpMethod": "DELETE",
+          "summary": "Delete the container definition",
+          "deprecated": false,
+          "nickname": "delete_container_by_id",
+          "errorResponses": [
+            {
+              "reason": "user provided invalid parameter(s)",
+              "code": 400
+            },
+            {
+              "reason": "user haven't logined",
+              "code": 401
+            },
+            {
+              "reason": "user doesnot have permission for this operation",
+              "code": 403
+            },
+            {
+              "reason": "some weird error occurs, possibly due to bug(s)",
+              "code": 500
+            }
+          ]
+        }
+      ],
+      "path": "/api/topologies/{topology_id}/containers/{id}"
+    },
+    {
+      "description": "Modify the definition of the container",
+      "operations": [
+        {
+          "parameters": [
+            {
+              "description": "The unique id of topology which the container belongs to",
+              "paramType": "path",
+              "allowMultiple": false,
+              "name": "topology_id",
+              "dataType": "integer",
+              "required": true
+            },
+            {
+              "description": "The unique id of container",
+              "paramType": "path",
+              "allowMultiple": false,
+              "name": "id",
+              "dataType": "integer",
+              "required": true
+            },
+            {
+              "description": "The operatoin to execute",
+              "paramType": "query",
+              "allowMultiple": false,
+              "name": "operation",
+              "dataType": "string",
+              "required": true,
+              "allowableValues": {
+                "valueType": "LIST",
+                "values": [
+                  "rename",
+                  "scale"
+                ]
+              }
+            },
+            {
+              "description": "The new name. Used with 'rename' operation",
+              "paramType": "query",
+              "allowMultiple": false,
+              "name": "name",
+              "dataType": "string",
+              "required": false
+            },
+            {
+              "description": "The number of copies property. Each node inside this container will be scaled by this number of copies. Used with 'scale' operation",
+              "paramType": "query",
+              "allowMultiple": false,
+              "name": "num_of_copies",
+              "dataType": "integer",
+              "required": false
+            }
+          ],
+          "httpMethod": "PUT",
+          "summary": "Modify the definition of the container",
+          "deprecated": false,
+          "nickname": "modify_container_by_id",
+          "errorResponses": [
+            {
+              "reason": "user provided invalid parameter(s)",
+              "code": 400
+            },
+            {
+              "reason": "user haven't logined",
+              "code": 401
+            },
+            {
+              "reason": "user doesnot have permission for this operation",
+              "code": 403
+            },
+            {
+              "reason": "some weird error occurs, possibly due to bug(s)",
+              "code": 500
+            }
+          ],
+          "notes": "Container is used to contain node(s). Node(s) inside container can be scaled by 'num_of_copies' attribute. User can change the name of the container or change the 'num_of_copies' attribute of the container"
+        }
+      ],
+      "path": "/api/topologies/{topology_id}/containers/{id}"
+    }
+  ],
+  "swagrVersion": "0.2"
+}

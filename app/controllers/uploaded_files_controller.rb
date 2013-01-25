@@ -1,7 +1,7 @@
 require "my_errors"
 
 ##~ @file = source2swagger.namespace("uploaded_file")
-##~ @file.basePath = "localhost"
+##~ @file.basePath = "<%= request.protocol + request.host_with_port %>"
 ##~ @file.swagrVersion = "0.2"
 ##~ @file.apiVersion = "1.1"
 ##

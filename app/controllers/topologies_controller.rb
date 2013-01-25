@@ -2,7 +2,7 @@ require "my_errors"
 require "resources_manager"
 
 ##~ @topology = source2swagger.namespace("topology")
-##~ @topology.basePath = "localhost"
+##~ @topology.basePath = "<%= request.protocol + request.host_with_port %>"
 ##~ @topology.swagrVersion = "0.2"
 ##~ @topology.apiVersion = "1.1"
 class TopologiesController < RestfulController

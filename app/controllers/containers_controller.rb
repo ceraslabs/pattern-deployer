@@ -1,7 +1,7 @@
 require "my_errors"
 
 ##~ @container = source2swagger.namespace("container")
-##~ @container.basePath = "localhost"
+##~ @container.basePath = "<%= request.protocol + request.host_with_port %>"
 ##~ @container.swagrVersion = "0.2"
 ##~ @container.apiVersion = "1.1"
 ##

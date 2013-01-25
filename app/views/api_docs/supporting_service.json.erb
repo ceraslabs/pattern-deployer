@@ -1,0 +1,129 @@
+{
+  "basePath": "<%= request.protocol + request.host_with_port %>",
+  "apiVersion": "1.1",
+  "apis": [
+    {
+      "description": "Show a list of supporting services",
+      "operations": [
+        {
+          "httpMethod": "GET",
+          "summary": "Show a list of supporting services",
+          "deprecated": false,
+          "nickname": "get_list_of_supporting_services",
+          "errorResponses": [
+            {
+              "reason": "user haven't logined",
+              "code": 401
+            },
+            {
+              "reason": "user doesnot have permission for this operation",
+              "code": 403
+            },
+            {
+              "reason": "some weird error occurs, possibly due to bug(s)",
+              "code": 500
+            }
+          ]
+        }
+      ],
+      "path": "/api/supporting_services"
+    },
+    {
+      "description": "Show the supporting service by id",
+      "operations": [
+        {
+          "parameters": [
+            {
+              "description": "The unique id of supporting service",
+              "paramType": "path",
+              "allowMultiple": false,
+              "name": "id",
+              "dataType": "integer",
+              "required": true
+            }
+          ],
+          "httpMethod": "GET",
+          "summary": "Show the supporting service by id",
+          "deprecated": false,
+          "nickname": "get_supporting_service_by_id",
+          "errorResponses": [
+            {
+              "reason": "user provided invalid parameter(s)",
+              "code": 400
+            },
+            {
+              "reason": "user haven't logined",
+              "code": 401
+            },
+            {
+              "reason": "user doesnot have permission for this operation",
+              "code": 403
+            },
+            {
+              "reason": "some weird error occurs, possibly due to bug(s)",
+              "code": 500
+            }
+          ]
+        }
+      ],
+      "path": "/api/supporting_services/{id}"
+    },
+    {
+      "description": "Enable/Disable supporting service by id",
+      "operations": [
+        {
+          "parameters": [
+            {
+              "description": "The unique id of supporting service",
+              "paramType": "path",
+              "allowMultiple": false,
+              "name": "id",
+              "dataType": "integer",
+              "required": true
+            },
+            {
+              "description": "Enable/Disable the supporting service.",
+              "paramType": "query",
+              "allowMultiple": false,
+              "name": "operation",
+              "dataType": "string",
+              "required": true,
+              "allowableValues": {
+                "valueType": "LIST",
+                "values": [
+                  "enable",
+                  "disable"
+                ]
+              }
+            }
+          ],
+          "httpMethod": "PUT",
+          "summary": "Enable/Disable supporting service by id",
+          "deprecated": false,
+          "nickname": "modify_supporting_service_by_id",
+          "errorResponses": [
+            {
+              "reason": "user provided invalid parameter(s)",
+              "code": 400
+            },
+            {
+              "reason": "user haven't logined",
+              "code": 401
+            },
+            {
+              "reason": "user doesnot have permission for this operation",
+              "code": 403
+            },
+            {
+              "reason": "some weird error occurs, possibly due to bug(s)",
+              "code": 500
+            }
+          ],
+          "notes": "The deployment of some services need to be supported by additional component(s). Therefore, the concept of supporting service is introduced to describe the deployment of additional component(s). E.g. In order to setup openvpn network of topology, we need to setup a certificate authority to generate keys/certificates. Only admin can enable/disable supporting services. Once a supporting service is enabled, it can be shared by all topologies.<h4>Supporting services</h4><table><thead><tr><th>supporting service</th><th>description</th></tr></thead><tr><td>host_protection</td><td>Provide host-based intrusion protection service. If enable, nodes in topology can be monitored by an ossec server to detect any potential intrusion</td></tr><tr><td>openvpn</td><td>Provide openvpn service. Specifically, enabling this service will deploy an server which dedicates to generate keys/certificates for message encryption. User can enable this service if communications between nodes need to be secured</td></tr><tr><td>dns</td><td>Provide load-balancing DNS service. If enable, nodes can subscribe itself as members of DNS. The load-balancing DNS will dispatch requests to its member(s) according to certain load-balancing scenario.</td></tr></table>"
+        }
+      ],
+      "path": "/api/supporting_services/{id}"
+    }
+  ],
+  "swagrVersion": "0.2"
+}

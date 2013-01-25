@@ -33,6 +33,9 @@ PatternDeployer::Application.routes.draw do
 
   resources :doc, :only => [:index]
 
+  match '/api_docs' => 'api_docs#index'
+  match '/api_docs/:action' => 'api_docs#:action', :defaults => {:format => :json}
+
   # The priority is based upon order of creation:
   # first created -> highest priority.
 

@@ -1,7 +1,7 @@
 require "my_errors"
 
 ##~ @credential = source2swagger.namespace("credential")
-##~ @credential.basePath = "localhost"
+##~ @credential.basePath = "<%= request.protocol + request.host_with_port %>"
 ##~ @credential.swagrVersion = "0.2"
 ##~ @credential.apiVersion = "1.1"
 ##~ @clouds = ["ec2", "openstack"]

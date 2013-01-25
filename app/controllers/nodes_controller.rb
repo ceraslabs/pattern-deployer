@@ -1,7 +1,7 @@
 require "my_errors"
 
 ##~ @node = source2swagger.namespace("node")
-##~ @node.basePath = "localhost"
+##~ @node.basePath = "<%= request.protocol + request.host_with_port %>"
 ##~ @node.swagrVersion = "0.2"
 ##~ @node.apiVersion = "1.1"
 ##

@@ -1,7 +1,7 @@
 require "my_errors"
 
 ##~ @template = source2swagger.namespace("template")
-##~ @template.basePath = "localhost"
+##~ @template.basePath = "<%= request.protocol + request.host_with_port %>"
 ##~ @template.swagrVersion = "0.2"
 ##~ @template.apiVersion = "1.1"
 class TemplatesController < RestfulController

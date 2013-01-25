@@ -1,5 +1,5 @@
 ##~ @service = source2swagger.namespace("service")
-##~ @service.basePath = "localhost"
+##~ @service.basePath = "<%= request.protocol + request.host_with_port %>"
 ##~ @service.swagrVersion = "0.2"
 ##~ @service.apiVersion = "1.1"
 ##

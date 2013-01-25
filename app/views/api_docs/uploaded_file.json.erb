@@ -1,0 +1,272 @@
+{
+  "basePath": "<%= request.protocol + request.host_with_port %>",
+  "apiVersion": "1.1",
+  "apis": [
+    {
+      "description": "Show a list of uploaded files",
+      "operations": [
+        {
+          "httpMethod": "GET",
+          "summary": "Show a list of uploaded files",
+          "deprecated": false,
+          "nickname": "get_list_of_files",
+          "errorResponses": [
+            {
+              "reason": "user haven't logined",
+              "code": 401
+            },
+            {
+              "reason": "user doesnot have permission for this operation",
+              "code": 403
+            },
+            {
+              "reason": "some weird error occurs, possibly due to bug(s)",
+              "code": 500
+            }
+          ]
+        }
+      ],
+      "path": "/api/uploaded_files"
+    },
+    {
+      "description": "Upload a file",
+      "operations": [
+        {
+          "parameters": [
+            {
+              "description": "The uploaded file",
+              "paramType": "body",
+              "allowMultiple": false,
+              "name": "file",
+              "dataType": "file",
+              "required": true
+            },
+            {
+              "description": "The type of the uploaded file",
+              "paramType": "query",
+              "allowMultiple": false,
+              "name": "file_type",
+              "dataType": "string",
+              "required": true,
+              "allowableValues": {
+                "valueType": "LIST",
+                "values": [
+                  "sql_script_file",
+                  "war_file",
+                  "identity_file"
+                ]
+              }
+            },
+            {
+              "description": "The name of the uploaded file. Use this parameter if user want a name different from the orignal file name.",
+              "paramType": "query",
+              "allowMultiple": false,
+              "name": "file_name",
+              "dataType": "string",
+              "required": false
+            },
+            {
+              "description": "The key pair id of the identify file",
+              "paramType": "query",
+              "allowMultiple": false,
+              "name": "key_pair_id",
+              "dataType": "string",
+              "required": false
+            },
+            {
+              "description": "The cloud where this key pair belongs to",
+              "paramType": "query",
+              "allowMultiple": false,
+              "name": "for_cloud",
+              "dataType": "string",
+              "required": false,
+              "allowableValues": {
+                "valueType": "LIST",
+                "values": [
+                  "ec2",
+                  "openstack"
+                ]
+              }
+            }
+          ],
+          "httpMethod": "POST",
+          "summary": "Upload a file",
+          "deprecated": false,
+          "nickname": "create_file",
+          "errorResponses": [
+            {
+              "reason": "user provided invalid parameter(s)",
+              "code": 400
+            },
+            {
+              "reason": "user haven't logined",
+              "code": 401
+            },
+            {
+              "reason": "user doesnot have permission for this operation",
+              "code": 403
+            },
+            {
+              "reason": "some weird error occurs, possibly due to bug(s)",
+              "code": 500
+            }
+          ],
+          "notes": "User need to provide a name for the created file. Depending on file type, user may need to fill additional parameter(s)<h4>File types</h4><table><thead><tr><th>type</th><th>description</th></tr></thead><tr><td>sql_script_file</td><td>An sql script file which is used to setup the schema/tables of database</td></tr><tr><td>war_file</td><td>Java application archive. An war file should have suffix '.war'</td></tr><tr><td>identity_file</td><td>Identity file contains private key that is used to ssh to the deployed instance. An identity file should match a keypair of the cloud and should have an suffix '.pem'</td></tr></table>"
+        }
+      ],
+      "path": "/api/uploaded_files"
+    },
+    {
+      "description": "Delete the uploaded file by id",
+      "operations": [
+        {
+          "parameters": [
+            {
+              "description": "The unique id of the uploaded file",
+              "paramType": "path",
+              "allowMultiple": false,
+              "name": "id",
+              "dataType": "integer",
+              "required": true
+            }
+          ],
+          "httpMethod": "GET",
+          "summary": "Delete the uploaded file by id",
+          "deprecated": false,
+          "nickname": "get_file_by_id",
+          "errorResponses": [
+            {
+              "reason": "user provided invalid parameter(s)",
+              "code": 400
+            },
+            {
+              "reason": "user haven't logined",
+              "code": 401
+            },
+            {
+              "reason": "user doesnot have permission for this operation",
+              "code": 403
+            },
+            {
+              "reason": "some weird error occurs, possibly due to bug(s)",
+              "code": 500
+            }
+          ]
+        }
+      ],
+      "path": "/api/uploaded_files/{id}"
+    },
+    {
+      "description": "Delete the uploaded file by id",
+      "operations": [
+        {
+          "parameters": [
+            {
+              "description": "The unique id of uploaded file",
+              "paramType": "path",
+              "allowMultiple": false,
+              "name": "id",
+              "dataType": "integer",
+              "required": true
+            }
+          ],
+          "httpMethod": "DELETE",
+          "summary": "Delete the uploaded file by id",
+          "deprecated": false,
+          "nickname": "delete_file_by_id",
+          "errorResponses": [
+            {
+              "reason": "user provided invalid parameter(s)",
+              "code": 400
+            },
+            {
+              "reason": "user haven't logined",
+              "code": 401
+            },
+            {
+              "reason": "user doesnot have permission for this operation",
+              "code": 403
+            },
+            {
+              "reason": "some weird error occurs, possibly due to bug(s)",
+              "code": 500
+            }
+          ]
+        }
+      ],
+      "path": "/api/uploaded_files/{id}"
+    },
+    {
+      "description": "Modify the uploaded file by id",
+      "operations": [
+        {
+          "parameters": [
+            {
+              "description": "The unique id of uploaded file",
+              "paramType": "path",
+              "allowMultiple": false,
+              "name": "id",
+              "dataType": "integer",
+              "required": true
+            },
+            {
+              "description": "The operation to execute",
+              "paramType": "query",
+              "allowMultiple": false,
+              "name": "operation",
+              "dataType": "string",
+              "required": true,
+              "allowableValues": {
+                "valueType": "LIST",
+                "values": [
+                  "rename",
+                  "reupload"
+                ]
+              }
+            },
+            {
+              "description": "The new file. Used with 'reupload' operation",
+              "paramType": "body",
+              "allowMultiple": false,
+              "name": "file",
+              "dataType": "file",
+              "required": false
+            },
+            {
+              "description": "The new file name. Used with 'rename' operation",
+              "paramType": "query",
+              "allowMultiple": false,
+              "name": "file_name",
+              "dataType": "string",
+              "required": false
+            }
+          ],
+          "httpMethod": "PUT",
+          "summary": "Modify the uploaded file by id",
+          "deprecated": false,
+          "nickname": "modify_file_by_id",
+          "errorResponses": [
+            {
+              "reason": "user provided invalid parameter(s)",
+              "code": 400
+            },
+            {
+              "reason": "user haven't logined",
+              "code": 401
+            },
+            {
+              "reason": "user doesnot have permission for this operation",
+              "code": 403
+            },
+            {
+              "reason": "some weird error occurs, possibly due to bug(s)",
+              "code": 500
+            }
+          ]
+        }
+      ],
+      "path": "/api/uploaded_files/{id}"
+    }
+  ],
+  "swagrVersion": "0.2"
+}
