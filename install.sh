@@ -47,7 +47,7 @@ mkdir -p ~/.chef
 home=`echo ~`
 
 # create an API client
-new_client_name=workstation4
+new_client_name=workstation
 new_client_key_path=$home/.chef/$new_client_name.pem
 if [ ! -f $new_client_key_path ]
 then
