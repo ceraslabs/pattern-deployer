@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# exit the shell script if error
+set -e
+
 # update apt-get
 sudo apt-get update
 
