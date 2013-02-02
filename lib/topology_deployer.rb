@@ -307,7 +307,7 @@ class TopologyDeployer < BaseDeployer
       services = topology.get_services(node_id)
 
       topology.get_all_copies(node_id).each do |extended_node_id|
-        node_deployer = ChefNodeDeployer.new(extended_node_id, node_info, services, resources, self)
+        node_deployer = ChefNodeDeployer.new(extended_node_id, node_info.clone, services, resources, self)
         vertex = Vertex.new(extended_node_id, node_deployer, self)
         vertice[extended_node_id] = vertex
       end
