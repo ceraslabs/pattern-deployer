@@ -45,6 +45,7 @@ class ChefCookbookWrapper
     existing_file = get_cookbook_file(file_name)
     if existing_file.nil? || !FileUtils.compare_file(file, existing_file)
       destination = get_cookbook_file_folder
+      FileUtils.mkdir_p(destination)
       FileUtils.cp(file, destination)
     end
   end
