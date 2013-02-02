@@ -69,7 +69,9 @@ class ChefNodeDeployer < BaseDeployer
         info["user"] = self["database"]["user"]
         info["password"]  = self["database"]["password"]
         info["url"]  = get_db_url if get_db_url
-        info["root_password"] = chef_node["mysql"]["server_root_password"] if chef_node = get_chef_node
+        if chef_node = get_chef_node
+          info["root_password"] = chef_node["mysql"]["server_root_password"]
+        end
       end
 
       (infos[service_name] ||= Array.new) << info
@@ -278,7 +280,7 @@ class ChefNodeDeployer < BaseDeployer
 
   def get_ec2_instance_id
     chef_node = get_chef_node
-    if chef_node.has_key?("ec2") && chef_node["ec2"].has_key?("instance_id")
+    if chef_node && chef_node.has_key?("ec2") && chef_node["ec2"].has_key?("instance_id")
       return chef_node["ec2"]["instance_id"].strip
     else
       return nil
