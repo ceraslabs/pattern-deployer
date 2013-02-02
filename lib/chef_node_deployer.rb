@@ -67,8 +67,9 @@ class ChefNodeDeployer < BaseDeployer
         info["url"] = get_app_url if get_app_url
       elsif service_name == "database_server" && self.has_key?("database")
         info["user"] = self["database"]["user"]
-        info["pwd"]  = self["database"]["password"]
+        info["password"]  = self["database"]["password"]
         info["url"]  = get_db_url if get_db_url
+        info["root_password"] = chef_node["mysql"]["server_root_password"] if chef_node = get_chef_node
       end
 
       (infos[service_name] ||= Array.new) << info
