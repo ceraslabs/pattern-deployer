@@ -26,7 +26,7 @@ require "my_errors"
 ##~ @supporting_services_descs["openvpn"] = "Provide openvpn service. Specifically, enabling this service will deploy an server which dedicates to generate keys/certificates for message encryption. User can enable this service if communications between nodes need to be secured"
 ##~ @supporting_services_descs["host_protection"] = "Provide host-based intrusion protection service. If enable, nodes in topology can be monitored by an ossec server to detect any potential intrusion"
 ##~ @supporting_services_descs["dns"] = "Provide load-balancing DNS service. If enable, nodes can subscribe itself as members of DNS. The load-balancing DNS will dispatch requests to its member(s) according to certain load-balancing scenario."
-##~ @supporting_services_desc = "<h4>Supporting services</h4><table><thead><tr><th>supporting service</th><th>description</th></tr></thead>" + @supporting_services_descs.map{|key, value| "<tr><td>#{key}</td><td>#{value}</td></tr>"}.join + "</table>"
+##~ @supporting_services_desc = "<h4>Supporting services</h4><table><thead><tr><th>supporting service</th><th>description</th></tr></thead>" + @supporting_services_descs.sort.map{|key, value| "<tr><td>#{key}</td><td>#{value}</td></tr>"}.join + "</table>"
 class SupportingServicesController < RestfulController
 
   before_filter :initialize_db

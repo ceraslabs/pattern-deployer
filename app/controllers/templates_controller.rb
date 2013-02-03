@@ -208,7 +208,7 @@ class TemplatesController < RestfulController
   ##
   ##~ param = {:name => "attribute_key", :dataType => "string", :allowMultiple => false, :required => false, :paramType => "query"}
   ##~ param[:description] = "The key of the attribute to be set/remove. Use in 'set_attribute' or 'remove_attribute'"
-  ##~ param[:allowableValues] = {:valueType => "LIST", :values => @node_attrs.keys}
+  ##~ param[:allowableValues] = {:valueType => "LIST", :values => @node_attrs.keys.sort}
   ##~ params << param
   ##
   ##~ param = {:name => "attribute_value", :dataType => "string", :allowMultiple => false, :required => false, :paramType => "query"}

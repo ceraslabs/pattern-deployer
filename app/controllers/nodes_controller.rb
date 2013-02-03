@@ -34,7 +34,7 @@ require "my_errors"
 ##~ @node_attrs["instance_type"] = "The type of the instance. For EC2, it can be 't1.micro', 'm1.small', etc. For OpenStack, it is the *ID* of instance flavor(not the name)."
 ##~ @node_attrs["port"] = "The ssh port. Port 22 will be used if this attribute is not set"
 ##~ @node_attrs["password"] = "The ssh password"
-##~ @node_attrs_desc = "<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead>" + @node_attrs.map{|key, value| "<tr><td>#{key}</td><td>#{value}</td></tr>"}.join + "</table>"
+##~ @node_attrs_desc = "<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead>" + @node_attrs.sort.map{|key, value| "<tr><td>#{key}</td><td>#{value}</td></tr>"}.join + "</table>"
 class NodesController < RestfulController
 
   include RestfulHelper
@@ -304,7 +304,7 @@ class NodesController < RestfulController
   ##
   ##~ param = {:name => "attribute_key", :dataType => "string", :allowMultiple => false, :required => false, :paramType => "query"}
   ##~ param[:description] = "The key of the attribute to be set/remove. Use in 'set_attribute' or 'remove_attribute'"
-  ##~ param[:allowableValues] = {:valueType => "LIST", :values => @node_attrs.keys}
+  ##~ param[:allowableValues] = {:valueType => "LIST", :values => @node_attrs.keys.sort}
   ##~ params << param
   ##
   ##~ param = {:name => "attribute_value", :dataType => "string", :allowMultiple => false, :required => false, :paramType => "query"}

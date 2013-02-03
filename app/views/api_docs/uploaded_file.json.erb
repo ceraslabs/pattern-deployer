@@ -53,7 +53,7 @@
           ],
           "httpMethod": "POST",
           "nickname": "create_file",
-          "notes": "User need to provide a name for the created file. Depending on file type, user may need to fill additional parameter(s)<h4>File types</h4><table><thead><tr><th>type</th><th>description</th></tr></thead><tr><td>sql_script_file</td><td>An sql script file which is used to setup the schema/tables of database</td></tr><tr><td>war_file</td><td>Java application archive. An war file should have suffix '.war'</td></tr><tr><td>identity_file</td><td>Identity file contains private key that is used to ssh to the deployed instance. An identity file should match a keypair of the cloud and should have an suffix '.pem'</td></tr></table>",
+          "notes": "User need to provide a name for the created file. Depending on file type, user may need to fill additional parameter(s)<h4>File types</h4><table><thead><tr><th>type</th><th>description</th></tr></thead><tr><td>identity_file</td><td>Identity file contains private key that is used to ssh to the deployed instance. An identity file should match a keypair of the cloud and should have an suffix '.pem'</td></tr><tr><td>sql_script_file</td><td>An sql script file which is used to setup the schema/tables of database</td></tr><tr><td>war_file</td><td>Java application archive. An war file should have suffix '.war'</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
@@ -68,9 +68,9 @@
               "allowableValues": {
                 "valueType": "LIST",
                 "values": [
+                  "identity_file",
                   "sql_script_file",
-                  "war_file",
-                  "identity_file"
+                  "war_file"
                 ]
               },
               "dataType": "string",

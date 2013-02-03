@@ -26,7 +26,7 @@ require "my_errors"
 ##~ @types_descs["identity_file"] = "Identity file contains private key that is used to ssh to the deployed instance. An identity file should match a keypair of the cloud and should have an suffix '.pem'"
 ##~ @types_descs["war_file"] = "Java application archive. An war file should have suffix '.war'"
 ##~ @types_descs["sql_script_file"] = "An sql script file which is used to setup the schema/tables of database"
-##~ @file_type_desc = "<h4>File types</h4><table><thead><tr><th>type</th><th>description</th></tr></thead>" + @types_descs.map{|key, value| "<tr><td>#{key}</td><td>#{value}</td></tr>"}.join + "</table>"
+##~ @file_type_desc = "<h4>File types</h4><table><thead><tr><th>type</th><th>description</th></tr></thead>" + @types_descs.sort.map{|key, value| "<tr><td>#{key}</td><td>#{value}</td></tr>"}.join + "</table>"
 class UploadedFilesController < RestfulController
 
   ####
@@ -64,7 +64,7 @@ class UploadedFilesController < RestfulController
   ##
   ##~ param = op.parameters.add
   ##~ param.set :name => "file_type", :dataType => "string", :allowMultiple => false, :required => true, :paramType => "query"
-  ##~ param.allowableValues = {:valueType => "LIST", :values => @types_descs.keys}
+  ##~ param.allowableValues = {:valueType => "LIST", :values => @types_descs.keys.sort}
   ##~ param.description = "The type of the uploaded file"
   ##
   ##~ param = op.parameters.add
