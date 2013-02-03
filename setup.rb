@@ -215,7 +215,7 @@ EOH
           json = fin.read
         end
         File.open(new_file_name, "w") do |fout|
-          fout.write(JSON.pretty_generate(JSON.parse(json)))
+          fout.write(sort_json(JSON.parse(json), 0))
         end
         FileUtils.rm(file_name)
       end
@@ -241,8 +241,44 @@ EOH
 EOL
 
     File.open("app/views/api_docs/index.json.erb", "w") do |out|
-      out.write(JSON.pretty_generate(JSON.parse(json)))
+      out.write(sort_json(JSON.parse(json), 0))
     end
+  end
+
+  def sort_json(json_obj, level)
+    str = "{\n"
+    str += json_obj.sort.map do |key, value|
+      padding(level + 1) + %Q["#{key}": #{json_value_to_string(value, level + 1)}]
+    end.join(",\n")
+    str += "\n"
+    str += padding(level) + "}"
+    str
+  end
+
+  def json_value_to_string(value, level)
+    if value.class == Fixnum || value.class == TrueClass || value.class == FalseClass
+      return value.to_s
+    elsif value.class == String
+      return %Q["#{value}"]
+    elsif value.class == Array
+      str = "[\n"
+      str += value.map do |item|
+        padding(level + 1) + json_value_to_string(item, level + 1)
+      end.join(",\n")
+      str += "\n"
+      str += padding(level) + "]"
+      return str
+    elsif value.class == Hash
+      return sort_json(value, level)
+    elsif value.class == NilClass
+      return "null"
+    else
+      raise "json value '#{value}' is of invalid type '#{value.class.to_s}'"
+    end
+  end
+
+  def padding(level)
+    (1..level).map{|c| "  "}.join
   end
 
 end

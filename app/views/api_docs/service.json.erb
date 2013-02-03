@@ -1,52 +1,51 @@
 {
-  "basePath": "<%= request.protocol + request.host_with_port %>",
   "apiVersion": "1.1",
   "apis": [
     {
       "description": "Show a list of service definitions",
       "operations": [
         {
-          "parameters": [
+          "deprecated": false,
+          "errorResponses": [
             {
-              "description": "The unique id of topology that service(s) belongs to",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "topology_id",
-              "dataType": "integer",
-              "required": true
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
             },
             {
-              "description": "The unique id of template that contains the service(s)",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "template_id",
-              "dataType": "integer",
-              "required": true
+              "code": 401,
+              "reason": "user haven't logined"
+            },
+            {
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
+            },
+            {
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
             }
           ],
           "httpMethod": "GET",
-          "summary": "Show a list of service definitions",
-          "deprecated": false,
           "nickname": "get_list_of_services",
-          "errorResponses": [
+          "notes": "Show a list of service definitions. In implementation point of view, each service match a set of scripts that will run on deployed instance.",
+          "parameters": [
             {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of topology that service(s) belongs to",
+              "name": "topology_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user haven't logined",
-              "code": 401
-            },
-            {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
-            },
-            {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of template that contains the service(s)",
+              "name": "template_id",
+              "paramType": "path",
+              "required": true
             }
           ],
-          "notes": "Show a list of service definitions. In implementation point of view, each service match a set of scripts that will run on deployed instance."
+          "summary": "Show a list of service definitions"
         }
       ],
       "path": "/api/topologies/{topology_id}/templates/{template_id}/services"
@@ -55,47 +54,47 @@
       "description": "Show a list of service definitions",
       "operations": [
         {
-          "parameters": [
+          "deprecated": false,
+          "errorResponses": [
             {
-              "description": "The unique id of topology that service(s) belongs to",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "topology_id",
-              "dataType": "integer",
-              "required": true
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
             },
             {
-              "description": "The unique id of the node that contains the services(s)",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "node_id",
-              "dataType": "integer",
-              "required": true
+              "code": 401,
+              "reason": "user haven't logined"
+            },
+            {
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
+            },
+            {
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
             }
           ],
           "httpMethod": "GET",
-          "summary": "Show a list of service definitions",
-          "deprecated": false,
           "nickname": "get_list_of_services",
-          "errorResponses": [
+          "notes": "Show a list of service definitions. In implementation point of view, each service match a set of scripts that will run on deployed instance.",
+          "parameters": [
             {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of topology that service(s) belongs to",
+              "name": "topology_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user haven't logined",
-              "code": 401
-            },
-            {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
-            },
-            {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of the node that contains the services(s)",
+              "name": "node_id",
+              "paramType": "path",
+              "required": true
             }
           ],
-          "notes": "Show a list of service definitions. In implementation point of view, each service match a set of scripts that will run on deployed instance."
+          "summary": "Show a list of service definitions"
         }
       ],
       "path": "/api/topologies/{topology_id}/nodes/{node_id}/services"
@@ -104,55 +103,55 @@
       "description": "Show a list of service definitions",
       "operations": [
         {
-          "parameters": [
+          "deprecated": false,
+          "errorResponses": [
             {
-              "description": "The unique id of topology that service(s) belongs to",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "topology_id",
-              "dataType": "integer",
-              "required": true
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
             },
             {
-              "description": "The unique id of the container that the service(s) belong to",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "container_id",
-              "dataType": "integer",
-              "required": true
+              "code": 401,
+              "reason": "user haven't logined"
             },
             {
-              "description": "The unique id of the node that contains the services(s)",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "node_id",
-              "dataType": "integer",
-              "required": true
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
+            },
+            {
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
             }
           ],
           "httpMethod": "GET",
-          "summary": "Show a list of service definitions",
-          "deprecated": false,
           "nickname": "get_list_of_services",
-          "errorResponses": [
+          "notes": "Show a list of service definitions. In implementation point of view, each service match a set of scripts that will run on deployed instance.",
+          "parameters": [
             {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of topology that service(s) belongs to",
+              "name": "topology_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user haven't logined",
-              "code": 401
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of the container that the service(s) belong to",
+              "name": "container_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
-            },
-            {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of the node that contains the services(s)",
+              "name": "node_id",
+              "paramType": "path",
+              "required": true
             }
           ],
-          "notes": "Show a list of service definitions. In implementation point of view, each service match a set of scripts that will run on deployed instance."
+          "summary": "Show a list of service definitions"
         }
       ],
       "path": "/api/topologies/{topology_id}/containers/{container_id}/nodes/{node_id}/services"
@@ -161,81 +160,81 @@
       "description": "Create a service node definition",
       "operations": [
         {
+          "deprecated": false,
+          "errorResponses": [
+            {
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
+            },
+            {
+              "code": 401,
+              "reason": "user haven't logined"
+            },
+            {
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
+            },
+            {
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
+            }
+          ],
+          "httpMethod": "POST",
+          "nickname": "create_service",
+          "notes": "Users can create a service by providing an XML document or just providing the name. The services available so far is list below<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr></table>",
           "parameters": [
             {
-              "description": "The unique id of topology that the created service belongs to",
-              "paramType": "path",
               "allowMultiple": false,
-              "name": "topology_id",
               "dataType": "integer",
+              "description": "The unique id of topology that the created service belongs to",
+              "name": "topology_id",
+              "paramType": "path",
               "required": true
             },
             {
+              "allowMultiple": false,
+              "dataType": "integer",
               "description": "The unique id of template that contains the created service",
-              "paramType": "path",
-              "allowMultiple": false,
               "name": "template_id",
-              "dataType": "integer",
+              "paramType": "path",
               "required": true
             },
             {
-              "description": "The new name of the service. Used in operation 'rename' operation",
-              "paramType": "query",
               "allowMultiple": false,
-              "name": "name",
-              "dataType": "string",
-              "required": false,
               "allowableValues": {
                 "valueType": "LIST",
                 "values": [
+                  "ossec_client",
+                  "dns_client",
+                  "snort_prepost",
                   "database_server",
                   "web_server",
-                  "dns_client",
-                  "ossec_client",
-                  "virsh",
-                  "snort",
                   "openvpn_server",
+                  "server_installation",
                   "standalone_installation",
                   "web_balancer",
-                  "openvpn_client",
-                  "server_installation",
+                  "virsh",
                   "client_installation",
-                  "snort_prepost"
+                  "snort",
+                  "openvpn_client"
                 ]
-              }
+              },
+              "dataType": "string",
+              "description": "The new name of the service. Used in operation 'rename' operation",
+              "name": "name",
+              "paramType": "query",
+              "required": false
             },
             {
-              "description": "An XML document that describe the new service. Use in 'redefine'",
-              "paramType": "body",
               "allowMultiple": false,
-              "name": "definition",
               "dataType": "string",
+              "description": "An XML document that describe the new service. Use in 'redefine'",
+              "name": "definition",
+              "paramType": "body",
               "required": false
             }
           ],
-          "httpMethod": "POST",
-          "summary": "Create a service node definition",
-          "deprecated": false,
-          "nickname": "create_service",
-          "errorResponses": [
-            {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
-            },
-            {
-              "reason": "user haven't logined",
-              "code": 401
-            },
-            {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
-            },
-            {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
-            }
-          ],
-          "notes": "Users can create a service by providing an XML document or just providing the name. The services available so far is list below<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr></table>"
+          "summary": "Create a service node definition"
         }
       ],
       "path": "/api/topologies/{topology_id}/templates/{template_id}/services"
@@ -244,81 +243,81 @@
       "description": "Create a service node definition",
       "operations": [
         {
-          "parameters": [
+          "deprecated": false,
+          "errorResponses": [
             {
-              "description": "The unique id of topology that the created service belongs to",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "topology_id",
-              "dataType": "integer",
-              "required": true
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
             },
             {
-              "description": "The unique id of the node that contains the created service",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "node_id",
-              "dataType": "integer",
-              "required": true
+              "code": 401,
+              "reason": "user haven't logined"
             },
             {
-              "description": "The new name of the service. Used in operation 'rename' operation",
-              "paramType": "query",
-              "allowMultiple": false,
-              "name": "name",
-              "dataType": "string",
-              "required": false,
-              "allowableValues": {
-                "valueType": "LIST",
-                "values": [
-                  "database_server",
-                  "web_server",
-                  "dns_client",
-                  "ossec_client",
-                  "virsh",
-                  "snort",
-                  "openvpn_server",
-                  "standalone_installation",
-                  "web_balancer",
-                  "openvpn_client",
-                  "server_installation",
-                  "client_installation",
-                  "snort_prepost"
-                ]
-              }
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
             },
             {
-              "description": "An XML document that describe the new service. Use in 'redefine'",
-              "paramType": "body",
-              "allowMultiple": false,
-              "name": "definition",
-              "dataType": "string",
-              "required": false
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
             }
           ],
           "httpMethod": "POST",
-          "summary": "Create a service node definition",
-          "deprecated": false,
           "nickname": "create_service",
-          "errorResponses": [
+          "notes": "Users can create a service by providing an XML document or just providing the name. The services available so far is list below<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr></table>",
+          "parameters": [
             {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of topology that the created service belongs to",
+              "name": "topology_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user haven't logined",
-              "code": 401
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of the node that contains the created service",
+              "name": "node_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
+              "allowMultiple": false,
+              "allowableValues": {
+                "valueType": "LIST",
+                "values": [
+                  "ossec_client",
+                  "dns_client",
+                  "snort_prepost",
+                  "database_server",
+                  "web_server",
+                  "openvpn_server",
+                  "server_installation",
+                  "standalone_installation",
+                  "web_balancer",
+                  "virsh",
+                  "client_installation",
+                  "snort",
+                  "openvpn_client"
+                ]
+              },
+              "dataType": "string",
+              "description": "The new name of the service. Used in operation 'rename' operation",
+              "name": "name",
+              "paramType": "query",
+              "required": false
             },
             {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
+              "allowMultiple": false,
+              "dataType": "string",
+              "description": "An XML document that describe the new service. Use in 'redefine'",
+              "name": "definition",
+              "paramType": "body",
+              "required": false
             }
           ],
-          "notes": "Users can create a service by providing an XML document or just providing the name. The services available so far is list below<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr></table>"
+          "summary": "Create a service node definition"
         }
       ],
       "path": "/api/topologies/{topology_id}/nodes/{node_id}/services"
@@ -327,89 +326,89 @@
       "description": "Create a service node definition",
       "operations": [
         {
-          "parameters": [
+          "deprecated": false,
+          "errorResponses": [
             {
-              "description": "The unique id of topology that the created service belongs to",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "topology_id",
-              "dataType": "integer",
-              "required": true
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
             },
             {
-              "description": "The unique id of the container that the service(s) belong to",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "container_id",
-              "dataType": "integer",
-              "required": true
+              "code": 401,
+              "reason": "user haven't logined"
             },
             {
-              "description": "The unique id of the node that contains the created service",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "node_id",
-              "dataType": "integer",
-              "required": true
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
             },
             {
-              "description": "The new name of the service. Used in operation 'rename' operation",
-              "paramType": "query",
-              "allowMultiple": false,
-              "name": "name",
-              "dataType": "string",
-              "required": false,
-              "allowableValues": {
-                "valueType": "LIST",
-                "values": [
-                  "database_server",
-                  "web_server",
-                  "dns_client",
-                  "ossec_client",
-                  "virsh",
-                  "snort",
-                  "openvpn_server",
-                  "standalone_installation",
-                  "web_balancer",
-                  "openvpn_client",
-                  "server_installation",
-                  "client_installation",
-                  "snort_prepost"
-                ]
-              }
-            },
-            {
-              "description": "An XML document that describe the new service. Use in 'redefine'",
-              "paramType": "body",
-              "allowMultiple": false,
-              "name": "definition",
-              "dataType": "string",
-              "required": false
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
             }
           ],
           "httpMethod": "POST",
-          "summary": "Create a service node definition",
-          "deprecated": false,
           "nickname": "create_service",
-          "errorResponses": [
+          "notes": "Users can create a service by providing an XML document or just providing the name. The services available so far is list below<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr></table>",
+          "parameters": [
             {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of topology that the created service belongs to",
+              "name": "topology_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user haven't logined",
-              "code": 401
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of the container that the service(s) belong to",
+              "name": "container_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of the node that contains the created service",
+              "name": "node_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
+              "allowMultiple": false,
+              "allowableValues": {
+                "valueType": "LIST",
+                "values": [
+                  "ossec_client",
+                  "dns_client",
+                  "snort_prepost",
+                  "database_server",
+                  "web_server",
+                  "openvpn_server",
+                  "server_installation",
+                  "standalone_installation",
+                  "web_balancer",
+                  "virsh",
+                  "client_installation",
+                  "snort",
+                  "openvpn_client"
+                ]
+              },
+              "dataType": "string",
+              "description": "The new name of the service. Used in operation 'rename' operation",
+              "name": "name",
+              "paramType": "query",
+              "required": false
+            },
+            {
+              "allowMultiple": false,
+              "dataType": "string",
+              "description": "An XML document that describe the new service. Use in 'redefine'",
+              "name": "definition",
+              "paramType": "body",
+              "required": false
             }
           ],
-          "notes": "Users can create a service by providing an XML document or just providing the name. The services available so far is list below<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr></table>"
+          "summary": "Create a service node definition"
         }
       ],
       "path": "/api/topologies/{topology_id}/containers/{container_id}/nodes/{node_id}/services"
@@ -418,55 +417,55 @@
       "description": "Show a list of service definitions",
       "operations": [
         {
-          "parameters": [
+          "deprecated": false,
+          "errorResponses": [
             {
-              "description": "The unique id of topology that service(s) belongs to",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "topology_id",
-              "dataType": "integer",
-              "required": true
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
             },
             {
-              "description": "The unique id of template that contains the service(s)",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "template_id",
-              "dataType": "integer",
-              "required": true
+              "code": 401,
+              "reason": "user haven't logined"
             },
             {
-              "description": "The unique id of the service",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "id",
-              "dataType": "integer",
-              "required": true
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
+            },
+            {
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
             }
           ],
           "httpMethod": "GET",
-          "summary": "Show a list of service definitions",
-          "deprecated": false,
           "nickname": "get_service_by_id",
-          "errorResponses": [
+          "notes": "Show a list of service definitions. In implementation point of view, each service match a set of scripts that will run on deployed instance.",
+          "parameters": [
             {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of topology that service(s) belongs to",
+              "name": "topology_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user haven't logined",
-              "code": 401
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of template that contains the service(s)",
+              "name": "template_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
-            },
-            {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of the service",
+              "name": "id",
+              "paramType": "path",
+              "required": true
             }
           ],
-          "notes": "Show a list of service definitions. In implementation point of view, each service match a set of scripts that will run on deployed instance."
+          "summary": "Show a list of service definitions"
         }
       ],
       "path": "/api/topologies/{topology_id}/templates/{template_id}/services/{id}"
@@ -475,55 +474,55 @@
       "description": "Show a list of service definitions",
       "operations": [
         {
-          "parameters": [
+          "deprecated": false,
+          "errorResponses": [
             {
-              "description": "The unique id of topology that service(s) belongs to",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "topology_id",
-              "dataType": "integer",
-              "required": true
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
             },
             {
-              "description": "The unique id of the node that contains the created service",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "node_id",
-              "dataType": "integer",
-              "required": true
+              "code": 401,
+              "reason": "user haven't logined"
             },
             {
-              "description": "The unique id of the service",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "id",
-              "dataType": "integer",
-              "required": true
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
+            },
+            {
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
             }
           ],
           "httpMethod": "GET",
-          "summary": "Show a list of service definitions",
-          "deprecated": false,
           "nickname": "get_service_by_id",
-          "errorResponses": [
+          "notes": "Show a list of service definitions. In implementation point of view, each service match a set of scripts that will run on deployed instance.",
+          "parameters": [
             {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of topology that service(s) belongs to",
+              "name": "topology_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user haven't logined",
-              "code": 401
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of the node that contains the created service",
+              "name": "node_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
-            },
-            {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of the service",
+              "name": "id",
+              "paramType": "path",
+              "required": true
             }
           ],
-          "notes": "Show a list of service definitions. In implementation point of view, each service match a set of scripts that will run on deployed instance."
+          "summary": "Show a list of service definitions"
         }
       ],
       "path": "/api/topologies/{topology_id}/nodes/{node_id}/services/{id}"
@@ -532,63 +531,63 @@
       "description": "Show a list of service definitions",
       "operations": [
         {
+          "deprecated": false,
+          "errorResponses": [
+            {
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
+            },
+            {
+              "code": 401,
+              "reason": "user haven't logined"
+            },
+            {
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
+            },
+            {
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
+            }
+          ],
+          "httpMethod": "GET",
+          "nickname": "get_service_by_id",
+          "notes": "Show a list of service definitions. In implementation point of view, each service match a set of scripts that will run on deployed instance.",
           "parameters": [
             {
-              "description": "The unique id of topology that service(s) belongs to",
-              "paramType": "path",
               "allowMultiple": false,
-              "name": "topology_id",
               "dataType": "integer",
+              "description": "The unique id of topology that service(s) belongs to",
+              "name": "topology_id",
+              "paramType": "path",
               "required": true
             },
             {
+              "allowMultiple": false,
+              "dataType": "integer",
               "description": "The unique id of the container that the service(s) belong to",
-              "paramType": "path",
-              "allowMultiple": false,
               "name": "container_id",
-              "dataType": "integer",
+              "paramType": "path",
               "required": true
             },
             {
+              "allowMultiple": false,
+              "dataType": "integer",
               "description": "The unique id of the node that contains the created service",
-              "paramType": "path",
-              "allowMultiple": false,
               "name": "node_id",
-              "dataType": "integer",
-              "required": true
-            },
-            {
-              "description": "The unique id of the service",
               "paramType": "path",
+              "required": true
+            },
+            {
               "allowMultiple": false,
-              "name": "id",
               "dataType": "integer",
+              "description": "The unique id of the service",
+              "name": "id",
+              "paramType": "path",
               "required": true
             }
           ],
-          "httpMethod": "GET",
-          "summary": "Show a list of service definitions",
-          "deprecated": false,
-          "nickname": "get_service_by_id",
-          "errorResponses": [
-            {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
-            },
-            {
-              "reason": "user haven't logined",
-              "code": 401
-            },
-            {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
-            },
-            {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
-            }
-          ],
-          "notes": "Show a list of service definitions. In implementation point of view, each service match a set of scripts that will run on deployed instance."
+          "summary": "Show a list of service definitions"
         }
       ],
       "path": "/api/topologies/{topology_id}/containers/{container_id}/nodes/{node_id}/services/{id}"
@@ -597,54 +596,54 @@
       "description": "Delete the service definition",
       "operations": [
         {
-          "parameters": [
+          "deprecated": false,
+          "errorResponses": [
             {
-              "description": "The unique id of topology that service(s) belongs to",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "topology_id",
-              "dataType": "integer",
-              "required": true
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
             },
             {
-              "description": "The unique id of template that contains the service(s)",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "template_id",
-              "dataType": "integer",
-              "required": true
+              "code": 401,
+              "reason": "user haven't logined"
             },
             {
-              "description": "The unique id of the service",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "id",
-              "dataType": "integer",
-              "required": true
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
+            },
+            {
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
             }
           ],
           "httpMethod": "DELETE",
-          "summary": "Delete the service definition",
-          "deprecated": false,
           "nickname": "delete_service_by_id",
-          "errorResponses": [
+          "parameters": [
             {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of topology that service(s) belongs to",
+              "name": "topology_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user haven't logined",
-              "code": 401
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of template that contains the service(s)",
+              "name": "template_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
-            },
-            {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of the service",
+              "name": "id",
+              "paramType": "path",
+              "required": true
             }
-          ]
+          ],
+          "summary": "Delete the service definition"
         }
       ],
       "path": "/api/topologies/{topology_id}/templates/{template_id}/services/{id}"
@@ -653,54 +652,54 @@
       "description": "Delete the service definition",
       "operations": [
         {
-          "parameters": [
+          "deprecated": false,
+          "errorResponses": [
             {
-              "description": "The unique id of topology that service(s) belongs to",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "topology_id",
-              "dataType": "integer",
-              "required": true
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
             },
             {
-              "description": "The unique id of the node that contains the service",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "node_id",
-              "dataType": "integer",
-              "required": true
+              "code": 401,
+              "reason": "user haven't logined"
             },
             {
-              "description": "The unique id of the service",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "id",
-              "dataType": "integer",
-              "required": true
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
+            },
+            {
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
             }
           ],
           "httpMethod": "DELETE",
-          "summary": "Delete the service definition",
-          "deprecated": false,
           "nickname": "delete_service_by_id",
-          "errorResponses": [
+          "parameters": [
             {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of topology that service(s) belongs to",
+              "name": "topology_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user haven't logined",
-              "code": 401
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of the node that contains the service",
+              "name": "node_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
-            },
-            {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of the service",
+              "name": "id",
+              "paramType": "path",
+              "required": true
             }
-          ]
+          ],
+          "summary": "Delete the service definition"
         }
       ],
       "path": "/api/topologies/{topology_id}/nodes/{node_id}/services/{id}"
@@ -709,62 +708,62 @@
       "description": "Delete the service definition",
       "operations": [
         {
-          "parameters": [
+          "deprecated": false,
+          "errorResponses": [
             {
-              "description": "The unique id of topology that service(s) belongs to",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "topology_id",
-              "dataType": "integer",
-              "required": true
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
             },
             {
-              "description": "The unique id of the container that the service belong to",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "container_id",
-              "dataType": "integer",
-              "required": true
+              "code": 401,
+              "reason": "user haven't logined"
             },
             {
-              "description": "The unique id of the node that contains the service",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "node_id",
-              "dataType": "integer",
-              "required": true
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
             },
             {
-              "description": "The unique id of the service",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "id",
-              "dataType": "integer",
-              "required": true
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
             }
           ],
           "httpMethod": "DELETE",
-          "summary": "Delete the service definition",
-          "deprecated": false,
           "nickname": "delete_service_by_id",
-          "errorResponses": [
+          "parameters": [
             {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of topology that service(s) belongs to",
+              "name": "topology_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user haven't logined",
-              "code": 401
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of the container that the service belong to",
+              "name": "container_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of the node that contains the service",
+              "name": "node_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of the service",
+              "name": "id",
+              "paramType": "path",
+              "required": true
             }
-          ]
+          ],
+          "summary": "Delete the service definition"
         }
       ],
       "path": "/api/topologies/{topology_id}/containers/{container_id}/nodes/{node_id}/services/{id}"
@@ -773,104 +772,104 @@
       "description": "Modify the service definition",
       "operations": [
         {
+          "deprecated": false,
+          "errorResponses": [
+            {
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
+            },
+            {
+              "code": 401,
+              "reason": "user haven't logined"
+            },
+            {
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
+            },
+            {
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
+            }
+          ],
+          "httpMethod": "PUT",
+          "nickname": "modify_service_by_id",
+          "notes": "User can 'rename' or 'redefine' the service. If redefine, user needs to provide a new XML document as service definition.<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr></table>",
           "parameters": [
             {
+              "allowMultiple": false,
+              "dataType": "integer",
               "description": "The unique id of topology that service(s) belongs to",
-              "paramType": "path",
-              "allowMultiple": false,
               "name": "topology_id",
-              "dataType": "integer",
+              "paramType": "path",
               "required": true
             },
             {
+              "allowMultiple": false,
+              "dataType": "integer",
               "description": "The unique id of template that contains the service(s)",
-              "paramType": "path",
-              "allowMultiple": false,
               "name": "template_id",
-              "dataType": "integer",
-              "required": true
-            },
-            {
-              "description": "The unique id of the service",
               "paramType": "path",
-              "allowMultiple": false,
-              "name": "id",
-              "dataType": "integer",
               "required": true
             },
             {
-              "description": "The operatoin to execute",
-              "paramType": "query",
               "allowMultiple": false,
-              "name": "operation",
-              "dataType": "string",
-              "required": true,
+              "dataType": "integer",
+              "description": "The unique id of the service",
+              "name": "id",
+              "paramType": "path",
+              "required": true
+            },
+            {
+              "allowMultiple": false,
               "allowableValues": {
                 "valueType": "LIST",
                 "values": [
                   "rename",
                   "redefine"
                 ]
-              }
+              },
+              "dataType": "string",
+              "description": "The operatoin to execute",
+              "name": "operation",
+              "paramType": "query",
+              "required": true
             },
             {
-              "description": "The new name of the service. Used in operation 'rename' operation",
-              "paramType": "query",
               "allowMultiple": false,
-              "name": "name",
-              "dataType": "string",
-              "required": false,
               "allowableValues": {
                 "valueType": "LIST",
                 "values": [
+                  "ossec_client",
+                  "dns_client",
+                  "snort_prepost",
                   "database_server",
                   "web_server",
-                  "dns_client",
-                  "ossec_client",
-                  "virsh",
-                  "snort",
                   "openvpn_server",
+                  "server_installation",
                   "standalone_installation",
                   "web_balancer",
-                  "openvpn_client",
-                  "server_installation",
+                  "virsh",
                   "client_installation",
-                  "snort_prepost"
+                  "snort",
+                  "openvpn_client"
                 ]
-              }
+              },
+              "dataType": "string",
+              "description": "The new name of the service. Used in operation 'rename' operation",
+              "name": "name",
+              "paramType": "query",
+              "required": false
             },
             {
-              "description": "An XML document that describe the new service. Use in 'redefine'",
-              "paramType": "body",
               "allowMultiple": false,
-              "name": "definition",
               "dataType": "string",
+              "description": "An XML document that describe the new service. Use in 'redefine'",
+              "name": "definition",
+              "paramType": "body",
               "required": false
             }
           ],
-          "httpMethod": "PUT",
-          "summary": "Modify the service definition",
-          "deprecated": false,
-          "nickname": "modify_service_by_id",
-          "errorResponses": [
-            {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
-            },
-            {
-              "reason": "user haven't logined",
-              "code": 401
-            },
-            {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
-            },
-            {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
-            }
-          ],
-          "notes": "User can 'rename' or 'redefine' the service. If redefine, user needs to provide a new XML document as service definition.<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr></table>"
+          "summary": "Modify the service definition"
         }
       ],
       "path": "/api/topologies/{topology_id}/templates/{template_id}/services/{id}"
@@ -879,104 +878,104 @@
       "description": "Modify the service definition",
       "operations": [
         {
+          "deprecated": false,
+          "errorResponses": [
+            {
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
+            },
+            {
+              "code": 401,
+              "reason": "user haven't logined"
+            },
+            {
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
+            },
+            {
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
+            }
+          ],
+          "httpMethod": "PUT",
+          "nickname": "modify_service_by_id",
+          "notes": "User can 'rename' or 'redefine' the service. If redefine, user needs to provide a new XML document as service definition.<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr></table>",
           "parameters": [
             {
+              "allowMultiple": false,
+              "dataType": "integer",
               "description": "The unique id of topology that service(s) belongs to",
-              "paramType": "path",
-              "allowMultiple": false,
               "name": "topology_id",
-              "dataType": "integer",
+              "paramType": "path",
               "required": true
             },
             {
+              "allowMultiple": false,
+              "dataType": "integer",
               "description": "The unique id of the node that contains the service",
-              "paramType": "path",
-              "allowMultiple": false,
               "name": "node_id",
-              "dataType": "integer",
-              "required": true
-            },
-            {
-              "description": "The unique id of the service",
               "paramType": "path",
-              "allowMultiple": false,
-              "name": "id",
-              "dataType": "integer",
               "required": true
             },
             {
-              "description": "The operatoin to execute",
-              "paramType": "query",
               "allowMultiple": false,
-              "name": "operation",
-              "dataType": "string",
-              "required": true,
+              "dataType": "integer",
+              "description": "The unique id of the service",
+              "name": "id",
+              "paramType": "path",
+              "required": true
+            },
+            {
+              "allowMultiple": false,
               "allowableValues": {
                 "valueType": "LIST",
                 "values": [
                   "rename",
                   "redefine"
                 ]
-              }
+              },
+              "dataType": "string",
+              "description": "The operatoin to execute",
+              "name": "operation",
+              "paramType": "query",
+              "required": true
             },
             {
-              "description": "The new name of the service. Used in operation 'rename' operation",
-              "paramType": "query",
               "allowMultiple": false,
-              "name": "name",
-              "dataType": "string",
-              "required": false,
               "allowableValues": {
                 "valueType": "LIST",
                 "values": [
+                  "ossec_client",
+                  "dns_client",
+                  "snort_prepost",
                   "database_server",
                   "web_server",
-                  "dns_client",
-                  "ossec_client",
-                  "virsh",
-                  "snort",
                   "openvpn_server",
+                  "server_installation",
                   "standalone_installation",
                   "web_balancer",
-                  "openvpn_client",
-                  "server_installation",
+                  "virsh",
                   "client_installation",
-                  "snort_prepost"
+                  "snort",
+                  "openvpn_client"
                 ]
-              }
+              },
+              "dataType": "string",
+              "description": "The new name of the service. Used in operation 'rename' operation",
+              "name": "name",
+              "paramType": "query",
+              "required": false
             },
             {
-              "description": "An XML document that describe the new service. Use in 'redefine'",
-              "paramType": "body",
               "allowMultiple": false,
-              "name": "definition",
               "dataType": "string",
+              "description": "An XML document that describe the new service. Use in 'redefine'",
+              "name": "definition",
+              "paramType": "body",
               "required": false
             }
           ],
-          "httpMethod": "PUT",
-          "summary": "Modify the service definition",
-          "deprecated": false,
-          "nickname": "modify_service_by_id",
-          "errorResponses": [
-            {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
-            },
-            {
-              "reason": "user haven't logined",
-              "code": 401
-            },
-            {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
-            },
-            {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
-            }
-          ],
-          "notes": "User can 'rename' or 'redefine' the service. If redefine, user needs to provide a new XML document as service definition.<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr></table>"
+          "summary": "Modify the service definition"
         }
       ],
       "path": "/api/topologies/{topology_id}/nodes/{node_id}/services/{id}"
@@ -985,116 +984,117 @@
       "description": "Modify the service definition",
       "operations": [
         {
+          "deprecated": false,
+          "errorResponses": [
+            {
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
+            },
+            {
+              "code": 401,
+              "reason": "user haven't logined"
+            },
+            {
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
+            },
+            {
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
+            }
+          ],
+          "httpMethod": "PUT",
+          "nickname": "modify_service_by_id",
+          "notes": "User can 'rename' or 'redefine' the service. If redefine, user needs to provide a new XML document as service definition.<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr></table>",
           "parameters": [
             {
+              "allowMultiple": false,
+              "dataType": "integer",
               "description": "The unique id of topology that service(s) belongs to",
-              "paramType": "path",
-              "allowMultiple": false,
               "name": "topology_id",
-              "dataType": "integer",
+              "paramType": "path",
               "required": true
             },
             {
+              "allowMultiple": false,
+              "dataType": "integer",
               "description": "The unique id of the container that the service belong to",
-              "paramType": "path",
-              "allowMultiple": false,
               "name": "container_id",
-              "dataType": "integer",
+              "paramType": "path",
               "required": true
             },
             {
+              "allowMultiple": false,
+              "dataType": "integer",
               "description": "The unique id of the node that contains the service",
-              "paramType": "path",
-              "allowMultiple": false,
               "name": "node_id",
-              "dataType": "integer",
-              "required": true
-            },
-            {
-              "description": "The unique id of the service",
               "paramType": "path",
-              "allowMultiple": false,
-              "name": "id",
-              "dataType": "integer",
               "required": true
             },
             {
-              "description": "The operatoin to execute",
-              "paramType": "query",
               "allowMultiple": false,
-              "name": "operation",
-              "dataType": "string",
-              "required": true,
+              "dataType": "integer",
+              "description": "The unique id of the service",
+              "name": "id",
+              "paramType": "path",
+              "required": true
+            },
+            {
+              "allowMultiple": false,
               "allowableValues": {
                 "valueType": "LIST",
                 "values": [
                   "rename",
                   "redefine"
                 ]
-              }
+              },
+              "dataType": "string",
+              "description": "The operatoin to execute",
+              "name": "operation",
+              "paramType": "query",
+              "required": true
             },
             {
-              "description": "The new name of the service. Used in operation 'rename' operation",
-              "paramType": "query",
               "allowMultiple": false,
-              "name": "name",
-              "dataType": "string",
-              "required": false,
               "allowableValues": {
                 "valueType": "LIST",
                 "values": [
+                  "ossec_client",
+                  "dns_client",
+                  "snort_prepost",
                   "database_server",
                   "web_server",
-                  "dns_client",
-                  "ossec_client",
-                  "virsh",
-                  "snort",
                   "openvpn_server",
+                  "server_installation",
                   "standalone_installation",
                   "web_balancer",
-                  "openvpn_client",
-                  "server_installation",
+                  "virsh",
                   "client_installation",
-                  "snort_prepost"
+                  "snort",
+                  "openvpn_client"
                 ]
-              }
+              },
+              "dataType": "string",
+              "description": "The new name of the service. Used in operation 'rename' operation",
+              "name": "name",
+              "paramType": "query",
+              "required": false
             },
             {
-              "description": "An XML document that describe the new service. Use in 'redefine'",
-              "paramType": "body",
               "allowMultiple": false,
-              "name": "definition",
               "dataType": "string",
+              "description": "An XML document that describe the new service. Use in 'redefine'",
+              "name": "definition",
+              "paramType": "body",
               "required": false
             }
           ],
-          "httpMethod": "PUT",
-          "summary": "Modify the service definition",
-          "deprecated": false,
-          "nickname": "modify_service_by_id",
-          "errorResponses": [
-            {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
-            },
-            {
-              "reason": "user haven't logined",
-              "code": 401
-            },
-            {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
-            },
-            {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
-            }
-          ],
-          "notes": "User can 'rename' or 'redefine' the service. If redefine, user needs to provide a new XML document as service definition.<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr></table>"
+          "summary": "Modify the service definition"
         }
       ],
       "path": "/api/topologies/{topology_id}/containers/{container_id}/nodes/{node_id}/services/{id}"
     }
   ],
+  "basePath": "<%= request.protocol + request.host_with_port %>",
   "swagrVersion": "0.2"
 }

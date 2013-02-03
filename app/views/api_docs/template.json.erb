@@ -1,43 +1,42 @@
 {
-  "basePath": "<%= request.protocol + request.host_with_port %>",
   "apiVersion": "1.1",
   "apis": [
     {
       "description": "Show a list of templates definitions",
       "operations": [
         {
-          "parameters": [
+          "deprecated": false,
+          "errorResponses": [
             {
-              "description": "The unique id of topology that template(s) belongs to",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "topology_id",
-              "dataType": "integer",
-              "required": true
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
+            },
+            {
+              "code": 401,
+              "reason": "user haven't logined"
+            },
+            {
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
+            },
+            {
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
             }
           ],
           "httpMethod": "GET",
-          "summary": "Show a list of templates definitions",
-          "deprecated": false,
           "nickname": "get_list_of_templates",
-          "errorResponses": [
+          "parameters": [
             {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
-            },
-            {
-              "reason": "user haven't logined",
-              "code": 401
-            },
-            {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
-            },
-            {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of topology that template(s) belongs to",
+              "name": "topology_id",
+              "paramType": "path",
+              "required": true
             }
-          ]
+          ],
+          "summary": "Show a list of templates definitions"
         }
       ],
       "path": "/api/topologies/{topology_id}/templates"
@@ -46,55 +45,55 @@
       "description": "Create a new template definition",
       "operations": [
         {
-          "parameters": [
+          "deprecated": false,
+          "errorResponses": [
             {
-              "description": "The unique id of topology that created template belongs to",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "topology_id",
-              "dataType": "integer",
-              "required": true
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
             },
             {
-              "description": "The XML document that defines the template",
-              "paramType": "body",
-              "allowMultiple": false,
-              "name": "definition",
-              "dataType": "string",
-              "required": false
+              "code": 401,
+              "reason": "user haven't logined"
             },
             {
-              "description": "The name of the template to be created. The name must be unique within topology",
-              "paramType": "query",
-              "allowMultiple": false,
-              "name": "name",
-              "dataType": "string",
-              "required": false
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
+            },
+            {
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
             }
           ],
           "httpMethod": "POST",
-          "summary": "Create a new template definition",
-          "deprecated": false,
           "nickname": "create_template",
-          "errorResponses": [
+          "notes": "Template is introduced to provide a template for node definition. For example, if the several nodes share the same set of attributes/services, user can wrap those common attributes/services in a template and let the node to use that template. In addition, template can extend another template(s). If several templates share the same set of attributes/services, user can package those common definition in a base template and let the defining templates extend the base template. User can define a list of attributes of the template as they do for node<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>availability_zone</td><td>The Availability Zone. Used in EC2.</td></tr><tr><td>security_groups</td><td>list of security groups the node is using. Groups are comma-seperated if more than one.</td></tr><tr><td>port</td><td>The ssh port. Port 22 will be used if this attribute is not set</td></tr><tr><td>key_pair_id</td><td>The ssh key pair id which is used to create the instance</td></tr><tr><td>image_id</td><td>The id of the image the node will use</td></tr><tr><td>ssh_user</td><td>The ssh username</td></tr><tr><td>instance_type</td><td>The type of the instance. For EC2, it can be 't1.micro', 'm1.small', etc. For OpenStack, it is the *ID* of instance flavor(not the name).</td></tr><tr><td>password</td><td>The ssh password</td></tr><tr><td>cloud</td><td>The cloud this node deploy to. So far, we supported ec2, openstack</td></tr></table>",
+          "parameters": [
             {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of topology that created template belongs to",
+              "name": "topology_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user haven't logined",
-              "code": 401
+              "allowMultiple": false,
+              "dataType": "string",
+              "description": "The XML document that defines the template",
+              "name": "definition",
+              "paramType": "body",
+              "required": false
             },
             {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
-            },
-            {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
+              "allowMultiple": false,
+              "dataType": "string",
+              "description": "The name of the template to be created. The name must be unique within topology",
+              "name": "name",
+              "paramType": "query",
+              "required": false
             }
           ],
-          "notes": "Template is introduced to provide a template for node definition. For example, if the several nodes share the same set of attributes/services, user can wrap those common attributes/services in a template and let the node to use that template. In addition, template can extend another template(s). If several templates share the same set of attributes/services, user can package those common definition in a base template and let the defining templates extend the base template. User can define a list of attributes of the template as they do for node<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>password</td><td>The ssh password</td></tr><tr><td>availability_zone</td><td>The Availability Zone. Used in EC2.</td></tr><tr><td>ssh_user</td><td>The ssh username</td></tr><tr><td>security_groups</td><td>list of security groups the node is using. Groups are comma-seperated if more than one.</td></tr><tr><td>port</td><td>The ssh port. Port 22 will be used if this attribute is not set</td></tr><tr><td>image_id</td><td>The id of the image the node will use</td></tr><tr><td>instance_type</td><td>The type of the instance. For EC2, it can be 't1.micro', 'm1.small', etc. For OpenStack, it is the *ID* of instance flavor(not the name).</td></tr><tr><td>key_pair_id</td><td>The ssh key pair id which is used to create the instance</td></tr><tr><td>cloud</td><td>The cloud this node deploy to. So far, we supported ec2, openstack</td></tr></table>"
+          "summary": "Create a new template definition"
         }
       ],
       "path": "/api/topologies/{topology_id}/templates"
@@ -103,46 +102,46 @@
       "description": "Show a template definition by id",
       "operations": [
         {
-          "parameters": [
+          "deprecated": false,
+          "errorResponses": [
             {
-              "description": "The unique id of topology that the template belongs to",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "topology_id",
-              "dataType": "integer",
-              "required": true
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
             },
             {
-              "description": "The unique id of the template",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "id",
-              "dataType": "integer",
-              "required": true
+              "code": 401,
+              "reason": "user haven't logined"
+            },
+            {
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
+            },
+            {
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
             }
           ],
           "httpMethod": "GET",
-          "summary": "Show a template definition by id",
-          "deprecated": false,
           "nickname": "get_template_by_id",
-          "errorResponses": [
+          "parameters": [
             {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of topology that the template belongs to",
+              "name": "topology_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user haven't logined",
-              "code": 401
-            },
-            {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
-            },
-            {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of the template",
+              "name": "id",
+              "paramType": "path",
+              "required": true
             }
-          ]
+          ],
+          "summary": "Show a template definition by id"
         }
       ],
       "path": "/api/topologies/{topology_id}/templates/{id}"
@@ -151,46 +150,46 @@
       "description": "Delete the template definition",
       "operations": [
         {
-          "parameters": [
+          "deprecated": false,
+          "errorResponses": [
             {
-              "description": "The unique id of topology that template belongs to",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "topology_id",
-              "dataType": "integer",
-              "required": true
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
             },
             {
-              "description": "The unique id of the template",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "id",
-              "dataType": "integer",
-              "required": true
+              "code": 401,
+              "reason": "user haven't logined"
+            },
+            {
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
+            },
+            {
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
             }
           ],
           "httpMethod": "DELETE",
-          "summary": "Delete the template definition",
-          "deprecated": false,
           "nickname": "delete_template_by_id",
-          "errorResponses": [
+          "parameters": [
             {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of topology that template belongs to",
+              "name": "topology_id",
+              "paramType": "path",
+              "required": true
             },
             {
-              "reason": "user haven't logined",
-              "code": 401
-            },
-            {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
-            },
-            {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of the template",
+              "name": "id",
+              "paramType": "path",
+              "required": true
             }
-          ]
+          ],
+          "summary": "Delete the template definition"
         }
       ],
       "path": "/api/topologies/{topology_id}/templates/{id}"
@@ -199,30 +198,47 @@
       "description": "Modify the definition of the template",
       "operations": [
         {
+          "deprecated": false,
+          "errorResponses": [
+            {
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
+            },
+            {
+              "code": 401,
+              "reason": "user haven't logined"
+            },
+            {
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
+            },
+            {
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
+            }
+          ],
+          "httpMethod": "PUT",
+          "nickname": "modify_template_by_id",
+          "notes": "User can rename the template, add/remove base templates, or set/remove attributes of the template. Template is introduced to provide a template for node definition. For example, if the several nodes share the same set of attributes/services, user can wrap those common attributes/services in a template and let the node to use that template. In addition, template can extend another template(s). If several templates share the same set of attributes/services, user can package those common definition in a base template and let the defining templates extend the base template. User can define a list of attributes of the template as they do for node<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>availability_zone</td><td>The Availability Zone. Used in EC2.</td></tr><tr><td>security_groups</td><td>list of security groups the node is using. Groups are comma-seperated if more than one.</td></tr><tr><td>port</td><td>The ssh port. Port 22 will be used if this attribute is not set</td></tr><tr><td>key_pair_id</td><td>The ssh key pair id which is used to create the instance</td></tr><tr><td>image_id</td><td>The id of the image the node will use</td></tr><tr><td>ssh_user</td><td>The ssh username</td></tr><tr><td>instance_type</td><td>The type of the instance. For EC2, it can be 't1.micro', 'm1.small', etc. For OpenStack, it is the *ID* of instance flavor(not the name).</td></tr><tr><td>password</td><td>The ssh password</td></tr><tr><td>cloud</td><td>The cloud this node deploy to. So far, we supported ec2, openstack</td></tr></table>",
           "parameters": [
             {
+              "allowMultiple": false,
+              "dataType": "integer",
               "description": "The unique id of topology that template belongs to",
-              "paramType": "path",
-              "allowMultiple": false,
               "name": "topology_id",
-              "dataType": "integer",
-              "required": true
-            },
-            {
-              "description": "The unique id of the template",
               "paramType": "path",
-              "allowMultiple": false,
-              "name": "id",
-              "dataType": "integer",
               "required": true
             },
             {
-              "description": "The operatoin to execute",
-              "paramType": "query",
               "allowMultiple": false,
-              "name": "operation",
-              "dataType": "string",
-              "required": true,
+              "dataType": "integer",
+              "description": "The unique id of the template",
+              "name": "id",
+              "paramType": "path",
+              "required": true
+            },
+            {
+              "allowMultiple": false,
               "allowableValues": {
                 "valueType": "LIST",
                 "values": [
@@ -232,82 +248,66 @@
                   "set_attribute",
                   "remove_attribute"
                 ]
-              }
+              },
+              "dataType": "string",
+              "description": "The operatoin to execute",
+              "name": "operation",
+              "paramType": "query",
+              "required": true
             },
             {
+              "allowMultiple": false,
+              "dataType": "string",
               "description": "The new name of the template. Used in operation 'rename' operation",
-              "paramType": "query",
-              "allowMultiple": false,
               "name": "name",
-              "dataType": "string",
+              "paramType": "query",
               "required": false
             },
             {
+              "allowMultiple": false,
+              "dataType": "string",
               "description": "The name of the base template to be added/removed. Use in 'extend' or 'unextend'",
-              "paramType": "query",
-              "allowMultiple": false,
               "name": "base_template",
-              "dataType": "string",
+              "paramType": "query",
               "required": false
             },
             {
-              "description": "The key of the attribute to be set/remove. Use in 'set_attribute' or 'remove_attribute'",
-              "paramType": "query",
               "allowMultiple": false,
-              "name": "attribute_key",
-              "dataType": "string",
-              "required": false,
               "allowableValues": {
                 "valueType": "LIST",
                 "values": [
-                  "password",
                   "availability_zone",
-                  "ssh_user",
                   "security_groups",
                   "port",
-                  "image_id",
-                  "instance_type",
                   "key_pair_id",
+                  "image_id",
+                  "ssh_user",
+                  "instance_type",
+                  "password",
                   "cloud"
                 ]
-              }
+              },
+              "dataType": "string",
+              "description": "The key of the attribute to be set/remove. Use in 'set_attribute' or 'remove_attribute'",
+              "name": "attribute_key",
+              "paramType": "query",
+              "required": false
             },
             {
-              "description": "The value of the attribute to be set. Use in 'set_attribute'",
-              "paramType": "query",
               "allowMultiple": false,
-              "name": "attribute_value",
               "dataType": "string",
+              "description": "The value of the attribute to be set. Use in 'set_attribute'",
+              "name": "attribute_value",
+              "paramType": "query",
               "required": false
             }
           ],
-          "httpMethod": "PUT",
-          "summary": "Modify the definition of the template",
-          "deprecated": false,
-          "nickname": "modify_template_by_id",
-          "errorResponses": [
-            {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
-            },
-            {
-              "reason": "user haven't logined",
-              "code": 401
-            },
-            {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
-            },
-            {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
-            }
-          ],
-          "notes": "User can rename the template, add/remove base templates, or set/remove attributes of the template. Template is introduced to provide a template for node definition. For example, if the several nodes share the same set of attributes/services, user can wrap those common attributes/services in a template and let the node to use that template. In addition, template can extend another template(s). If several templates share the same set of attributes/services, user can package those common definition in a base template and let the defining templates extend the base template. User can define a list of attributes of the template as they do for node<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>password</td><td>The ssh password</td></tr><tr><td>availability_zone</td><td>The Availability Zone. Used in EC2.</td></tr><tr><td>ssh_user</td><td>The ssh username</td></tr><tr><td>security_groups</td><td>list of security groups the node is using. Groups are comma-seperated if more than one.</td></tr><tr><td>port</td><td>The ssh port. Port 22 will be used if this attribute is not set</td></tr><tr><td>image_id</td><td>The id of the image the node will use</td></tr><tr><td>instance_type</td><td>The type of the instance. For EC2, it can be 't1.micro', 'm1.small', etc. For OpenStack, it is the *ID* of instance flavor(not the name).</td></tr><tr><td>key_pair_id</td><td>The ssh key pair id which is used to create the instance</td></tr><tr><td>cloud</td><td>The cloud this node deploy to. So far, we supported ec2, openstack</td></tr></table>"
+          "summary": "Modify the definition of the template"
         }
       ],
       "path": "/api/topologies/{topology_id}/templates/{id}"
     }
   ],
+  "basePath": "<%= request.protocol + request.host_with_port %>",
   "swagrVersion": "0.2"
 }

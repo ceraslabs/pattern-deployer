@@ -1,29 +1,28 @@
 {
-  "basePath": "<%= request.protocol + request.host_with_port %>",
   "apiVersion": "1.1",
   "apis": [
     {
       "description": "Get a list of topologies",
       "operations": [
         {
-          "httpMethod": "GET",
-          "summary": "Get a list of topologies",
           "deprecated": false,
-          "nickname": "get_list_of_topologies",
           "errorResponses": [
             {
-              "reason": "user haven't logined",
-              "code": 401
+              "code": 401,
+              "reason": "user haven't logined"
             },
             {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
             },
             {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
             }
-          ]
+          ],
+          "httpMethod": "GET",
+          "nickname": "get_list_of_topologies",
+          "summary": "Get a list of topologies"
         }
       ],
       "path": "/api/topologies"
@@ -32,63 +31,63 @@
       "description": "Create a new topologies definition",
       "operations": [
         {
-          "parameters": [
+          "deprecated": false,
+          "errorResponses": [
             {
-              "description": "This file should be an XML document to describe the topology",
-              "paramType": "body",
-              "allowMultiple": false,
-              "name": "file",
-              "dataType": "file",
-              "required": false
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
             },
             {
-              "description": "This file should be an XML document to describe the topology",
-              "paramType": "body",
-              "allowMultiple": false,
-              "name": "definition",
-              "dataType": "string",
-              "required": false
+              "code": 401,
+              "reason": "user haven't logined"
             },
             {
-              "description": "The name of the topology to be created.",
-              "paramType": "query",
-              "allowMultiple": false,
-              "name": "name",
-              "dataType": "string",
-              "required": false
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
             },
             {
-              "description": "The description of the topology to be created",
-              "paramType": "query",
-              "allowMultiple": false,
-              "name": "description",
-              "dataType": "string",
-              "required": false
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
             }
           ],
           "httpMethod": "POST",
-          "summary": "Create a new topologies definition",
-          "deprecated": false,
           "nickname": "create_topology",
-          "errorResponses": [
+          "notes": "User can upload an XML file which should contain an XML document to define the topology. Alternatively, user can send the XML definition by plain text through 'definition' parameter. Or, user can defer the topology definition by just provide the name and description.",
+          "parameters": [
             {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
+              "allowMultiple": false,
+              "dataType": "file",
+              "description": "This file should be an XML document to describe the topology",
+              "name": "file",
+              "paramType": "body",
+              "required": false
             },
             {
-              "reason": "user haven't logined",
-              "code": 401
+              "allowMultiple": false,
+              "dataType": "string",
+              "description": "This file should be an XML document to describe the topology",
+              "name": "definition",
+              "paramType": "body",
+              "required": false
             },
             {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
+              "allowMultiple": false,
+              "dataType": "string",
+              "description": "The name of the topology to be created.",
+              "name": "name",
+              "paramType": "query",
+              "required": false
             },
             {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
+              "allowMultiple": false,
+              "dataType": "string",
+              "description": "The description of the topology to be created",
+              "name": "description",
+              "paramType": "query",
+              "required": false
             }
           ],
-          "notes": "User can upload an XML file which should contain an XML document to define the topology. Alternatively, user can send the XML definition by plain text through 'definition' parameter. Or, user can defer the topology definition by just provide the name and description."
+          "summary": "Create a new topologies definition"
         }
       ],
       "path": "/api/topologies"
@@ -97,38 +96,38 @@
       "description": "Get the topology definition with id",
       "operations": [
         {
-          "parameters": [
+          "deprecated": false,
+          "errorResponses": [
             {
-              "description": "The unique id of topology",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "id",
-              "dataType": "integer",
-              "required": true
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
+            },
+            {
+              "code": 401,
+              "reason": "user haven't logined"
+            },
+            {
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
+            },
+            {
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
             }
           ],
           "httpMethod": "GET",
-          "summary": "Get the topology definition with id",
-          "deprecated": false,
           "nickname": "get_topology_by_id",
-          "errorResponses": [
+          "parameters": [
             {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
-            },
-            {
-              "reason": "user haven't logined",
-              "code": 401
-            },
-            {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
-            },
-            {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of topology",
+              "name": "id",
+              "paramType": "path",
+              "required": true
             }
-          ]
+          ],
+          "summary": "Get the topology definition with id"
         }
       ],
       "path": "/api/topologies/{id}"
@@ -137,38 +136,38 @@
       "description": "Delete the topology definition with id",
       "operations": [
         {
-          "parameters": [
+          "deprecated": false,
+          "errorResponses": [
             {
-              "description": "The unique id of topology",
-              "paramType": "path",
-              "allowMultiple": false,
-              "name": "id",
-              "dataType": "integer",
-              "required": true
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
+            },
+            {
+              "code": 401,
+              "reason": "user haven't logined"
+            },
+            {
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
+            },
+            {
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
             }
           ],
           "httpMethod": "DELETE",
-          "summary": "Delete the topology definition with id",
-          "deprecated": false,
           "nickname": "delete_topology_by_id",
-          "errorResponses": [
+          "parameters": [
             {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
-            },
-            {
-              "reason": "user haven't logined",
-              "code": 401
-            },
-            {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
-            },
-            {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
+              "allowMultiple": false,
+              "dataType": "integer",
+              "description": "The unique id of topology",
+              "name": "id",
+              "paramType": "path",
+              "required": true
             }
-          ]
+          ],
+          "summary": "Delete the topology definition with id"
         }
       ],
       "path": "/api/topologies/{id}"
@@ -177,22 +176,39 @@
       "description": "Modify the topology.",
       "operations": [
         {
+          "deprecated": false,
+          "errorResponses": [
+            {
+              "code": 400,
+              "reason": "user provided invalid parameter(s)"
+            },
+            {
+              "code": 401,
+              "reason": "user haven't logined"
+            },
+            {
+              "code": 403,
+              "reason": "user doesnot have permission for this operation"
+            },
+            {
+              "code": 500,
+              "reason": "some weird error occurs, possibly due to bug(s)"
+            }
+          ],
+          "httpMethod": "PUT",
+          "nickname": "modify_topology_by_id",
+          "notes": "User can use this operation to deploy or undeploy the topology to cloud. Deploying a topology will launch a set of instance(s) on the cloud(s) and install the required software stack on the instance(s). Undeploying a topology will shutdown the deployed instance(s) on the cloud(s) and cleanup the corresponse resource",
           "parameters": [
             {
-              "description": "The unique id of topology",
-              "paramType": "path",
               "allowMultiple": false,
-              "name": "id",
               "dataType": "integer",
+              "description": "The unique id of topology",
+              "name": "id",
+              "paramType": "path",
               "required": true
             },
             {
-              "description": "The operation which the topology is going to be executed with. 'deploy' is to deploy the topology to cloud. 'undeploy' is to undeploy the already deployed topology.",
-              "paramType": "query",
               "allowMultiple": false,
-              "name": "operation",
-              "dataType": "string",
-              "required": true,
               "allowableValues": {
                 "valueType": "LIST",
                 "values": [
@@ -201,52 +217,36 @@
                   "deploy",
                   "undeploy"
                 ]
-              }
+              },
+              "dataType": "string",
+              "description": "The operation which the topology is going to be executed with. 'deploy' is to deploy the topology to cloud. 'undeploy' is to undeploy the already deployed topology.",
+              "name": "operation",
+              "paramType": "query",
+              "required": true
             },
             {
+              "allowMultiple": false,
+              "dataType": "string",
               "description": "The new name. Used in operation 'rename' operation",
-              "paramType": "query",
-              "allowMultiple": false,
               "name": "name",
-              "dataType": "string",
-              "required": false
-            },
-            {
-              "description": "The new description of the topology. Used in operation 'update_description' operation",
               "paramType": "query",
+              "required": false
+            },
+            {
               "allowMultiple": false,
-              "name": "description",
               "dataType": "string",
+              "description": "The new description of the topology. Used in operation 'update_description' operation",
+              "name": "description",
+              "paramType": "query",
               "required": false
             }
           ],
-          "httpMethod": "PUT",
-          "summary": "Modify the topology.",
-          "deprecated": false,
-          "nickname": "modify_topology_by_id",
-          "errorResponses": [
-            {
-              "reason": "user provided invalid parameter(s)",
-              "code": 400
-            },
-            {
-              "reason": "user haven't logined",
-              "code": 401
-            },
-            {
-              "reason": "user doesnot have permission for this operation",
-              "code": 403
-            },
-            {
-              "reason": "some weird error occurs, possibly due to bug(s)",
-              "code": 500
-            }
-          ],
-          "notes": "User can use this operation to deploy or undeploy the topology to cloud. Deploying a topology will launch a set of instance(s) on the cloud(s) and install the required software stack on the instance(s). Undeploying a topology will shutdown the deployed instance(s) on the cloud(s) and cleanup the corresponse resource"
+          "summary": "Modify the topology."
         }
       ],
       "path": "/api/topologies/{id}"
     }
   ],
+  "basePath": "<%= request.protocol + request.host_with_port %>",
   "swagrVersion": "0.2"
 }
