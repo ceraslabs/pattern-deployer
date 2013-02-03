@@ -261,6 +261,7 @@ EOL
     elsif value.class == String
       return %Q["#{value}"]
     elsif value.class == Array
+      value = sort_if_all_str(value)
       str = "[\n"
       str += value.map do |item|
         padding(level + 1) + json_value_to_string(item, level + 1)
@@ -275,6 +276,12 @@ EOL
     else
       raise "json value '#{value}' is of invalid type '#{value.class.to_s}'"
     end
+  end
+
+  def sort_if_all_str(array)
+    all_str = array.all?{|item| item.class == String}
+    array.sort! if all_str
+    array
   end
 
   def padding(level)
