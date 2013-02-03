@@ -18,8 +18,9 @@ require "my_errors"
 
 ##~ @file = source2swagger.namespace("uploaded_file")
 ##~ @file.basePath = "<%= request.protocol + request.host_with_port %>"
-##~ @file.swagrVersion = "0.2"
-##~ @file.apiVersion = "1.1"
+##~ @file.swaggerVersion = "1.1"
+##~ @file.apiVersion = "0.2"
+##~ @file.models = {}
 ##
 ##~ @types_descs = {}
 ##~ @types_descs["identity_file"] = "Identity file contains private key that is used to ssh to the deployed instance. An identity file should match a keypair of the cloud and should have an suffix '.pem'"
@@ -32,8 +33,8 @@ class UploadedFilesController < RestfulController
   ##~ api = @file.apis.add
   ##~ api.path = "/api/uploaded_files"
   ##~ api.description = "Show a list of uploaded files"
-  ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_files", :deprecated => false
+  ##~ op = api.operations.add
+  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_files", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##  
   ##~ errors.each{|err| op.errorResponses.add err if err[:code] != 400}
@@ -49,7 +50,7 @@ class UploadedFilesController < RestfulController
   ##~ api.path = "/api/uploaded_files"
   ##~ api.description = "Upload a file"
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "POST", :nickname => "create_file", :deprecated => false
+  ##~ op.set :httpMethod => "POST", :nickname => "create_file", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##~ op.notes = "User need to provide a name for the created file. Depending on file type, user may need to fill additional parameter(s)" + @file_type_desc
   ##
@@ -125,7 +126,7 @@ class UploadedFilesController < RestfulController
   ##~ api.set :path => "/api/uploaded_files/{id}"
   ##~ api.description = "Delete the uploaded file by id"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "GET", :nickname => "get_file_by_id", :deprecated => false
+  ##~ op.set :httpMethod => "GET", :nickname => "get_file_by_id", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -147,7 +148,7 @@ class UploadedFilesController < RestfulController
   ##~ api.set :path => "/api/uploaded_files/{id}"
   ##~ api.description = "Delete the uploaded file by id"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_file_by_id", :deprecated => false
+  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_file_by_id", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -176,7 +177,7 @@ class UploadedFilesController < RestfulController
   ##~ api.set :path => "/api/uploaded_files/{id}"
   ##~ api.description = "Modify the uploaded file by id"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "PUT", :nickname => "modify_file_by_id", :deprecated => false
+  ##~ op.set :httpMethod => "PUT", :nickname => "modify_file_by_id", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err}

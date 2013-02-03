@@ -18,8 +18,9 @@ require "my_errors"
 
 ##~ @node = source2swagger.namespace("node")
 ##~ @node.basePath = "<%= request.protocol + request.host_with_port %>"
-##~ @node.swagrVersion = "0.2"
-##~ @node.apiVersion = "1.1"
+##~ @node.swaggerVersion = "1.1"
+##~ @node.apiVersion = "0.2"
+##~ @node.models = {}
 ##
 ## * define a table of supported node attributes(This is a hack but I can't find other feasible way to do it)
 ##
@@ -46,7 +47,7 @@ class NodesController < RestfulController
   ##~ api.description = "Show a list of nodes definitions"
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_nodes", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_nodes", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
   ##
@@ -67,7 +68,7 @@ class NodesController < RestfulController
   ##~ api.description = "Show a list of nodes definitions"
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_nodes", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_nodes", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
   ##
@@ -92,7 +93,7 @@ class NodesController < RestfulController
   ##~ api.description = description
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "POST", :nickname => "create_node", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "POST", :nickname => "create_node", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##~ notes = "User has options to create the node by name or by definition. If by name, the parameter 'name' need to be filled. If by definition, user need to send the XML document through the 'definition' parameter. Node can have a list of attributes to describe itself. The supported attributes is list below." + @node_attrs_desc
   ##~ op.notes = notes
   ##
@@ -123,7 +124,7 @@ class NodesController < RestfulController
   ##~ api.description = description
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "POST", :nickname => "get_list_of_nodes", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "POST", :nickname => "get_list_of_nodes", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##~ op.notes = notes
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -160,7 +161,7 @@ class NodesController < RestfulController
   ##~ api.description = description
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "GET", :nickname => "get_node_by_id", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "GET", :nickname => "get_node_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
   ##
@@ -185,7 +186,7 @@ class NodesController < RestfulController
   ##~ api.description = description
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "GET", :nickname => "get_node_by_id", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "GET", :nickname => "get_node_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
   ##
@@ -210,7 +211,7 @@ class NodesController < RestfulController
   ##~ api.description = description
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_node_by_id", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_node_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
   ##
@@ -235,7 +236,7 @@ class NodesController < RestfulController
   ##~ api.description = description
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_node_by_id", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_node_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
   ##
@@ -270,7 +271,7 @@ class NodesController < RestfulController
   ##~ api.description = description
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "PUT", :nickname => "modify_node_by_id", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "PUT", :nickname => "modify_node_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##~ notes = "User can rename the node, add/remove template the node is using, or set/remove attributes of the node." + @node_attrs_desc
   ##~ op.notes = notes
   ##
@@ -319,7 +320,7 @@ class NodesController < RestfulController
   ##~ api.description = description
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "PUT", :nickname => "modify_node_by_id", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "PUT", :nickname => "modify_node_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##~ op.notes = notes
   ##
   ##~ errors.each{|err| op.errorResponses.add err}

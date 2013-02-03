@@ -18,8 +18,9 @@ require "my_errors"
 
 ##~ @supporting_service = source2swagger.namespace("supporting_service")
 ##~ @supporting_service.basePath = "<%= request.protocol + request.host_with_port %>"
-##~ @supporting_service.swagrVersion = "0.2"
-##~ @supporting_service.apiVersion = "1.1"
+##~ @supporting_service.swaggerVersion = "1.1"
+##~ @supporting_service.apiVersion = "0.2"
+##~ @supporting_service.models = {}
 ##
 ##~ @supporting_services_descs = {}
 ##~ @supporting_services_descs["openvpn"] = "Provide openvpn service. Specifically, enabling this service will deploy an server which dedicates to generate keys/certificates for message encryption. User can enable this service if communications between nodes need to be secured"
@@ -36,7 +37,7 @@ class SupportingServicesController < RestfulController
   ##~ api.path = "/api/supporting_services"
   ##~ api.description = "Show a list of supporting services"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_supporting_services", :deprecated => false
+  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_supporting_services", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##  
   ##~ errors.each{|err| op.errorResponses.add err if err[:code] != 400}
@@ -52,7 +53,7 @@ class SupportingServicesController < RestfulController
   ##~ api.set :path => "/api/supporting_services/{id}"
   ##~ api.description = "Show the supporting service by id"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "GET", :nickname => "get_supporting_service_by_id", :deprecated => false
+  ##~ op.set :httpMethod => "GET", :nickname => "get_supporting_service_by_id", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -74,7 +75,7 @@ class SupportingServicesController < RestfulController
   ##~ api.set :path => "/api/supporting_services/{id}"
   ##~ api.description = "Enable/Disable supporting service by id"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "PUT", :nickname => "modify_supporting_service_by_id", :deprecated => false
+  ##~ op.set :httpMethod => "PUT", :nickname => "modify_supporting_service_by_id", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##~ op.notes = "The deployment of some services need to be supported by additional component(s). Therefore, the concept of supporting service is introduced to describe the deployment of additional component(s). E.g. In order to setup openvpn network of topology, we need to setup a certificate authority to generate keys/certificates. Only admin can enable/disable supporting services. Once a supporting service is enabled, it can be shared by all topologies." + @supporting_services_desc
   ##

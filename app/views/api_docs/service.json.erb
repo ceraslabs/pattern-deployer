@@ -1,5 +1,5 @@
 {
-  "apiVersion": "1.1",
+  "apiVersion": "0.2",
   "apis": [
     {
       "description": "Show a list of service definitions",
@@ -45,6 +45,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Show a list of service definitions"
         }
       ],
@@ -94,6 +95,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Show a list of service definitions"
         }
       ],
@@ -151,6 +153,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Show a list of service definitions"
         }
       ],
@@ -181,7 +184,7 @@
           ],
           "httpMethod": "POST",
           "nickname": "create_service",
-          "notes": "Users can create a service by providing an XML document or just providing the name. The services available so far is list below<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr></table>",
+          "notes": "Users can create a service by providing an XML document or just providing the name. The services available so far is list below<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
@@ -204,19 +207,19 @@
               "allowableValues": {
                 "valueType": "LIST",
                 "values": [
-                  "ossec_client",
                   "dns_client",
-                  "snort_prepost",
-                  "database_server",
+                  "web_balancer",
                   "web_server",
                   "openvpn_server",
-                  "server_installation",
-                  "standalone_installation",
-                  "web_balancer",
                   "virsh",
+                  "database_server",
+                  "openvpn_client",
+                  "standalone_installation",
+                  "ossec_client",
                   "client_installation",
-                  "snort",
-                  "openvpn_client"
+                  "snort_prepost",
+                  "server_installation",
+                  "snort"
                 ]
               },
               "dataType": "string",
@@ -234,6 +237,7 @@
               "required": false
             }
           ],
+          "responseClass": "string",
           "summary": "Create a service node definition"
         }
       ],
@@ -264,7 +268,7 @@
           ],
           "httpMethod": "POST",
           "nickname": "create_service",
-          "notes": "Users can create a service by providing an XML document or just providing the name. The services available so far is list below<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr></table>",
+          "notes": "Users can create a service by providing an XML document or just providing the name. The services available so far is list below<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
@@ -287,19 +291,19 @@
               "allowableValues": {
                 "valueType": "LIST",
                 "values": [
-                  "ossec_client",
                   "dns_client",
-                  "snort_prepost",
-                  "database_server",
+                  "web_balancer",
                   "web_server",
                   "openvpn_server",
-                  "server_installation",
-                  "standalone_installation",
-                  "web_balancer",
                   "virsh",
+                  "database_server",
+                  "openvpn_client",
+                  "standalone_installation",
+                  "ossec_client",
                   "client_installation",
-                  "snort",
-                  "openvpn_client"
+                  "snort_prepost",
+                  "server_installation",
+                  "snort"
                 ]
               },
               "dataType": "string",
@@ -317,6 +321,7 @@
               "required": false
             }
           ],
+          "responseClass": "string",
           "summary": "Create a service node definition"
         }
       ],
@@ -347,7 +352,7 @@
           ],
           "httpMethod": "POST",
           "nickname": "create_service",
-          "notes": "Users can create a service by providing an XML document or just providing the name. The services available so far is list below<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr></table>",
+          "notes": "Users can create a service by providing an XML document or just providing the name. The services available so far is list below<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
@@ -378,19 +383,19 @@
               "allowableValues": {
                 "valueType": "LIST",
                 "values": [
-                  "ossec_client",
                   "dns_client",
-                  "snort_prepost",
-                  "database_server",
+                  "web_balancer",
                   "web_server",
                   "openvpn_server",
-                  "server_installation",
-                  "standalone_installation",
-                  "web_balancer",
                   "virsh",
+                  "database_server",
+                  "openvpn_client",
+                  "standalone_installation",
+                  "ossec_client",
                   "client_installation",
-                  "snort",
-                  "openvpn_client"
+                  "snort_prepost",
+                  "server_installation",
+                  "snort"
                 ]
               },
               "dataType": "string",
@@ -408,6 +413,7 @@
               "required": false
             }
           ],
+          "responseClass": "string",
           "summary": "Create a service node definition"
         }
       ],
@@ -465,6 +471,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Show a list of service definitions"
         }
       ],
@@ -522,6 +529,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Show a list of service definitions"
         }
       ],
@@ -587,6 +595,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Show a list of service definitions"
         }
       ],
@@ -643,6 +652,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Delete the service definition"
         }
       ],
@@ -699,6 +709,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Delete the service definition"
         }
       ],
@@ -763,6 +774,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Delete the service definition"
         }
       ],
@@ -793,7 +805,7 @@
           ],
           "httpMethod": "PUT",
           "nickname": "modify_service_by_id",
-          "notes": "User can 'rename' or 'redefine' the service. If redefine, user needs to provide a new XML document as service definition.<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr></table>",
+          "notes": "User can 'rename' or 'redefine' the service. If redefine, user needs to provide a new XML document as service definition.<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
@@ -839,19 +851,19 @@
               "allowableValues": {
                 "valueType": "LIST",
                 "values": [
-                  "ossec_client",
                   "dns_client",
-                  "snort_prepost",
-                  "database_server",
+                  "web_balancer",
                   "web_server",
                   "openvpn_server",
-                  "server_installation",
-                  "standalone_installation",
-                  "web_balancer",
                   "virsh",
+                  "database_server",
+                  "openvpn_client",
+                  "standalone_installation",
+                  "ossec_client",
                   "client_installation",
-                  "snort",
-                  "openvpn_client"
+                  "snort_prepost",
+                  "server_installation",
+                  "snort"
                 ]
               },
               "dataType": "string",
@@ -869,6 +881,7 @@
               "required": false
             }
           ],
+          "responseClass": "string",
           "summary": "Modify the service definition"
         }
       ],
@@ -899,7 +912,7 @@
           ],
           "httpMethod": "PUT",
           "nickname": "modify_service_by_id",
-          "notes": "User can 'rename' or 'redefine' the service. If redefine, user needs to provide a new XML document as service definition.<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr></table>",
+          "notes": "User can 'rename' or 'redefine' the service. If redefine, user needs to provide a new XML document as service definition.<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
@@ -945,19 +958,19 @@
               "allowableValues": {
                 "valueType": "LIST",
                 "values": [
-                  "ossec_client",
                   "dns_client",
-                  "snort_prepost",
-                  "database_server",
+                  "web_balancer",
                   "web_server",
                   "openvpn_server",
-                  "server_installation",
-                  "standalone_installation",
-                  "web_balancer",
                   "virsh",
+                  "database_server",
+                  "openvpn_client",
+                  "standalone_installation",
+                  "ossec_client",
                   "client_installation",
-                  "snort",
-                  "openvpn_client"
+                  "snort_prepost",
+                  "server_installation",
+                  "snort"
                 ]
               },
               "dataType": "string",
@@ -975,6 +988,7 @@
               "required": false
             }
           ],
+          "responseClass": "string",
           "summary": "Modify the service definition"
         }
       ],
@@ -1005,7 +1019,7 @@
           ],
           "httpMethod": "PUT",
           "nickname": "modify_service_by_id",
-          "notes": "User can 'rename' or 'redefine' the service. If redefine, user needs to provide a new XML document as service definition.<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr></table>",
+          "notes": "User can 'rename' or 'redefine' the service. If redefine, user needs to provide a new XML document as service definition.<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
@@ -1059,19 +1073,19 @@
               "allowableValues": {
                 "valueType": "LIST",
                 "values": [
-                  "ossec_client",
                   "dns_client",
-                  "snort_prepost",
-                  "database_server",
+                  "web_balancer",
                   "web_server",
                   "openvpn_server",
-                  "server_installation",
-                  "standalone_installation",
-                  "web_balancer",
                   "virsh",
+                  "database_server",
+                  "openvpn_client",
+                  "standalone_installation",
+                  "ossec_client",
                   "client_installation",
-                  "snort",
-                  "openvpn_client"
+                  "snort_prepost",
+                  "server_installation",
+                  "snort"
                 ]
               },
               "dataType": "string",
@@ -1089,6 +1103,7 @@
               "required": false
             }
           ],
+          "responseClass": "string",
           "summary": "Modify the service definition"
         }
       ],
@@ -1096,5 +1111,8 @@
     }
   ],
   "basePath": "<%= request.protocol + request.host_with_port %>",
-  "swagrVersion": "0.2"
+  "models": {
+
+  },
+  "swaggerVersion": "1.1"
 }

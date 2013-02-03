@@ -18,8 +18,9 @@ require "my_errors"
 
 ##~ @credential = source2swagger.namespace("credential")
 ##~ @credential.basePath = "<%= request.protocol + request.host_with_port %>"
-##~ @credential.swagrVersion = "0.2"
-##~ @credential.apiVersion = "1.1"
+##~ @credential.swaggerVersion = "1.1"
+##~ @credential.apiVersion = "0.2"
+##~ @credential.models = {}
 ##~ @clouds = ["ec2", "openstack"]
 class CredentialsController < RestfulController
 
@@ -28,7 +29,7 @@ class CredentialsController < RestfulController
   ##~ api.path = "/api/credentials"
   ##~ api.description = "Show a list of credentials"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_credentials", :deprecated => false
+  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_credentials", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err if err[:code] != 400}
@@ -44,7 +45,7 @@ class CredentialsController < RestfulController
   ##~ api.path = "/api/credentials"
   ##~ api.description = "Create a new credential"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "POST", :nickname => "create_credential", :deprecated => false
+  ##~ op.set :httpMethod => "POST", :nickname => "create_credential", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##~ op.notes = "The created credential will be used to authenticate user against the cloud when deploying a topology. User need to provide a name for the created credential and indicate which cloud this credential belongs to. Depending on different cloud provider, user need to fill the corresponse parameter(s) to define the credential"
   ##
@@ -126,7 +127,7 @@ class CredentialsController < RestfulController
   ##~ api.set :path => "/api/credentials/{id}"
   ##~ api.description = "Get the credential definition with id"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "GET", :nickname => "get_credential_by_id", :deprecated => false
+  ##~ op.set :httpMethod => "GET", :nickname => "get_credential_by_id", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -147,7 +148,7 @@ class CredentialsController < RestfulController
   ##~ api.set :path => "/api/credentials/{id}"
   ##~ api.description = "Delete the credential definition by id"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_credential_by_id", :deprecated => false
+  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_credential_by_id", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -175,7 +176,7 @@ class CredentialsController < RestfulController
   ##~ api.set :path => "/api/credentials/{id}"
   ##~ api.description = "Modify the credential."
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "PUT", :nickname => "modify_topology_by_id", :deprecated => false
+  ##~ op.set :httpMethod => "PUT", :nickname => "modify_topology_by_id", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##~ op.notes = "Two operation available: 'rename' and 'redefine'. Operation 'redefine' can be used to change the attribute/key/password of existing credential."
   ##

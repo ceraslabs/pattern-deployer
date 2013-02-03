@@ -1,5 +1,5 @@
 {
-  "apiVersion": "1.1",
+  "apiVersion": "0.2",
   "apis": [
     {
       "description": "Show a list of uploaded files",
@@ -22,6 +22,7 @@
           ],
           "httpMethod": "GET",
           "nickname": "get_list_of_files",
+          "responseClass": "string",
           "summary": "Show a list of uploaded files"
         }
       ],
@@ -52,7 +53,7 @@
           ],
           "httpMethod": "POST",
           "nickname": "create_file",
-          "notes": "User need to provide a name for the created file. Depending on file type, user may need to fill additional parameter(s)<h4>File types</h4><table><thead><tr><th>type</th><th>description</th></tr></thead><tr><td>war_file</td><td>Java application archive. An war file should have suffix '.war'</td></tr><tr><td>identity_file</td><td>Identity file contains private key that is used to ssh to the deployed instance. An identity file should match a keypair of the cloud and should have an suffix '.pem'</td></tr><tr><td>sql_script_file</td><td>An sql script file which is used to setup the schema/tables of database</td></tr></table>",
+          "notes": "User need to provide a name for the created file. Depending on file type, user may need to fill additional parameter(s)<h4>File types</h4><table><thead><tr><th>type</th><th>description</th></tr></thead><tr><td>sql_script_file</td><td>An sql script file which is used to setup the schema/tables of database</td></tr><tr><td>war_file</td><td>Java application archive. An war file should have suffix '.war'</td></tr><tr><td>identity_file</td><td>Identity file contains private key that is used to ssh to the deployed instance. An identity file should match a keypair of the cloud and should have an suffix '.pem'</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
@@ -67,9 +68,9 @@
               "allowableValues": {
                 "valueType": "LIST",
                 "values": [
+                  "sql_script_file",
                   "war_file",
-                  "identity_file",
-                  "sql_script_file"
+                  "identity_file"
                 ]
               },
               "dataType": "string",
@@ -110,6 +111,7 @@
               "required": false
             }
           ],
+          "responseClass": "string",
           "summary": "Upload a file"
         }
       ],
@@ -150,6 +152,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Delete the uploaded file by id"
         }
       ],
@@ -190,6 +193,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Delete the uploaded file by id"
         }
       ],
@@ -261,6 +265,7 @@
               "required": false
             }
           ],
+          "responseClass": "string",
           "summary": "Modify the uploaded file by id"
         }
       ],
@@ -268,5 +273,8 @@
     }
   ],
   "basePath": "<%= request.protocol + request.host_with_port %>",
-  "swagrVersion": "0.2"
+  "models": {
+
+  },
+  "swaggerVersion": "1.1"
 }

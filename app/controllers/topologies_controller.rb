@@ -19,8 +19,9 @@ require "resources_manager"
 
 ##~ @topology = source2swagger.namespace("topology")
 ##~ @topology.basePath = "<%= request.protocol + request.host_with_port %>"
-##~ @topology.swagrVersion = "0.2"
-##~ @topology.apiVersion = "1.1"
+##~ @topology.swaggerVersion = "1.1"
+##~ @topology.apiVersion = "0.2"
+##~ @topology.models = {}
 class TopologiesController < RestfulController
 
   include RestfulHelper
@@ -33,7 +34,7 @@ class TopologiesController < RestfulController
   ##~ api.path = "/api/topologies"
   ##~ api.description = "Get a list of topologies"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_topologies", :deprecated => false
+  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_topologies", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err if err[:code] != 400}
@@ -49,7 +50,7 @@ class TopologiesController < RestfulController
   ##~ api.set :path => "/api/topologies"
   ##~ api.description = "Create a new topologies definition"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "POST", :nickname => "create_topology", :deprecated => false
+  ##~ op.set :httpMethod => "POST", :nickname => "create_topology", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##~ op.notes = "User can upload an XML file which should contain an XML document to define the topology. Alternatively, user can send the XML definition by plain text through 'definition' parameter. Or, user can defer the topology definition by just provide the name and description."
   ##
@@ -97,7 +98,7 @@ class TopologiesController < RestfulController
   ##~ api.set :path => "/api/topologies/{id}"
   ##~ api.description = "Get the topology definition with id"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "GET", :nickname => "get_topology_by_id", :deprecated => false
+  ##~ op.set :httpMethod => "GET", :nickname => "get_topology_by_id", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -122,7 +123,7 @@ class TopologiesController < RestfulController
   ##~ api.set :path => "/api/topologies/{id}"
   ##~ api.description = "Delete the topology definition with id"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_topology_by_id", :deprecated => false
+  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_topology_by_id", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -153,7 +154,7 @@ class TopologiesController < RestfulController
   ##~ api.set :path => "/api/topologies/{id}"
   ##~ api.description = "Modify the topology."
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "PUT", :nickname => "modify_topology_by_id", :deprecated => false
+  ##~ op.set :httpMethod => "PUT", :nickname => "modify_topology_by_id", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##~ op.notes = "User can use this operation to deploy or undeploy the topology to cloud. Deploying a topology will launch a set of instance(s) on the cloud(s) and install the required software stack on the instance(s). Undeploying a topology will shutdown the deployed instance(s) on the cloud(s) and cleanup the corresponse resource"
   ##

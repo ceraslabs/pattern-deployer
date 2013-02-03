@@ -16,8 +16,9 @@
 #
 ##~ @service = source2swagger.namespace("service")
 ##~ @service.basePath = "<%= request.protocol + request.host_with_port %>"
-##~ @service.swagrVersion = "0.2"
-##~ @service.apiVersion = "1.1"
+##~ @service.swaggerVersion = "1.1"
+##~ @service.apiVersion = "0.2"
+##~ @service.models = {}
 ##
 ## * define a table of supported service(This is a hack but I can't find other feasible way to do it)
 ##
@@ -49,7 +50,7 @@ class ServicesController < RestfulController
   ##~ api.description = desc
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_services", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_services", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##~ notes = "Show a list of service definitions. In implementation point of view, each service match a set of scripts that will run on deployed instance."
   ##~ op.notes = notes
   ##
@@ -76,7 +77,7 @@ class ServicesController < RestfulController
   ##~ api.description = desc
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_services", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_services", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##~ op.notes = notes
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -96,7 +97,7 @@ class ServicesController < RestfulController
   ##~ api.description = desc
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_services", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_services", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##~ op.notes = notes
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -122,7 +123,7 @@ class ServicesController < RestfulController
   ##~ api.description = desc
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "POST", :nickname => "create_service", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "POST", :nickname => "create_service", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##~ notes = "Users can create a service by providing an XML document or just providing the name. The services available so far is list below" + @services_desc
   ##~ op.notes = notes
   ##
@@ -158,7 +159,7 @@ class ServicesController < RestfulController
   ##~ api.description = desc
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "POST", :nickname => "create_service", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "POST", :nickname => "create_service", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##~ op.notes = notes
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -178,7 +179,7 @@ class ServicesController < RestfulController
   ##~ api.description = desc
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "POST", :nickname => "create_service", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "POST", :nickname => "create_service", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##~ op.notes = notes
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -215,7 +216,7 @@ class ServicesController < RestfulController
   ##~ api.description = desc
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "GET", :nickname => "get_service_by_id", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "GET", :nickname => "get_service_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##~ notes = "Show a list of service definitions. In implementation point of view, each service match a set of scripts that will run on deployed instance."
   ##~ op.notes = notes
   ##
@@ -246,7 +247,7 @@ class ServicesController < RestfulController
   ##~ api.description = desc
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "GET", :nickname => "get_service_by_id", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "GET", :nickname => "get_service_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##~ op.notes = notes
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -266,7 +267,7 @@ class ServicesController < RestfulController
   ##~ api.description = desc
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "GET", :nickname => "get_service_by_id", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "GET", :nickname => "get_service_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##~ op.notes = notes
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -292,7 +293,7 @@ class ServicesController < RestfulController
   ##~ api.description = desc
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_service_by_id", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_service_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
   ##
@@ -320,7 +321,7 @@ class ServicesController < RestfulController
   ##~ api.description = desc
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_service_by_id", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_service_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
   ##
@@ -338,7 +339,7 @@ class ServicesController < RestfulController
   ##~ api.description = desc
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_service_by_id", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_service_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
   ##
@@ -370,7 +371,7 @@ class ServicesController < RestfulController
   ##~ api.description = desc
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "PUT", :nickname => "modify_service_by_id", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "PUT", :nickname => "modify_service_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##~ notes = "User can 'rename' or 'redefine' the service. If redefine, user needs to provide a new XML document as service definition." + @services_desc
   ##~ op.notes = notes
   ##
@@ -414,7 +415,7 @@ class ServicesController < RestfulController
   ##~ api.description = desc
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "PUT", :nickname => "modify_service_by_id", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "PUT", :nickname => "modify_service_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##~ op.notes = notes
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -433,7 +434,7 @@ class ServicesController < RestfulController
   ##~ api.description = desc
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "PUT", :nickname => "modify_service_by_id", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "PUT", :nickname => "modify_service_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##~ op.notes = notes
   ##
   ##~ errors.each{|err| op.errorResponses.add err}

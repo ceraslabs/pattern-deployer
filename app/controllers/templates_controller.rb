@@ -18,8 +18,9 @@ require "my_errors"
 
 ##~ @template = source2swagger.namespace("template")
 ##~ @template.basePath = "<%= request.protocol + request.host_with_port %>"
-##~ @template.swagrVersion = "0.2"
-##~ @template.apiVersion = "1.1"
+##~ @template.swaggerVersion = "1.1"
+##~ @template.apiVersion = "0.2"
+##~ @template.models = {}
 class TemplatesController < RestfulController
 
   include RestfulHelper
@@ -32,7 +33,7 @@ class TemplatesController < RestfulController
   ##~ api.description = "Show a list of templates definitions"
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_templates", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_templates", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
   ##
@@ -57,7 +58,7 @@ class TemplatesController < RestfulController
   ##~ api.description = "Create a new template definition"
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "POST", :nickname => "create_template", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "POST", :nickname => "create_template", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##~ @template_desc = "Template is introduced to provide a template for node definition. For example, if the several nodes share the same set of attributes/services, user can wrap those common attributes/services in a template and let the node to use that template. In addition, template can extend another template(s). If several templates share the same set of attributes/services, user can package those common definition in a base template and let the defining templates extend the base template. User can define a list of attributes of the template as they do for node" + @node_attrs_desc
   ##~ op.notes = @template_desc
   ##
@@ -103,7 +104,7 @@ class TemplatesController < RestfulController
   ##~ api.description = "Show a template definition by id"
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "GET", :nickname => "get_template_by_id", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "GET", :nickname => "get_template_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
   ##
@@ -134,7 +135,7 @@ class TemplatesController < RestfulController
   ##~ api.description = description
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_template_by_id", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_template_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
   ##
@@ -175,7 +176,7 @@ class TemplatesController < RestfulController
   ##~ api.description = description
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "PUT", :nickname => "modify_template_by_id", :deprecated => false, :summary => api.description
+  ##~ op.set :httpMethod => "PUT", :nickname => "modify_template_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
   ##~ op.notes = "User can rename the template, add/remove base templates, or set/remove attributes of the template. " + @template_desc
   ##
   ##~ errors.each{|err| op.errorResponses.add err}

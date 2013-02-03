@@ -18,8 +18,9 @@ require "my_errors"
 
 ##~ @container = source2swagger.namespace("container")
 ##~ @container.basePath = "<%= request.protocol + request.host_with_port %>"
-##~ @container.swagrVersion = "0.2"
-##~ @container.apiVersion = "1.1"
+##~ @container.swaggerVersion = "1.1"
+##~ @container.apiVersion = "0.2"
+##~ @container.models = {}
 ##
 ##~ errors = []
 ##~ errors << {:reason => "user provided invalid parameter(s)", :code => 400}
@@ -39,8 +40,8 @@ class ContainersController < RestfulController
   ##~ api.path = "/api/topologies/{topology_id}/containers"
   ##~ api.description = "Show a list of containers definitions"
   ##
-  ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_containers", :deprecated => false
+  ##~ op = api.operations.add
+  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_containers", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err if err[:code] != 400}
@@ -63,7 +64,7 @@ class ContainersController < RestfulController
   ##~ api.set :path => "/api/topologies/{topology_id}/containers"
   ##~ api.description = "Create a new containers definition"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "POST", :nickname => "create_container", :deprecated => false
+  ##~ op.set :httpMethod => "POST", :nickname => "create_container", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##~ op.notes = @container_desc + " Users have 2 options to create a container: provide an XML definition or just provide the name(optionally together with the number of copies)."
   ##
@@ -107,7 +108,7 @@ class ContainersController < RestfulController
   ##~ api.set :path => "/api/topologies/{topology_id}/containers/{id}"
   ##~ api.description = "Get the container definition with id"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "GET", :nickname => "get_container_by_id", :deprecated => false
+  ##~ op.set :httpMethod => "GET", :nickname => "get_container_by_id", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -133,7 +134,7 @@ class ContainersController < RestfulController
   ##~ api.set :path => "/api/topologies/{topology_id}/containers/{id}"
   ##~ api.description = "Delete the container definition"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_container_by_id", :deprecated => false
+  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_container_by_id", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -165,7 +166,7 @@ class ContainersController < RestfulController
   ##~ api.set :path => "/api/topologies/{topology_id}/containers/{id}"
   ##~ api.description = "Modify the definition of the container"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "PUT", :nickname => "modify_container_by_id", :deprecated => false
+  ##~ op.set :httpMethod => "PUT", :nickname => "modify_container_by_id", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##~ op.notes = @container_desc + "User can change the name of the container or change the 'num_of_copies' attribute of the container"
   ##

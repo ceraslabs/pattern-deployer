@@ -1,5 +1,5 @@
 {
-  "apiVersion": "1.1",
+  "apiVersion": "0.2",
   "apis": [
     {
       "description": "Show a list of nodes definitions",
@@ -36,6 +36,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Show a list of nodes definitions"
         }
       ],
@@ -84,6 +85,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Show a list of nodes definitions"
         }
       ],
@@ -114,7 +116,7 @@
           ],
           "httpMethod": "POST",
           "nickname": "create_node",
-          "notes": "User has options to create the node by name or by definition. If by name, the parameter 'name' need to be filled. If by definition, user need to send the XML document through the 'definition' parameter. Node can have a list of attributes to describe itself. The supported attributes is list below.<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>availability_zone</td><td>The Availability Zone. Used in EC2.</td></tr><tr><td>security_groups</td><td>list of security groups the node is using. Groups are comma-seperated if more than one.</td></tr><tr><td>port</td><td>The ssh port. Port 22 will be used if this attribute is not set</td></tr><tr><td>key_pair_id</td><td>The ssh key pair id which is used to create the instance</td></tr><tr><td>image_id</td><td>The id of the image the node will use</td></tr><tr><td>ssh_user</td><td>The ssh username</td></tr><tr><td>instance_type</td><td>The type of the instance. For EC2, it can be 't1.micro', 'm1.small', etc. For OpenStack, it is the *ID* of instance flavor(not the name).</td></tr><tr><td>password</td><td>The ssh password</td></tr><tr><td>cloud</td><td>The cloud this node deploy to. So far, we supported ec2, openstack</td></tr></table>",
+          "notes": "User has options to create the node by name or by definition. If by name, the parameter 'name' need to be filled. If by definition, user need to send the XML document through the 'definition' parameter. Node can have a list of attributes to describe itself. The supported attributes is list below.<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>ssh_user</td><td>The ssh username</td></tr><tr><td>key_pair_id</td><td>The ssh key pair id which is used to create the instance</td></tr><tr><td>cloud</td><td>The cloud this node deploy to. So far, we supported ec2, openstack</td></tr><tr><td>password</td><td>The ssh password</td></tr><tr><td>instance_type</td><td>The type of the instance. For EC2, it can be 't1.micro', 'm1.small', etc. For OpenStack, it is the *ID* of instance flavor(not the name).</td></tr><tr><td>availability_zone</td><td>The Availability Zone. Used in EC2.</td></tr><tr><td>port</td><td>The ssh port. Port 22 will be used if this attribute is not set</td></tr><tr><td>image_id</td><td>The id of the image the node will use</td></tr><tr><td>security_groups</td><td>list of security groups the node is using. Groups are comma-seperated if more than one.</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
@@ -141,6 +143,7 @@
               "required": false
             }
           ],
+          "responseClass": "string",
           "summary": "Create a new node definition"
         }
       ],
@@ -171,7 +174,7 @@
           ],
           "httpMethod": "POST",
           "nickname": "get_list_of_nodes",
-          "notes": "User has options to create the node by name or by definition. If by name, the parameter 'name' need to be filled. If by definition, user need to send the XML document through the 'definition' parameter. Node can have a list of attributes to describe itself. The supported attributes is list below.<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>availability_zone</td><td>The Availability Zone. Used in EC2.</td></tr><tr><td>security_groups</td><td>list of security groups the node is using. Groups are comma-seperated if more than one.</td></tr><tr><td>port</td><td>The ssh port. Port 22 will be used if this attribute is not set</td></tr><tr><td>key_pair_id</td><td>The ssh key pair id which is used to create the instance</td></tr><tr><td>image_id</td><td>The id of the image the node will use</td></tr><tr><td>ssh_user</td><td>The ssh username</td></tr><tr><td>instance_type</td><td>The type of the instance. For EC2, it can be 't1.micro', 'm1.small', etc. For OpenStack, it is the *ID* of instance flavor(not the name).</td></tr><tr><td>password</td><td>The ssh password</td></tr><tr><td>cloud</td><td>The cloud this node deploy to. So far, we supported ec2, openstack</td></tr></table>",
+          "notes": "User has options to create the node by name or by definition. If by name, the parameter 'name' need to be filled. If by definition, user need to send the XML document through the 'definition' parameter. Node can have a list of attributes to describe itself. The supported attributes is list below.<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>ssh_user</td><td>The ssh username</td></tr><tr><td>key_pair_id</td><td>The ssh key pair id which is used to create the instance</td></tr><tr><td>cloud</td><td>The cloud this node deploy to. So far, we supported ec2, openstack</td></tr><tr><td>password</td><td>The ssh password</td></tr><tr><td>instance_type</td><td>The type of the instance. For EC2, it can be 't1.micro', 'm1.small', etc. For OpenStack, it is the *ID* of instance flavor(not the name).</td></tr><tr><td>availability_zone</td><td>The Availability Zone. Used in EC2.</td></tr><tr><td>port</td><td>The ssh port. Port 22 will be used if this attribute is not set</td></tr><tr><td>image_id</td><td>The id of the image the node will use</td></tr><tr><td>security_groups</td><td>list of security groups the node is using. Groups are comma-seperated if more than one.</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
@@ -206,6 +209,7 @@
               "required": false
             }
           ],
+          "responseClass": "string",
           "summary": "Create a new node definition"
         }
       ],
@@ -254,6 +258,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Show a node definition by id"
         }
       ],
@@ -310,6 +315,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Show a node definition by id"
         }
       ],
@@ -358,6 +364,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Delete the node definition"
         }
       ],
@@ -414,6 +421,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Delete the node definition"
         }
       ],
@@ -444,7 +452,7 @@
           ],
           "httpMethod": "PUT",
           "nickname": "modify_node_by_id",
-          "notes": "User can rename the node, add/remove template the node is using, or set/remove attributes of the node.<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>availability_zone</td><td>The Availability Zone. Used in EC2.</td></tr><tr><td>security_groups</td><td>list of security groups the node is using. Groups are comma-seperated if more than one.</td></tr><tr><td>port</td><td>The ssh port. Port 22 will be used if this attribute is not set</td></tr><tr><td>key_pair_id</td><td>The ssh key pair id which is used to create the instance</td></tr><tr><td>image_id</td><td>The id of the image the node will use</td></tr><tr><td>ssh_user</td><td>The ssh username</td></tr><tr><td>instance_type</td><td>The type of the instance. For EC2, it can be 't1.micro', 'm1.small', etc. For OpenStack, it is the *ID* of instance flavor(not the name).</td></tr><tr><td>password</td><td>The ssh password</td></tr><tr><td>cloud</td><td>The cloud this node deploy to. So far, we supported ec2, openstack</td></tr></table>",
+          "notes": "User can rename the node, add/remove template the node is using, or set/remove attributes of the node.<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>ssh_user</td><td>The ssh username</td></tr><tr><td>key_pair_id</td><td>The ssh key pair id which is used to create the instance</td></tr><tr><td>cloud</td><td>The cloud this node deploy to. So far, we supported ec2, openstack</td></tr><tr><td>password</td><td>The ssh password</td></tr><tr><td>instance_type</td><td>The type of the instance. For EC2, it can be 't1.micro', 'm1.small', etc. For OpenStack, it is the *ID* of instance flavor(not the name).</td></tr><tr><td>availability_zone</td><td>The Availability Zone. Used in EC2.</td></tr><tr><td>port</td><td>The ssh port. Port 22 will be used if this attribute is not set</td></tr><tr><td>image_id</td><td>The id of the image the node will use</td></tr><tr><td>security_groups</td><td>list of security groups the node is using. Groups are comma-seperated if more than one.</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
@@ -501,15 +509,15 @@
               "allowableValues": {
                 "valueType": "LIST",
                 "values": [
-                  "availability_zone",
-                  "security_groups",
-                  "port",
-                  "key_pair_id",
-                  "image_id",
                   "ssh_user",
-                  "instance_type",
+                  "key_pair_id",
+                  "cloud",
                   "password",
-                  "cloud"
+                  "instance_type",
+                  "availability_zone",
+                  "port",
+                  "image_id",
+                  "security_groups"
                 ]
               },
               "dataType": "string",
@@ -527,6 +535,7 @@
               "required": false
             }
           ],
+          "responseClass": "string",
           "summary": "Modify the definition of the node"
         }
       ],
@@ -557,7 +566,7 @@
           ],
           "httpMethod": "PUT",
           "nickname": "modify_node_by_id",
-          "notes": "User can rename the node, add/remove template the node is using, or set/remove attributes of the node.<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>availability_zone</td><td>The Availability Zone. Used in EC2.</td></tr><tr><td>security_groups</td><td>list of security groups the node is using. Groups are comma-seperated if more than one.</td></tr><tr><td>port</td><td>The ssh port. Port 22 will be used if this attribute is not set</td></tr><tr><td>key_pair_id</td><td>The ssh key pair id which is used to create the instance</td></tr><tr><td>image_id</td><td>The id of the image the node will use</td></tr><tr><td>ssh_user</td><td>The ssh username</td></tr><tr><td>instance_type</td><td>The type of the instance. For EC2, it can be 't1.micro', 'm1.small', etc. For OpenStack, it is the *ID* of instance flavor(not the name).</td></tr><tr><td>password</td><td>The ssh password</td></tr><tr><td>cloud</td><td>The cloud this node deploy to. So far, we supported ec2, openstack</td></tr></table>",
+          "notes": "User can rename the node, add/remove template the node is using, or set/remove attributes of the node.<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>ssh_user</td><td>The ssh username</td></tr><tr><td>key_pair_id</td><td>The ssh key pair id which is used to create the instance</td></tr><tr><td>cloud</td><td>The cloud this node deploy to. So far, we supported ec2, openstack</td></tr><tr><td>password</td><td>The ssh password</td></tr><tr><td>instance_type</td><td>The type of the instance. For EC2, it can be 't1.micro', 'm1.small', etc. For OpenStack, it is the *ID* of instance flavor(not the name).</td></tr><tr><td>availability_zone</td><td>The Availability Zone. Used in EC2.</td></tr><tr><td>port</td><td>The ssh port. Port 22 will be used if this attribute is not set</td></tr><tr><td>image_id</td><td>The id of the image the node will use</td></tr><tr><td>security_groups</td><td>list of security groups the node is using. Groups are comma-seperated if more than one.</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
@@ -622,15 +631,15 @@
               "allowableValues": {
                 "valueType": "LIST",
                 "values": [
-                  "availability_zone",
-                  "security_groups",
-                  "port",
-                  "key_pair_id",
-                  "image_id",
                   "ssh_user",
-                  "instance_type",
+                  "key_pair_id",
+                  "cloud",
                   "password",
-                  "cloud"
+                  "instance_type",
+                  "availability_zone",
+                  "port",
+                  "image_id",
+                  "security_groups"
                 ]
               },
               "dataType": "string",
@@ -648,6 +657,7 @@
               "required": false
             }
           ],
+          "responseClass": "string",
           "summary": "Modify the definition of the node"
         }
       ],
@@ -655,5 +665,8 @@
     }
   ],
   "basePath": "<%= request.protocol + request.host_with_port %>",
-  "swagrVersion": "0.2"
+  "models": {
+
+  },
+  "swaggerVersion": "1.1"
 }

@@ -1,5 +1,5 @@
 {
-  "apiVersion": "1.1",
+  "apiVersion": "0.2",
   "apis": [
     {
       "description": "Show a list of containers definitions",
@@ -32,6 +32,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Show a list of containers definitions"
         }
       ],
@@ -97,6 +98,7 @@
               "required": false
             }
           ],
+          "responseClass": "string",
           "summary": "Create a new containers definition"
         }
       ],
@@ -145,6 +147,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Get the container definition with id"
         }
       ],
@@ -193,6 +196,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Delete the container definition"
         }
       ],
@@ -273,6 +277,7 @@
               "required": false
             }
           ],
+          "responseClass": "string",
           "summary": "Modify the definition of the container"
         }
       ],
@@ -280,5 +285,8 @@
     }
   ],
   "basePath": "<%= request.protocol + request.host_with_port %>",
-  "swagrVersion": "0.2"
+  "models": {
+
+  },
+  "swaggerVersion": "1.1"
 }

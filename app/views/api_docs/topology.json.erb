@@ -1,5 +1,5 @@
 {
-  "apiVersion": "1.1",
+  "apiVersion": "0.2",
   "apis": [
     {
       "description": "Get a list of topologies",
@@ -22,6 +22,7 @@
           ],
           "httpMethod": "GET",
           "nickname": "get_list_of_topologies",
+          "responseClass": "string",
           "summary": "Get a list of topologies"
         }
       ],
@@ -87,6 +88,7 @@
               "required": false
             }
           ],
+          "responseClass": "string",
           "summary": "Create a new topologies definition"
         }
       ],
@@ -127,6 +129,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Get the topology definition with id"
         }
       ],
@@ -167,6 +170,7 @@
               "required": true
             }
           ],
+          "responseClass": "string",
           "summary": "Delete the topology definition with id"
         }
       ],
@@ -241,6 +245,7 @@
               "required": false
             }
           ],
+          "responseClass": "string",
           "summary": "Modify the topology."
         }
       ],
@@ -248,5 +253,8 @@
     }
   ],
   "basePath": "<%= request.protocol + request.host_with_port %>",
-  "swagrVersion": "0.2"
+  "models": {
+
+  },
+  "swaggerVersion": "1.1"
 }
