@@ -182,7 +182,7 @@ EOH
     progress = false
     while cookbooks_to_upload.size > 0
       cookbooks_to_upload.each do |cookbook|
-        command = "knife cookbook upload #{cookbook} -o '#{cookbooks_dir}' -c #{chef_config_file}"
+        command = "knife cookbook upload #{cookbook} -o '#{cookbooks_dir}' -c #{chef_config_file} 2>/dev/null"
         if system(command)
           progress = true
           cookbooks_to_upload.delete(cookbook)
@@ -305,6 +305,17 @@ class ProductionCommand < SubCommand
 
   def run_bundle_install
     execute_and_exit_on_fail("bundle install --path=vendor/bundle")
+
+    # This is a walkaround for issue(http://tickets.opscode.com/browse/CHEF-3721)
+    execute_and_exit_on_fail("gem install moneta --no-rdoc --no-ri --verbose -v '0.6.0' -i vendor/bundle/ruby/1.8")
+    execute_and_exit_on_fail("gem uninstall moneta -v '>= 0.7.0' -i vendor/bundle/ruby/1.8 -I")
+    content = nil
+    File.open("Gemfile.lock", "r") do |fin|
+      content = fin.read
+    end
+    File.open("Gemfile.lock", "w") do |fout|
+      fout.write(content.gsub(/moneta \(0\.7\.\d+\)/, "moneta (0.6.0)"))
+    end
   end
 
   def setup_db(cli)
@@ -325,9 +336,16 @@ class ProductionCommand < SubCommand
 
   def start_app
     user = `whoami`.strip
-    execute_and_exit_on_fail("bundle exec passenger start -p 80 -e production -d --user=#{user}", :sudo => true)
-    puts "Congratulations! The application is running"
-    puts "To stop the application, type 'sudo bundle exec passenger stop -p 80'"
+    puts "Congratulations! The application is ready to start"
+    puts
+    puts "* To start the application, please type following:"
+    puts "cd #{FileUtils.pwd}"
+    puts "sudo bundle exec passenger start -p 80 -e production -d --user=#{user}"
+    puts
+    puts "* To stop the application:"
+    puts "cd #{FileUtils.pwd}"
+    puts "sudo bundle exec passenger stop -p 80"
+    puts
   end
 
 end
@@ -347,6 +365,17 @@ class DevelopCommand < SubCommand
 
   def run_bundle_install
     execute_and_exit_on_fail("bundle install --system", :sudo => true)
+
+    # This is a walkaround for issue(http://tickets.opscode.com/browse/CHEF-3721)
+    execute_and_exit_on_fail("gem install moneta --no-rdoc --no-ri --verbose -v '0.6.0'", :sudo => true)
+    execute_and_exit_on_fail("gem uninstall moneta -v '>= 0.7.0' -I", :sudo => true)
+    content = nil
+    File.open("Gemfile.lock", "r") do |fin|
+      content = fin.read
+    end
+    File.open("Gemfile.lock", "w") do |fout|
+      fout.write(content.gsub(/moneta \(0\.7\.\d+\)/, "moneta (0.6.0)"))
+    end
   end
 
   def setup_db(cli)
@@ -358,6 +387,15 @@ class DevelopCommand < SubCommand
   def create_chef_config_file(cli)
     config_file = [File.expand_path("~"), ".chef", "knife.rb"].join("/")
     create_chef_config_file_helper(config_file, cli)
+  end
+
+  def start_app
+    puts "Congratulations! The application is ready to start"
+    puts
+    puts "* To start the application, please type following:"
+    puts "cd #{FileUtils.pwd}"
+    puts "sudo rails server"
+    puts
   end
 
 end
