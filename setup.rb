@@ -31,22 +31,24 @@ SETUP_ERROR = 10
 
 module ShellUtils
   def execute_and_exit_on_fail(command, options={})
-    command = "sudo #{command}" if options[:sudo]
-    unless system(command)
+    command = "su #{options[:as_user]} -c '#{command}'" if options[:as_user] && options[:as_user] != ENV['USER']
+    output = `#{command}`.strip
+    unless $?.success?
       puts "ERROR: failed to execute command #{command}"
       exit SETUP_ERROR
     end
+    output
   end
 end
 
 include ShellUtils
 
 command = "gem install json --no-ri --no-rdoc --conservative"
-execute_and_exit_on_fail(command, :sudo => true)
+execute_and_exit_on_fail(command)
 require 'json'
 
 command = "gem install mixlib-cli --no-ri --no-rdoc --conservative"
-execute_and_exit_on_fail(command, :sudo => true)
+execute_and_exit_on_fail(command)
 require 'mixlib/cli'
 
 
@@ -54,11 +56,12 @@ class SubCommand
 
   include ShellUtils
 
-  def initialize(env)
+  def initialize(cli, env)
+    @cli = cli
     @env = env
   end
 
-  def run(cli)
+  def run
     # install bundler
     install_bundler
 
@@ -66,7 +69,7 @@ class SubCommand
     run_bundle_install
 
     # setup the database for this app to use
-    setup_db(cli)
+    setup_db
 
     # clean up previuos assets in case of any
     clean_assets
@@ -78,23 +81,23 @@ class SubCommand
     generate_secret_token
 
     # setup Chef for this app to use
-    setup_chef(cli)
+    setup_chef
 
     # genereate API documentations
     generate_docs
 
-    # start the app if on production
-    start_app if self.respond_to?(:start_app)
+    # print instruction to start the app
+    print_success_msg if self.respond_to?(:print_success_msg)
   end
 
 
   protected
 
   def install_bundler
-    execute_and_exit_on_fail("gem install bundle --no-ri --no-rdoc", :sudo => true)
+    execute_and_exit_on_fail("gem install bundle --no-ri --no-rdoc")
   end
 
-  def create_or_update_db_config_file(cli)
+  def create_or_update_db_config_file
     db_file = "config/database.yml"
 
     if File.exists?(db_file)
@@ -104,35 +107,32 @@ class SubCommand
     end
 
     db_config[@env] ||= Hash.new
-    db_config[@env]["adapter"] = cli.config[:database_adapter]
-    db_config[@env]["username"] = cli.config[:database_username]
-    db_config[@env]["password"] = cli.config[:database_password]
-    db_config[@env]["host"] = cli.config[:database_host]
-    db_config[@env]["database"] = cli.config[:database_name]
+    db_config[@env]["adapter"] = @cli.config[:database_adapter]
+    db_config[@env]["username"] = @cli.config[:database_username]
+    db_config[@env]["password"] = @cli.config[:database_password]
+    db_config[@env]["host"] = @cli.config[:database_host]
+    db_config[@env]["database"] = @cli.config[:database_name]
 
-    File.open(db_file, "w") do |fout|
+    write_to_file(db_file) do |fout|
       fout.write(db_config.to_yaml)
     end
   end
 
   def create_db_if_not_before
     command = "bundle exec rake db:create RAILS_ENV=#{@env}"
-    execute_and_exit_on_fail(command)
+    execute_and_exit_on_fail(command, :as_user => @cli.config[:as_user])
   end
 
   def migrate_db
     command = "bundle exec rake db:migrate RAILS_ENV=#{@env}"
-    execute_and_exit_on_fail(command)
+    execute_and_exit_on_fail(command, :as_user => @cli.config[:as_user])
   end
 
   def generate_secret_token
     secret_token_file = "config/initializers/secret_token.rb"
     unless File.exists?(secret_token_file)
-      secret_token = `bundle exec rake secret`.strip
-      command_success = $?.to_i == 0
-      exit SETUP_ERROR unless command_success
-
-      File.open(secret_token_file, "w") do |fout|
+      secret_token = execute_and_exit_on_fail("bundle exec rake secret", :as_user => @cli.config[:as_user])
+      write_to_file(secret_token_file) do |fout|
         fout.print "PatternDeployer::Application.config.secret_token = '#{secret_token}'"
       end
     end
@@ -140,26 +140,32 @@ class SubCommand
 
   def clean_assets
     command = "bundle exec rake assets:clean"
-    execute_and_exit_on_fail(command)
+    execute_and_exit_on_fail(command, :as_user => @cli.config[:as_user])
   end
 
-  def setup_chef(cli)
-    config_file = create_chef_config_file(cli)
+  def setup_chef
+    config_file = create_chef_config_file
     upload_cookbooks(config_file)
   end
 
-  def create_chef_config_file_helper(config_file, cli)
-    File.open(config_file, "w") do |fout|
+  def create_chef_config_file
+    config_file = [File.expand_path("~"), ".chef", "knife.rb"].join("/")
+    write_to_file(config_file) do |fout|
       fout.puts <<-EOH
 log_level               :info
 log_location            STDOUT
-node_name               '#{cli.config[:chef_client_name]}'
-client_key              '#{cli.config[:chef_client_key]}'
+node_name               '#{@cli.config[:chef_client_name]}'
+client_key              '#{@cli.config[:chef_client_key]}'
 validation_client_name  'chef-validator'
-validation_key          '#{cli.config[:chef_validation_key]}'
-chef_server_url         '#{cli.config[:chef_server_url]}'
+validation_key          '#{@cli.config[:chef_validation_key]}'
+chef_server_url         '#{@cli.config[:chef_server_url]}'
 EOH
     end
+
+    # link knife.rb
+    file_link = "chef-repo/.chef/knife.rb"
+    FileUtils.ln(config_file, file_link)
+    FileUtils.chown(@cli.config[:as_user], nil, file_link)
 
     return config_file
   end
@@ -182,7 +188,7 @@ EOH
     progress = false
     while cookbooks_to_upload.size > 0
       cookbooks_to_upload.each do |cookbook|
-        command = "knife cookbook upload #{cookbook} -o '#{cookbooks_dir}' -c #{chef_config_file} 2>/dev/null"
+        command = "knife cookbook upload #{cookbook} -o #{cookbooks_dir} -c #{chef_config_file} 2>/dev/null"
         if system(command)
           progress = true
           cookbooks_to_upload.delete(cookbook)
@@ -201,8 +207,8 @@ EOH
     # generate api docs from comment
     docs_dir = "app/views/api_docs"
     FileUtils.mkdir_p(docs_dir)
-    command = "bundle exec source2swagger -i app/controllers -e 'rb' -c '##~' -o #{docs_dir} >/dev/null"
-    execute_and_exit_on_fail(command)
+    command = "bundle exec source2swagger -i app/controllers -e rb -c \"##~\" -o #{docs_dir} >/dev/null"
+    execute_and_exit_on_fail(command, :as_user => @cli.config[:as_user])
 
     # add .erb suffix to file names
     Dir.new(docs_dir).each do |file_name|
@@ -214,7 +220,7 @@ EOH
         File.open(file_name, "r") do |fin|
           json = fin.read
         end
-        File.open(new_file_name, "w") do |fout|
+        write_to_file(new_file_name) do |fout|
           fout.write(sort_json(JSON.parse(json), 0))
         end
         FileUtils.rm(file_name)
@@ -240,7 +246,7 @@ EOH
 }
 EOL
 
-    File.open("app/views/api_docs/index.json.erb", "w") do |out|
+    write_to_file("app/views/api_docs/index.json.erb") do |out|
       out.write(sort_json(JSON.parse(json), 0))
     end
   end
@@ -288,6 +294,11 @@ EOL
     (1..level).map{|c| "  "}.join
   end
 
+  def write_to_file(file_path, &block)
+    File.open(file_path, "w", &block)
+    FileUtils.chown(@cli.config[:as_user] || ENV['USER'], nil, file_path)
+  end
+
 end
 
 class ProductionCommand < SubCommand
@@ -297,50 +308,46 @@ class ProductionCommand < SubCommand
 
   banner "ruby #{__FILE__} production (options)"
 
-  def initialize
-    super("production")
+  def initialize(cli)
+    super(cli, "production")
   end
 
   protected
 
   def run_bundle_install
-    execute_and_exit_on_fail("bundle install --path=vendor/bundle")
+    execute_and_exit_on_fail("bundle install --path=vendor/bundle", :as_user => @cli.config[:as_user])
 
     # This is a walkaround for issue(http://tickets.opscode.com/browse/CHEF-3721)
-    execute_and_exit_on_fail("gem install moneta --no-rdoc --no-ri --verbose -v '0.6.0' -i vendor/bundle/ruby/1.8")
-    execute_and_exit_on_fail("gem uninstall moneta -v '>= 0.7.0' -i vendor/bundle/ruby/1.8 -I")
+    execute_and_exit_on_fail("gem install moneta --no-rdoc --no-ri --verbose -v \"0.6.0\" -i vendor/bundle/ruby/1.8", :as_user => @cli.config[:as_user])
+    execute_and_exit_on_fail("gem uninstall moneta -v \">= 0.7.0\" -i vendor/bundle/ruby/1.8 -I", :as_user => @cli.config[:as_user])
+
     content = nil
-    File.open("Gemfile.lock", "r") do |fin|
+    gemlock_file = "Gemfile.lock"
+    File.open(gemlock_file, "r") do |fin|
       content = fin.read
     end
-    File.open("Gemfile.lock", "w") do |fout|
+    write_to_file(gemlock_file) do |fout|
       fout.write(content.gsub(/moneta \(0\.7\.\d+\)/, "moneta (0.6.0)"))
     end
   end
 
-  def setup_db(cli)
-    create_or_update_db_config_file(cli)
+  def setup_db
+    create_or_update_db_config_file
     create_db_if_not_before
     migrate_db
   end
 
   def precompile_assets
     command = "bundle exec rake assets:precompile"
-    execute_and_exit_on_fail(command)
+    execute_and_exit_on_fail(command, :as_user => @cli.config[:as_user])
   end
 
-  def create_chef_config_file(cli)
-    config_file = %w{ chef-repo .chef knife.rb }.join("/")
-    create_chef_config_file_helper(config_file, cli)
-  end
-
-  def start_app
-    user = `whoami`.strip
+  def print_success_msg
     puts "Congratulations! The application is ready to start"
     puts
     puts "* To start the application, please type following:"
     puts "cd #{FileUtils.pwd}"
-    puts "sudo bundle exec passenger start -p 80 -e production -d --user=#{user}"
+    puts "sudo bundle exec passenger start -p 80 -e production -d --user=#{@cli.config[:as_user] || ENV['USER']}"
     puts
     puts "* To stop the application:"
     puts "cd #{FileUtils.pwd}"
@@ -357,39 +364,34 @@ class DevelopCommand < SubCommand
 
   banner "ruby #{__FILE__} development (options)"
 
-  def initialize
-    super("development")
+  def initialize(cli)
+    super(cli, "development")
   end
 
   protected
 
   def run_bundle_install
-    execute_and_exit_on_fail("bundle install --system", :sudo => true)
+    execute_and_exit_on_fail("bundle install --system")
 
     # This is a walkaround for issue(http://tickets.opscode.com/browse/CHEF-3721)
-    execute_and_exit_on_fail("gem install moneta --no-rdoc --no-ri --verbose -v '0.6.0'", :sudo => true)
-    execute_and_exit_on_fail("gem uninstall moneta -v '>= 0.7.0' -I", :sudo => true)
+    execute_and_exit_on_fail("gem install moneta --no-rdoc --no-ri --verbose -v \"0.6.0\"")
+    execute_and_exit_on_fail("gem uninstall moneta -v \">= 0.7.0\" -I")
     content = nil
     File.open("Gemfile.lock", "r") do |fin|
       content = fin.read
     end
-    File.open("Gemfile.lock", "w") do |fout|
+    write_to_file("Gemfile.lock") do |fout|
       fout.write(content.gsub(/moneta \(0\.7\.\d+\)/, "moneta (0.6.0)"))
     end
   end
 
-  def setup_db(cli)
-    create_or_update_db_config_file(cli)
+  def setup_db
+    create_or_update_db_config_file
     create_db_if_not_before
     migrate_db
   end
 
-  def create_chef_config_file(cli)
-    config_file = [File.expand_path("~"), ".chef", "knife.rb"].join("/")
-    create_chef_config_file_helper(config_file, cli)
-  end
-
-  def start_app
+  def print_success_msg
     puts "Congratulations! The application is ready to start"
     puts
     puts "* To start the application, please type following:"
@@ -407,25 +409,20 @@ class TestCommand < SubCommand
 
   banner "ruby #{__FILE__} test (options)"
 
-  def initialize
-    super("test")
+  def initialize(cli)
+    super(cli, "test")
   end
 
   protected
 
   def run_bundle_install
-    execute_and_exit_on_fail("bundle install --system", :sudo => true)
+    execute_and_exit_on_fail("bundle install --system")
   end
 
-  def setup_db(cli)
-    create_or_update_db_config_file(cli)
+  def setup_db
+    create_or_update_db_config_file
     create_db_if_not_before
     migrate_db
-  end
-
-  def create_chef_config_file(cli)
-    config_file = [File.expand_path("~"), ".chef", "knife.rb"].join("/")
-    create_chef_config_file_helper(config_file, cli)
   end
 
 end
@@ -506,6 +503,10 @@ class SetupCLI
     :default      => File.expand_path("~") + "/.chef/validation.pem",
     :proc         => Proc.new { |path| File.expand_path(path) }
 
+  option :as_user,
+    :long         => "--as-user USER",
+    :description  => "Setup the app for USER"
+
 
   def run(args)
     validate_and_parse_options
@@ -519,7 +520,7 @@ class SetupCLI
 
     ask_user_for_config
     subcommand = get_subcommand(args[0])
-    subcommand.run(self)
+    subcommand.run
 
     exit SETUP_OK
   end
@@ -553,7 +554,7 @@ class SetupCLI
   end
 
   def get_subcommands
-    @subcommands ||= {:production => ProductionCommand.new, :development => DevelopCommand.new, :test => TestCommand.new}
+    @subcommands ||= {:production => ProductionCommand.new(self), :development => DevelopCommand.new(self), :test => TestCommand.new(self)}
     @subcommands
   end
 
