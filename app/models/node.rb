@@ -34,12 +34,14 @@ class Node < ActiveRecord::Base
   validates :node_id, :presence => true
   validates_presence_of :parent, :owner
   validate :node_id_unique_within_topology
+  validate :node_mutable
 
   serialize :attrs, Hash
 
   after_initialize :set_default_values
   after_create :set_topology
   after_save :set_topology
+  before_destroy :node_destroyable!
 
 
   def rename(name)
@@ -150,7 +152,9 @@ class Node < ActiveRecord::Base
   end
 
   def get_topology
-    if parent_type == "Container"
+    if self.topology
+      return self.topology
+    elsif parent_type == "Container"
       container = Container.find(parent_id)
       return container.topology
     elsif parent_type == "Topology"
@@ -171,7 +175,7 @@ class Node < ActiveRecord::Base
     if self.topology.nil? && !@performed
       @performed = true
       self.topology = get_topology
-      self.save!
+      self.topology.unlock{self.save!}
     end
   end
 
@@ -180,4 +184,18 @@ class Node < ActiveRecord::Base
       errors.add(:node_id, "have already been taken")
     end
   end
+
+  def node_mutable
+    if get_topology.locked?
+      errors.add(:node_id, "cannot be modified. Please make sure its topology is not deployed or deploying")
+    end
+  end
+
+  def node_destroyable!
+    if get_topology.locked?
+      msg = "Node #{node_id} cannot be destroyed. Please make sure its topology is not deployed or deploying"
+      raise ParametersValidationError.new(:message => msg)
+    end
+  end
+
 end

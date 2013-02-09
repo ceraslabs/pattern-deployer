@@ -203,7 +203,7 @@ class ContainersController < RestfulController
       raise ParametersValidationError.new(:message => "Parameter name is missing") unless params[:name]
       @container.container_id = params[:name]
     when ContainerOp::SCALE
-      raise ParametersValidationError.new(:message => "Parameter name is missing") unless params[:num_of_copies]
+      raise ParametersValidationError.new(:message => "Parameter num_of_copies is missing") unless params[:num_of_copies]
       @container.num_of_copies = params[:num_of_copies]
     else
       err_msg = "Invalid operation. Supported operations are #{get_operations(ContainerOp).join(',')}"

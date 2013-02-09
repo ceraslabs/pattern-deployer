@@ -30,8 +30,10 @@ class Container < ActiveRecord::Base
   validates :num_of_copies, :numericality => { :only_integer => true }
   validates_presence_of :topology, :owner
   validate :container_id_unique_within_topology
+  validate :container_mutable
 
   after_initialize :set_default_values
+  before_destroy :container_destroyable!
 
 
   def update_container_attributes(container_element)
@@ -58,6 +60,10 @@ class Container < ActiveRecord::Base
     end
   end
 
+  def get_topology
+    self.topology || Topology.find(topology_id)
+  end
+
 
   protected
 
@@ -70,4 +76,18 @@ class Container < ActiveRecord::Base
       errors.add(:container_id, "have already been taken")
     end
   end
+
+  def container_mutable
+    if get_topology.locked?
+      errors.add(:container_id, "cannot be modified. Please make sure its topology is not deployed or deploying")
+    end
+  end
+
+  def container_destroyable!
+    if get_topology.locked?
+      msg = "Container #{container_id} cannot be destroyed. Please make sure its topology is not deployed or deploying"
+      raise ParametersValidationError.new(:message => msg)
+    end
+  end
+
 end

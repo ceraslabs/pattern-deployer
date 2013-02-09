@@ -30,6 +30,7 @@ class Service < ActiveRecord::Base
 
   validates :service_id, :presence => true
   validates_presence_of :service_container, :owner
+  validate :service_mutable
   #validate :service_is_supported
 
   serialize :properties, Array
@@ -37,6 +38,7 @@ class Service < ActiveRecord::Base
   after_initialize :set_default_values
   after_create :set_topology
   after_save :set_topology
+  before_destroy :service_destroyable!
 
 
   def rename(name)
@@ -85,7 +87,9 @@ class Service < ActiveRecord::Base
   end
 
   def get_topology
-    if service_container_type == "Template"
+    if self.topology
+      return self.topology
+    elsif service_container_type == "Template"
       template = Template.find(service_container_id)
       return template.topology
     elsif service_container_type == "Node"
@@ -116,7 +120,20 @@ class Service < ActiveRecord::Base
     if self.topology.nil? && !@performed
       @performed = true
       self.topology = get_topology
-      self.save!
+      self.topology.unlock{self.save!}
+    end
+  end
+
+  def service_mutable
+    if get_topology.locked?
+      errors.add(:service_id, "cannot be modified. Please make sure its topology is not deployed or deploying")
+    end
+  end
+
+  def service_destroyable!
+    if get_topology.locked?
+      msg = "Service #{service_id} cannot be destroyed. Please make sure its topology is not deployed or deploying"
+      raise ParametersValidationError.new(:message => msg)
     end
   end
 

@@ -33,11 +33,12 @@ class Template < ActiveRecord::Base
   validates :template_id, :presence => true
   validates_presence_of :topology, :owner
   validate :template_id_unique_within_topology
+  validate :template_mutable
 
   serialize :attrs, Hash
 
+  before_destroy :template_destroyable!
   before_destroy :delete_templates_inherit_from_this
-
 
   def rename(name)
     self.template_id = name
@@ -124,6 +125,10 @@ class Template < ActiveRecord::Base
     self.save!
   end
 
+  def get_topology
+    self.topology || Topology.find(topology_id)
+  end
+
 
   protected
 
@@ -138,4 +143,18 @@ class Template < ActiveRecord::Base
       inheritance.template.destroy
     end
   end
+
+  def template_mutable
+    if get_topology.locked?
+      errors.add(:template_id, "cannot be modified. Please make sure its topology is not deployed or deploying")
+    end
+  end
+
+  def template_destroyable!
+    if get_topology.locked?
+      msg = "Template #{template_id} cannot be destroyed. Please make sure its topology is not deployed or deploying"
+      raise ParametersValidationError.new(:message => msg)
+    end
+  end
+
 end

@@ -35,8 +35,10 @@ class Topology < ActiveRecord::Base
   validates :state, :presence => true, :inclusion => { :in => [State::UNDEPLOY, State::DEPLOYING, State::DEPLOY_SUCCESS, State::DEPLOY_FAIL], 
                                                        :message => "%{value} is not a valid state" }
   validates_presence_of :owner
+  validate :topology_mutable
 
   after_initialize :set_default_values
+  before_destroy :topology_destroyable!
 
 
   def update_topology_attributes(topology_element)
@@ -95,7 +97,7 @@ class Topology < ActiveRecord::Base
     deployer.deploy
 
     self.state = State::DEPLOYING
-    self.save
+    self.unlock{self.save!}
   end
 
   def undeploy(topology_xml, services, resources)
@@ -110,7 +112,7 @@ class Topology < ActiveRecord::Base
     DeployersManager.delete_deployer(self.topology_id)
 
     self.state = State::UNDEPLOY
-    self.save
+    self.save!
   end
 
   def get_state
@@ -118,7 +120,7 @@ class Topology < ActiveRecord::Base
       new_state = get_deployer.get_state
       if self.state != new_state
         self.state = new_state
-        save
+        self.unlock{self.save!}
       end
     end
 
@@ -148,6 +150,19 @@ class Topology < ActiveRecord::Base
     @msg
   end
 
+  def unlock(&block)
+    begin
+      @unlocked = true
+      yield
+    ensure
+      @unlocked = false
+    end
+  end
+
+  def locked?
+    (self.state == State::DEPLOYING || self.state == State::DEPLOY_SUCCESS) && !@unlocked
+  end
+
 
   protected
 
@@ -164,4 +179,18 @@ class Topology < ActiveRecord::Base
   def set_default_values
     self.state ||= State::UNDEPLOY
   end
+
+  def topology_mutable
+    if self.locked?
+      errors.add(:topology_id, "cannot be modified. Please make sure it is not deployed or deploying")
+    end
+  end
+
+  def topology_destroyable!
+    if self.locked?
+      msg = "Topology #{topology_id} cannot be destroyed. Please make sure it is not deployed or deploying"
+      raise ParametersValidationError.new(:message => msg)
+    end
+  end
+
 end

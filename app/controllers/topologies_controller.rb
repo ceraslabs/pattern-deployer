@@ -122,7 +122,7 @@ class TopologiesController < RestfulController
   ##~ api = @topology.apis.add
   ##~ api.set :path => "/api/topologies/{id}"
   ##~ api.description = "Delete the topology definition with id"
-  ##~ op = api.operations.add   
+  ##~ op = api.operations.add
   ##~ op.set :httpMethod => "DELETE", :nickname => "delete_topology_by_id", :deprecated => false, :responseClass => "string"
   ##~ op.summary = api.description
   ##
