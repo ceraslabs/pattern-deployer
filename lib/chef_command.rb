@@ -240,10 +240,7 @@ class EC2CommandBuilder < BaseCommandBuilder
     command += "-G #{security_groups} " if security_groups
     command += "-Z #{zone} " if zone
     command += "--region #{region}" if region
-    #command += "-d NestedQEMU_EC2 "
     command += build_auth_info
-    template_file = [Rails.application.config.bootstrap_templates_dir, "NestedQEMU_EC2.erb"].join("/")
-    command += "--template-file #{template_file} "
 
     command += super()
     command
@@ -258,9 +255,9 @@ class EC2CommandBuilder < BaseCommandBuilder
   def build_auth_info
     access_key_id = @node_info["aws_access_key_id"]
     secret_access_key = @node_info["aws_secret_access_key"]
-	if access_key_id.nil? || secret_access_key.nil?
-	  raise ParametersValidationError.new(:message => "EC2 auth info missing")
-	end
+    if access_key_id.nil? || secret_access_key.nil?
+      raise ParametersValidationError.new(:message => "EC2 auth info missing")
+    end
 
     command = "-A #{access_key_id} "
     command += "-K #{secret_access_key} "
@@ -282,9 +279,6 @@ class OpenStackCommandBuilder < BaseCommandBuilder
     command += "-S #{key_pair_id} "
     command += build_auth_info
 
-    #TODO create openstack bootstrap template
-    #command += "-d NestedQEMU_EC2 "
-
     command += super()
     command
   end
@@ -300,9 +294,9 @@ class OpenStackCommandBuilder < BaseCommandBuilder
     password = @node_info["openstack_password"]
     tenant   = @node_info["openstack_tenant"]
     endpoint = @node_info["openstack_endpoint"]
-	if [username, password, tenant, endpoint].any?{|v| v.nil?}
+    if [username, password, tenant, endpoint].any?{|v| v.nil?}
       raise ParametersValidationError.new(:message => "openstack auth info missing")
-	end
+    end
 
     command = "-A #{username} "
     command += "-K #{password} "
@@ -325,24 +319,6 @@ class BootstrapCommandBuilder < BaseCommandBuilder
     command += "#{@server_ip} "
     command += "--no-host-key-verify "
     command += "--sudo "
-    if @node_info.has_key?("cloud")
-      if @node_info["cloud"].class == String && @node_info["cloud"].downcase == Rails.application.config.ec2
-        template_file = [Rails.application.config.bootstrap_templates_dir, "NestedQEMU_EC2.erb"].join("/")
-        command += "--template-file #{template_file} "
-        #command += "-d NestedQEMU_EC2 "
-      elsif @node_info["cloud"].class == String && @node_info["cloud"].downcase = Rails.application.config.openstack
-        #TODO create openstack bootstrap template
-      elsif @node_info["cloud"].class == String && @node_info["cloud"].downcase = Rails.application.config.notcloud
-        template_file = [Rails.application.config.bootstrap_templates_dir, "NestedQEMU.erb"].join("/")
-        command += "--template-file #{template_file} "
-        #command += "-d NestedQEMU "
-      else
-        raise "unexpected cloud #{@node_info['cloud']}"
-      end
-    else
-      raise "cloud attribute is missing"
-    end
-
     command += super()
     command
   end
