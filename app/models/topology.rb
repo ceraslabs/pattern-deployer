@@ -212,7 +212,8 @@ class Topology < ActiveRecord::Base
   def set_state(state)
     return if self.state == state
     raise "Cannot set state, the record is dirty: #{self.changes}" if self.changes.size > 0
-    self.unlock{self.update_attributes(:state => state)}
+    self.state = state
+    self.unlock{self.save!}
   end
 
 end
