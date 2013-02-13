@@ -64,6 +64,16 @@ class BaseDeployer
     end
   end
 
+  def prepare_update_deployment
+    set_update_state(State::DEPLOYING)
+  end
+
+  def update_deployment
+    @children.each do |child|
+      child.update_deployment
+    end
+  end
+
   def undeploy
     successes = Array.new
     msgs = Array.new
@@ -83,14 +93,6 @@ class BaseDeployer
     success = self.class.summarize_successes(successes)
     msg = self.class.summarize_errors(msgs)
     return success, msg
-  end
-
-  def update_deployment
-    set_update_state(State::DEPLOYING)
-
-    @children.each do |child|
-      child.update_deployment
-    end
   end
 
   def wait(timeout = Rails.configuration.chef_max_deploy_time)
@@ -155,6 +157,10 @@ class BaseDeployer
     @children << child_deployer
   end
 
+  def delete_child(child)
+    @children.delete(child)
+  end
+
   def empty?
     @children.empty?
   end
@@ -169,6 +175,10 @@ class BaseDeployer
 
   def []=(key, value)
     @databag[key] = value if value
+  end
+
+  def delete_key(key)
+    @databag.delete_key(key)
   end
 
   def save
@@ -216,7 +226,7 @@ class BaseDeployer
         msg += inner_msg
       end
     end
-	msg
+    msg
   end
 
 
@@ -263,17 +273,17 @@ class BaseDeployer
 
   def get_error_by_type(error_type)
     if error_type == "deploy_error"
-	  type_of_state = "deploy_state"
-	elsif error_type == "update_error"
-	  type_of_state = "update_state"
-	else
-	  self["deploy_error"] = "unexpected error_type #{error_type}"
-	  self.save
-	end
+      type_of_state = "deploy_state"
+    elsif error_type == "update_error"
+      type_of_state = "update_state"
+    else
+      self["deploy_error"] = "unexpected error_type #{error_type}"
+      self.save
+    end
 
     if get_state_by_type(type_of_state) != State::DEPLOY_FAIL
-	  return "" 
-	end
+      return ""
+    end
 
     if !self.has_key?(error_type) && !@children.empty?
       errors = @children.map do |child|

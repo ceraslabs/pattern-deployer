@@ -30,8 +30,9 @@ class TopologyDeployer < BaseDeployer
       @to = to
       @type = type
 
-      from[type] ||= Array.new
-      from[type] << to.get_id unless from[type].include?(to.get_id)
+      to[type] ||= Array.new
+      to[type] << from.get_id unless to[type].include?(from.get_id)
+      to[from.get_id] ||= Hash.new
     end
 
     def get_source
@@ -47,16 +48,28 @@ class TopologyDeployer < BaseDeployer
     end
 
     def notify(key, value)
-      @to[@from.get_id] ||= Hash.new
       @to[@from.get_id][key] = value
       @to.save
     end
 
+    def each_notification(&block)
+      @to[@from.get_id].each(&block)
+    end
+
+    def delete
+      @to[get_type].delete(@from.get_id) if @to.has_key?(get_type) && @to[get_type].include?(@from.get_id)
+      @to.delete_key(@from.get_id) if @to.has_key?(@from.get_id)
+    end
+
+    def self.types
+      @@valid_types
+    end
+
     protected
 
-    @@valid_types = [:vpn_servers, :container_node, :vpn_connected_nodes, :nested_nodes, :vpn_clients,
-                     :snort_pairs, :snort_nodes, :database_node, :web_servers, :balancer_members,
-                     :balancer, :chef_server, :chef_client]
+    @@valid_types = [:vpn_servers, :container_node, :vpn_connected_nodes, :vpn_clients,
+                     :snort_pairs, :snort_nodes, :database_node, :balancer_members,
+                     :chef_server]
 
     def validate_type!(type)
       raise "Unexpected type of edge #{type}" unless @@valid_types.include?(type)
@@ -82,14 +95,6 @@ class TopologyDeployer < BaseDeployer
       return @name
     end
 
-    def get_id
-      @deployer.get_id
-    end
-
-    def get_node_id
-      @deployer.get_id
-    end
-
     def each_edge(type = nil, &block)
       get_edges(type).each(&block)
     end
@@ -100,16 +105,9 @@ class TopologyDeployer < BaseDeployer
       end
     end
 
-    def has_key?(key)
-      @deployer.has_key?(key)
-    end
-
-    def [](key)
-      @deployer[key]
-    end
-
-    def []=(key, value)
-      @deployer[key] = value
+    def delete_edge(edge)
+      edge.delete
+      @edges.delete(edge)
     end
 
     def ==(vertex)
@@ -120,14 +118,30 @@ class TopologyDeployer < BaseDeployer
 
     def connect(vertex, type)
       self.each_edge(type) do |edge|
-        return if edge.get_destination == vertex
+        return edge if edge.get_destination == vertex
       end
 
-      @edges << Edge.new(self, vertex, type)
+      new_edge = Edge.new(self, vertex, type)
+      @edges << new_edge
+      new_edge
     end
 
-    def save
-      @deployer.save
+    def disconnect(vertex, type)
+      self.get_edges(type).each do |edge|
+        self.delete_edge(edge) if edge.get_destination == vertex
+      end
+    end
+
+    def get_connection(vertex, type = nil)
+      self.get_edges(type).find do |edge|
+        edge.get_destination == vertex
+      end
+    end
+
+    def connected?(vertex, type = nil)
+      self.get_edges(type).any? do |edge|
+        edge.get_destination == vertex
+      end
     end
 
     def get_state
@@ -138,15 +152,11 @@ class TopologyDeployer < BaseDeployer
       @state = state
     end
 
-    def get_deployer_state
-      @deployer.get_state
+    def get_deployer
+      @deployer
     end
 
-    def prepare_deploy
-      @deployer.prepare_deploy
-    end
-
-    def success?
+    def deploy_success?
       @deployer.get_state == State::DEPLOY_SUCCESS
     end
 
@@ -154,12 +164,20 @@ class TopologyDeployer < BaseDeployer
       @state = FINISHED
     end
 
-    def failed?
+    def deploy_failed?
       @deployer.get_state == State::DEPLOY_FAIL
     end
 
     def on_failed
       @state = FAILED
+    end
+
+    def update_success?
+      @deployer.get_update_state == State::DEPLOY_SUCCESS
+    end
+
+    def update_failed?
+      @deployer.get_update_state == State::DEPLOY_FAIL
     end
 
     def can_start?
@@ -175,8 +193,13 @@ class TopologyDeployer < BaseDeployer
       @state = RUNNING
     end
 
-    def terminate
-      @deployer.undeploy
+    def can_update?
+      @deployer.get_deploy_state == State::DEPLOY_SUCCESS && @state == WAITING
+    end
+
+    def update
+      @deployer.update_deployment
+      @state = RUNNING
     end
 
     def depending_vertex_failed?
@@ -191,30 +214,6 @@ class TopologyDeployer < BaseDeployer
       @state = FAILED
     end
 
-    def get_err_msg
-      @deployer.get_deploy_error
-    end
-
-    #def connect_vpn_client(vertex)
-    #  self.connect(vertex, "vpn_clients")
-    #  vertex.connect(self, "vpn_servers")
-    #  self.vpn_connect(vertex)
-    #end
-
-    #def connect_snort_pair(vertex, first, second)
-    #  self.connect(first, "snort_pairs")
-    #  self.connect(second, "snort_pairs")
-    #  first.connect(self, "snort_nodes")
-    #  second.connect(self, "snort_nodes")
-    #  first.vpn_connect(second)
-    #end
-
-    #def sync_vpn_connection(container)
-    #  container.get_adjacent_vertice("vpn_connected_nodes").each do |vertex|
-    #    nested_instance.vpn_connect(vertex)
-    #  end
-    #end
-
     def notify_adjacent_vertice(key, value, connect_type = nil)
       self.each_edge(connect_type) do |edge|
         edge.notify(key, value)
@@ -222,14 +221,6 @@ class TopologyDeployer < BaseDeployer
     end
 
     def on_vpn_client_ip(vpn_server_id, vpnip)
-      #self.get_adjacent_vertice("vpn_servers").each do |vertex|
-      #  if vertex.get_id == vpn_server
-      #    my_id = self.get_id
-      #    vertex[my_id][:vpnip] = vpnip
-      #    vertex.save
-      #  end
-      #end
-
       self.each_edge(:vpn_servers) do |edge|
         edge.notify(:vpnip, vpnip) if edge.get_destination.get_id == vpn_server_id
       end
@@ -258,15 +249,23 @@ class TopologyDeployer < BaseDeployer
       end
     end
 
-    #def to_s
-    #  str = "Name: #{@name}, parent: ["
-    #  get_parent.each { |p| str += "#{p.get_name}, " }
-    #  str += "], edge:"
-    #  @edges.each do |edge|
-    #    str += edge.get_type.to_s
-    #  end
-    #  return str
-    #end
+    def prepare_update_deployment
+      @deployer.prepare_update_deployment
+      @state = WAITING
+    end
+
+    def respond_to?(sym)
+      @deployer.respond_to?(sym) || super(sym)
+    end
+
+    def method_missing(sym, *args, &block)
+      if @deployer.respond_to?(sym)
+        return @deployer.send(sym, *args, &block)
+      else
+        super(sym, *args, &block)
+      end
+    end
+
   end
 
 
@@ -274,27 +273,6 @@ class TopologyDeployer < BaseDeployer
     @topology = topology
     @resources = resources
     super()
-
-    #nodes_to_deploy = options[:nodes_to_deploy]
-    #nodes_to_update = options[:nodes_to_update]
-    #if nodes_to_deploy
-    #  nodes_to_deploy.each do |name|
-    #    is_new = true
-    #    vertex = Vertex.new(name, is_new)
-    #    @vertice[name] = vertex
-    #  end
-    #end
-    #if nodes_to_update
-    #  nodes_to_update.each do |name|
-    #    node_copies = topology.get_all_copies(name)
-    #    node_copies.each do |name|
-    #      is_new = false
-    #      vertex = Vertex.new(name, is_new)
-    #      @vertice[name] = vertex
-    #    end
-    #  end
-    #end
-    #if nodes_to_deploy.nil? && nodes_to_update.nil?
 
     @vertice = create_vertice(topology, resources)
   end
@@ -344,6 +322,17 @@ class TopologyDeployer < BaseDeployer
     @topology
   end
 
+  def set_topology(topology)
+    @topology = topology
+  end
+
+  def set_resources(resources)
+    @resources = resources
+    @vertice.each_value do |vertex|
+      vertex.set_resources(resources)
+    end
+  end
+
   def get_topology_id
     @topology.get_topology_id
   end
@@ -361,7 +350,7 @@ class TopologyDeployer < BaseDeployer
       until queue.empty? do
         v = queue.pop
         v.get_depending_vertice.each do |c|
-		  next if v.get_id == c.get_id # skip self reference
+          next if v.get_id == c.get_id # skip self reference
           has_circle = true if c.get_name == vertex_name
           unless visited.include?(c.get_name)
             visited << c.get_name
@@ -376,62 +365,52 @@ class TopologyDeployer < BaseDeployer
   def prepare_deploy
     super()
 
-    #connect_vertice
-    #prepare_topology_info
-    #@vertice.each_value do |vertex|
-    #  vertex.save
-    #end
     load_topology_info
     prepare_cookbook
   end
 
   def deploy
-    #set_state(State::DEPLOYING)
     @worker_thread = Thread.new do
-      deploy_helper
+      deploy_helper(:action => :deploy, :new_vertice => @vertice.values)
     end
   end
 
-  def deploy_helper
-    vertice = @vertice.values
-    deployment_finished = false
-    deployment_fail = false
+  def prepare_scale(nodes, diff)
+    load_topology_info
 
-    num_of_iters = Rails.application.config.chef_max_deploy_time / 10
-    for i in 1 .. num_of_iters
-      vertice.each do |vertex|
-        vertex.on_success if vertex.success?
-        vertex.on_failed if vertex.failed?
-      end
-
-      deployment_finished = true
-      deployment_fail = false
-      vertice.each do |vertex|
-        vertex.start if vertex.can_start?
-        vertex.on_depending_vertex_failed if vertex.depending_vertex_failed?
-
-        deployment_finished = false if vertex.get_state == Vertex::WAITING || vertex.get_state == Vertex::RUNNING
-        deployment_fail = true if vertex.get_state == Vertex::FAILED
-      end
-
-      # exit if all the nodes finished
-      if deployment_finished
-        if deployment_fail
-          on_deploy_failed(get_deploy_error)
-        else
-          on_deploy_success
-        end
-
-        break
-      end
-
-      # scan the topology every 10 second
-      sleep 10
+    @new_vertice.clear if @new_vertice
+    @dirty_vertice.clear if @dirty_vertice
+    if diff > 0
+      @new_vertice = create_more_vertices(@topology, @resources, nodes, diff)
+      @new_vertice.each_value{|vertex| vertex.prepare_deploy}
+      @dirty_vertice = setup_vertice(@new_vertice, nodes)
+      @vertice.merge!(@new_vertice)
+    elsif diff < 0
+      vertice_to_delete = get_vertice_to_delete(@topology, nodes, -diff)
+      @dirty_vertice = delete_vertice(vertice_to_delete, nodes)
+      vertice_to_delete.each_value{|vertex| vertex.undeploy}
+    else
+      raise "Unexpected diff"
     end
-  rescue Exception => ex
-    #debug
-    puts ex.message
-    puts ex.backtrace[0..10].join("\n")
+
+    # save everything above
+    (@new_vertice ||= Hash.new).each_value{|vertex| vertex.save}
+    @dirty_vertice.each_value{|vertex| vertex.save}
+
+    prepare_update_deployment
+    @dirty_vertice.each_value{|vertex| vertex.prepare_update_deployment}
+  end
+
+  def scale
+    @worker_thread = Thread.new do
+      deploy_helper(:action => :update_deployment,
+                    :new_vertice => @new_vertice.values,
+                    :dirty_vertice => @dirty_vertice.values)
+    end
+  end
+
+  def update_deployment
+    raise "NOT IMPLEMENT"
   end
 
   def undeploy
@@ -462,8 +441,230 @@ class TopologyDeployer < BaseDeployer
     end
   end
 
+  def get_update_state
+    states = (@new_vertice || Hash.new).map{|vertex| vertex.get_deploy_state}
+    states += (@dirty_vertice || Hash.new).map{|vertex| vertex.get_update_state}
+    if states.empty?
+      return State::UNDEPLOY
+    end
+
+    old_state = self["update_state"] || State::UNDEPLOY
+    new_state = self.class.summarize_states(states)
+
+    self.set_update_state(new_state) if old_state != new_state
+    new_state
+  end
+
 
   protected
+
+  def deploy_helper(options)
+    action = options[:action] || :deploy
+
+    if action == :deploy
+      new_vertice = options[:new_vertice]
+      dirty_vertice = Array.new
+    elsif action == :update_deployment
+      new_vertice = options[:new_vertice]
+      dirty_vertice = options[:dirty_vertice]
+    else
+      raise "Unexpected action #{action}"
+    end
+
+    num_of_iters = Rails.application.config.chef_max_deploy_time / 10
+    for i in 1 .. num_of_iters
+      new_vertice.each do |vertex|
+        vertex.on_success if vertex.deploy_success?
+        vertex.on_failed if vertex.deploy_failed?
+      end
+
+      dirty_vertice.each do |vertex|
+        vertex.on_success if vertex.update_success?
+        vertex.on_failed if vertex.update_failed?
+      end
+
+      deployment_finished, deployment_failed = try_deploy(new_vertice)
+      if action == :update_deployment
+        finished, failed = try_deploy(dirty_vertice, :action => :update_vertice)
+        deployment_finished &&= finished
+        deployment_failed ||= failed
+      end
+
+      # exit if all the nodes finished
+      if deployment_finished
+        if action == :deploy
+          deployment_failed ? on_deploy_failed(get_deploy_error) : on_deploy_success
+        elsif action == :update_deployment
+          deployment_failed ? on_update_failed(get_update_error) : on_update_success
+        else
+          raise "Unexpected action #{action}"
+        end
+
+        break
+      end
+
+      # scan the topology every 10 second
+      sleep 10
+    end
+  rescue Exception => ex
+    #debug
+    puts ex.message
+    puts ex.backtrace[0..10].join("\n")
+  end
+
+  def try_deploy(vertice, options={})
+    action = options[:action] || :deploy_vertice
+
+    finished = true
+    failed = false
+    vertice.each do |vertex|
+      if action == :deploy_vertice
+        vertex.start if vertex.can_start?
+      elsif action == :update_vertice
+        vertex.update if vertex.can_update?
+      else
+        raise "Unexpected action #{action}"
+      end
+      vertex.on_depending_vertex_failed if vertex.depending_vertex_failed?
+
+      finished = false if vertex.get_state == Vertex::WAITING || vertex.get_state == Vertex::RUNNING
+      failed = true if vertex.get_state == Vertex::FAILED
+    end
+
+    return finished, failed
+  end
+
+  def create_more_vertices(topology, resources, nodes, how_many)
+    new_vertice = Hash.new
+    nodes.each do |node_id|
+      node_info = topology.get_node_info(node_id)
+      services = topology.get_services(node_id)
+      num_of_copies = topology.get_num_of_copies(node_id)
+      (num_of_copies + 1 .. num_of_copies + how_many).each do |rank|
+        extended_node_id = [node_id, rank].join("_")
+        node_deployer = ChefNodeDeployer.new(extended_node_id, node_info.clone, services, resources, self)
+        vertex = Vertex.new(extended_node_id, node_deployer, self)
+        new_vertice[extended_node_id] = vertex
+      end
+    end
+
+    new_vertice
+  end
+
+  def setup_vertice(new_vertice, new_nodes)
+    setup_internal_connection(new_vertice)
+
+    # For nodes that are not candidates to scale, all their vertice are categorized as external.
+    # We care if a vertex is external since it need to be setup and deployed differently.
+    external_vertice = get_vertice_not_in_nodes(new_nodes)
+
+    dirty_vertice = Hash.new
+    new_vertice.each_value do |new_vertex|
+      dirty_vertice.merge!(setup_external_connection(new_vertex, external_vertice))
+      load_vertice_data(new_vertex)
+    end
+    dirty_vertice
+  end
+
+  def setup_internal_connection(new_vertice)
+    new_vertice.each_value do |vertex1|
+      new_vertice.each_value do |vertex2|
+        next if vertex1 == vertex2
+        Edge.types.each do |edge_type|
+          vertex1_sample = get_sample_vertex(vertex1)
+          vertex2_sample = get_sample_vertex(vertex2)
+          vertex1.connect(vertex2, edge_type) if vertex1_sample.connected?(vertex2_sample, edge_type)
+        end
+      end
+    end
+  end
+
+  def setup_external_connection(new_vertex, external_vertice)
+    dirty_vertice = Hash.new
+    sample_vertex = get_sample_vertex(new_vertex)
+    external_vertice.each do |external_vertex|
+      Edge.types.each do |edge_type|
+        # For connection from external_vertex to sample_vertex, we do the following:
+        # 1. Setup connection of the same type from external_vertex to new_vertex.
+        # 2. Re-send the same set of notifications to new_vertex.
+        if external_vertex.connected?(sample_vertex, edge_type)
+          my_connection = external_vertex.connect(new_vertex, edge_type)
+          external_vertex.get_connection(sample_vertex, edge_type).each_notification do |key, value|
+            my_connection.notify(key, value)
+          end
+        end
+
+        # For connection from sample_vertex to external_vertex, we do the following:
+        # 1. Setup connection of the same type from new_vertex to external_vertex.
+        # 2. The external_vertex need to be re-deploy so mark it as dirty.
+        if sample_vertex.connected?(external_vertex, edge_type)
+          new_vertex.connect(external_vertex, edge_type)
+          dirty_vertice[external_vertex.get_name] = external_vertex
+        end
+      end
+    end
+
+    dirty_vertice
+  end
+
+  def load_vertice_data(new_vertex)
+    sample_vertex = get_sample_vertex(new_vertex)
+    #TODO VPNIP
+    ["port_redir", FileType::WAR_FILE, "database", FileType::SQL_SCRIPT_FILE].each do |attr_key|
+      new_vertex[attr_key] = sample_vertex[attr_key].clone if sample_vertex.has_key?(attr_key)
+    end
+  end
+
+  def get_sample_vertex(new_vertex)
+    name = new_vertex.get_name.sub(/\d+$/, "1")
+    @vertice[name]
+  end
+
+  def get_vertice_to_delete(topology, nodes, how_many)
+    vertice_to_delete = Hash.new
+    nodes.each do |node_id|
+      num_of_copies = topology.get_num_of_copies(node_id)
+      (num_of_copies - how_many + 1 .. num_of_copies).each do |rank|
+        vertex_name = [node_id, rank].join("_")
+        vertice_to_delete[vertex_name] = @vertice[vertex_name]
+      end
+    end
+
+    vertice_to_delete
+  end
+
+  def delete_vertice(vertice, nodes)
+    external_vertice = get_vertice_not_in_nodes(nodes)
+    dirty_vertice = Hash.new
+    vertice.each_value do |vertex_to_delete|
+      external_vertice.each do |external_vertex|
+        Edge.types.each do |edge_type|
+          next unless vertex_to_delete.connected?(external_vertex, edge_type)
+          vertex_to_delete.disconnect(external_vertex, edge_type)
+          dirty_vertice[external_vertex.get_name] = external_vertex
+        end
+      end
+      delete_vertex(vertex_to_delete)
+    end
+
+    dirty_vertice
+  end
+
+  def delete_vertex(vertex)
+    @vertice.delete(vertex.get_name)
+    self.delete_child(vertex.get_deployer)
+  end
+
+  def get_vertice_not_in_nodes(nodes)
+    vertice = Array.new
+    @vertice.each do |vertex_name, vertex|
+      is_in = nodes.any? do |node_id|
+        vertex_name.index(node_id) == 0
+      end
+      vertice << vertex unless is_in
+    end
+    vertice
+  end
 
   def load_topology_info
     establish_connection
@@ -481,8 +682,7 @@ class TopologyDeployer < BaseDeployer
     @topology.get_nested_node_refs.each do |ref|
       nested_instance = @vertice[ref['from']]
       container = @vertice[ref['to']]
-      nested_instance.connect(container, :container_node)
-      container.connect(nested_instance, :nested_nodes)
+      container.connect(nested_instance, :container_node)
     end
 
     # load openvpn client-server relationships
@@ -519,24 +719,21 @@ class TopologyDeployer < BaseDeployer
     @topology.get_webserver_database_refs.each do |ref|
       web_server = @vertice[ref['from']]
       database = @vertice[ref['to']]
-      web_server.connect(database, :database_node)
-      database.connect(web_server, :web_servers)
+      database.connect(web_server, :database_node)
     end
 
     #load balancer-member relationships
     @topology.get_load_balancer_memeber_refs.each do |ref|
       balancer = @vertice[ref['from']]
       member = @vertice[ref['to']]
-      balancer.connect(member, :balancer_members)
-      member.connect(balancer, :balancer)
+      member.connect(balancer, :balancer_members)
     end
 
     #load chef_client-chef_server relationships
     @topology.get_chef_server_refs.each do |ref|
       chef_client = @vertice[ref['from']]
       chef_server = @vertice[ref['to']]
-      chef_client.connect(chef_server, :chef_server)
-      chef_server.connect(chef_client, :chef_client)
+      chef_server.connect(chef_client, :chef_server)
     end
   end
 

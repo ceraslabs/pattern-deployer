@@ -59,6 +59,13 @@ class SupportingServiceDeployer < BaseDeployer
     start_provide_service
   end
 
+  def prepare_update_deployment
+    super()
+    @children.each do |child|
+      child.prepare_update_deployment
+    end
+  end
+
   def undeploy(resources)
     initialize_deployers(resources)
 
@@ -136,6 +143,7 @@ class SupportingServiceDeployer < BaseDeployer
   # This method can be overwrite by subclasses.
   def serve(customer, timeout = Rails.configuration.chef_max_deploy_time)
     self.set_topology_id(customer.get_topology_id)
+    self.prepare_update_deployment
     self.update_deployment
     self.wait(timeout)
 

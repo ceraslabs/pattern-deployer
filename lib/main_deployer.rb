@@ -163,10 +163,7 @@ class MainDeployer < BaseDeployer
 
   def prepare_deploy(topology_xml, supporting_services, resources)
     initialize_deployers(topology_xml, supporting_services, resources)
-
-    # Load the updated list of clients and nodes
-    ChefNodesManager.instance.reload
-    ChefClientsManager.instance.reload
+    generic_prepare
 
     super()
   end
@@ -192,21 +189,42 @@ class MainDeployer < BaseDeployer
         raise get_err_msg if get_state == State::DEPLOY_FAIL
         on_deploy_success
       rescue Exception => ex
+        on_deploy_failed(ex.message)
         #debug
         puts ex.message
         puts ex.backtrace[0..10].join("\n")
+      end
+    end
+  end
 
-        on_deploy_failed(ex.message)
+  def prepare_scale(topology_xml, supporting_services, resources, nodes, diff)
+    initialize_deployers_if_not_before(topology_xml, supporting_services, resources)
+    generic_prepare
+    prepare_update_deployment
+
+    @topology_deployer.prepare_scale(nodes, diff)
+  end
+
+  def scale
+    # start a new thread to do the deployment
+    @worker_thread = Thread.new do
+      begin
+        @topology_deployer.scale
+        raise "Deployment timeout" unless wait
+        raise get_update_error if get_update_state == State::DEPLOY_FAIL
+        on_update_success
+      rescue Exception => ex
+        on_update_failed(ex.message)
+        #debug
+        puts ex.message
+        puts ex.backtrace[0..10].join("\n")
       end
     end
   end
 
   def undeploy(topology_xml, supporting_services, resources)
     initialize_deployers_if_not_before(topology_xml, supporting_services, resources)
-
-    # The list of clients and nodes will change during deployment so reload
-    ChefNodesManager.instance.reload
-    ChefClientsManager.instance.reload
+    generic_prepare
 
     @my_openvpn_service.undeploy unless @my_openvpn_service.empty?
     @my_openvpn_service = nil
@@ -224,6 +242,11 @@ class MainDeployer < BaseDeployer
 
 
   protected
+
+  def generic_prepare
+    ChefNodesManager.instance.reload
+    ChefClientsManager.instance.reload
+  end
 
   def prepare_openvpn_credential
     @my_openvpn_service.prepare_deploy
@@ -252,6 +275,9 @@ class MainDeployer < BaseDeployer
     if forced || @topology_deployer.nil?
       @topology_deployer = TopologyDeployer.new(topology, resources)
       self << @topology_deployer
+    else
+      @topology_deployer.set_topology(topology)
+      @topology_deployer.set_resources(resources)
     end
 
     if forced || @my_openvpn_service.nil?
@@ -280,12 +306,4 @@ class MainDeployer < BaseDeployer
     end
   end
 
-  #def get_deploy_state
-  #  state = super()
-  #  if state == State::UNDEPLOY && @my_openvpn_service.get_deploy_state != State::UNDEPLOY
-  #    state = State::DEPLOYING
-  #  end
-
-  #  state
-  #end
 end

@@ -96,8 +96,15 @@ class Topology < ActiveRecord::Base
     deployer.prepare_deploy(topology_xml, services, resources)
     deployer.deploy
 
-    self.state = State::DEPLOYING
-    self.unlock{self.save!}
+    self.set_state(State::DEPLOYING)
+  end
+
+  def scale(topology_xml, services, resources, nodes, diff)
+    deployer = get_deployer
+    deployer.prepare_scale(topology_xml, services, resources, nodes, diff)
+    deployer.scale
+
+    self.set_state(State::DEPLOYING)
   end
 
   def undeploy(topology_xml, services, resources)
@@ -111,17 +118,22 @@ class Topology < ActiveRecord::Base
     success, @msg = deployer.undeploy(topology_xml, services, resources)
     DeployersManager.delete_deployer(self.topology_id)
 
-    self.state = State::UNDEPLOY
-    self.save!
+    self.set_state(State::DEPLOYING)
   end
 
   def get_state
+    self.set_state(State::UNDEPLOY) if deploy_timeout?
+
     if self.state == State::DEPLOYING
-      new_state = get_deployer.get_state
-      if self.state != new_state
-        self.state = new_state
-        self.unlock{self.save!}
+      deploy_state = get_deployer.get_deploy_state
+      update_state = get_deployer.get_update_state
+      if update_state == State::UNDEPLOY
+        new_state = deploy_state
+      else
+        new_state = update_state
       end
+
+      self.set_state(new_state)
     end
 
     self.state
@@ -191,6 +203,16 @@ class Topology < ActiveRecord::Base
       msg = "Topology #{topology_id} cannot be destroyed. Please make sure it is not deployed or deploying"
       raise ParametersValidationError.new(:message => msg)
     end
+  end
+
+  def deploy_timeout?
+    self.state == State::DEPLOYING && Time.now - self.updated_at > Rails.application.config.chef_max_deploy_time
+  end
+
+  def set_state(state)
+    return if self.state == state
+    raise "Cannot set state, the record is dirty: #{self.changes}" if self.changes.size > 0
+    self.unlock{self.update_attributes(:state => state)}
   end
 
 end

@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require "base_deployer"
 require "my_errors"
 
 ##~ @container = source2swagger.namespace("container")
@@ -201,17 +202,32 @@ class ContainersController < RestfulController
     case operation = params[:operation]
     when ContainerOp::RENAME
       raise ParametersValidationError.new(:message => "Parameter name is missing") unless params[:name]
-      @container.container_id = params[:name]
+      @container.rename(params[:name])
     when ContainerOp::SCALE
       raise ParametersValidationError.new(:message => "Parameter num_of_copies is missing") unless params[:num_of_copies]
-      @container.num_of_copies = params[:num_of_copies]
+
+      if scale_at_runtime?
+        resources = get_resources
+        services = SupportingService.get_all_services
+        self.formats = [:xml]
+        topology_xml = render_to_string(:partial => "topologies/topology", :locals => {:topology => @topology})
+        nodes = @container.nodes.map{|node| node.node_id}
+
+        @container.num_of_copies = params[:num_of_copies]
+        raise ParametersValidationError.new(:ar_obj => @container) unless @topology.unlock{@container.valid?}
+
+        diff = @container.num_of_copies - @container.num_of_copies_was
+        raise ParametersValidationError.new(:message => "num_of_copies unchanged") if diff == 0
+
+        @topology.scale(topology_xml, services, resources, nodes, diff)
+        @topology.unlock{@container.save!}
+      else
+        @container.num_of_copies = params[:num_of_copies]
+        @container.save!
+      end
     else
       err_msg = "Invalid operation. Supported operations are #{get_operations(ContainerOp).join(',')}"
       raise ParametersValidationError.new(:message => err_msg)
-    end
-
-    unless @container.save
-      raise ParametersValidationError.new(:ar_obj => @container)
     end
 
     render :action => "show", :formats => "xml"
@@ -245,4 +261,9 @@ class ContainersController < RestfulController
     container = find_resource_by_id!(containers, container_id)
     return topology, container
   end
+
+  def scale_at_runtime?
+    @topology.get_state == State::DEPLOY_SUCCESS || @topology.get_state == State::DEPLOY_FAIL
+  end
+
 end

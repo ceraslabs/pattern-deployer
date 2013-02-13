@@ -27,7 +27,7 @@ class Container < ActiveRecord::Base
   attr_accessible :container_id, :num_of_copies, :owner, :id, :topology
 
   validates :container_id, :presence => true
-  validates :num_of_copies, :numericality => { :only_integer => true }
+  validates :num_of_copies, :numericality => { :only_integer => true, :greater_than => 0 }
   validates_presence_of :topology, :owner
   validate :container_id_unique_within_topology
   validate :container_mutable
@@ -58,6 +58,11 @@ class Container < ActiveRecord::Base
         node.update_node_connections(element)
       end
     end
+  end
+
+  def rename(name)
+    self.container_id = name
+    self.save!
   end
 
   def get_topology

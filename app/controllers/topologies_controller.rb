@@ -26,8 +26,6 @@ class TopologiesController < RestfulController
 
   include RestfulHelper
   include TopologiesHelper
-
-  before_filter :on_initialize
   
   ####
   ##~ api = @topology.apis.add
@@ -227,20 +225,4 @@ class TopologiesController < RestfulController
     raise XmlValidationError.new(:message => ex.message, :inner_exception => ex)
   end
 
-
-  @@initialized = false
-
-  def on_initialize
-    return if @@initialized
-
-    Topology.all.each do |topology|
-      # if there is unexpected termination on previous deployment, reset the state to undeploy
-      if topology.state == State::DEPLOYING
-        topology.state = State::UNDEPLOY
-        topology.save
-      end
-    end
-
-    @@initialized = true
-  end
 end

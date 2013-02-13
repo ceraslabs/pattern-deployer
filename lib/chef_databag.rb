@@ -30,15 +30,23 @@ class DatabagWrapper
   end
 
   def [](key)
+    key = key.to_s if key.class == Symbol
     return @data[key]
   end
 
   def []=(key, value)
+    key = key.to_s if key.class == Symbol
     @data[key] = value
   end
 
   def has_key?(key)
+    key = key.to_s if key.class == Symbol
     return @data.has_key?(key)
+  end
+
+  def delete_key(key)
+    key = key.to_s if key.class == Symbol
+    @data.delete(key)
   end
 
   def reset_data(data = Hash.new)

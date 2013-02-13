@@ -93,9 +93,7 @@ class ChefNodeDeployer < BaseDeployer
     end
     self.save
 
-    #validate_cloud_provider!
-    load_credential
-    load_key_pair
+    generic_prepare
   end
 
   def deploy
@@ -128,6 +126,11 @@ class ChefNodeDeployer < BaseDeployer
     #puts "[#{Time.now}] deploy_node finished #{@node_name}"
   end
 
+  def prepare_update_deployment
+    super()
+    generic_prepare
+  end
+
   def update_deployment
     super()
     @worker_thread = Thread.new do
@@ -146,7 +149,6 @@ class ChefNodeDeployer < BaseDeployer
       raise "Cannot update node #{@node_name}, since its ip is not available"
     end
     @node_info["server_ip"] = get_server_ip
-    load_key_pair
 
     #debug
     #puts "[#{Time.now}] Start update_node #{@node_name}"
@@ -162,6 +164,8 @@ class ChefNodeDeployer < BaseDeployer
   end
 
   def undeploy
+    generic_prepare
+
     success, msg = delete_instance
     #ChefClientsManager.instance.delete(@node_name)
     #ChefNodesManager.instance.delete(@node_name)
@@ -177,6 +181,10 @@ class ChefNodeDeployer < BaseDeployer
 
   def set_services(services)
     @services = services
+  end
+
+  def set_resources(resources)
+    @resources = resources
   end
 
   def get_node_name
@@ -221,11 +229,11 @@ class ChefNodeDeployer < BaseDeployer
   end
 
   def get_deploy_state
-    self["deploy_state"]
+    self["deploy_state"] || State::UNDEPLOY
   end
 
   def get_update_state
-    self["update_state"]
+    self["update_state"] || State::UNDEPLOY
   end
 
   def is_update?
@@ -260,6 +268,11 @@ class ChefNodeDeployer < BaseDeployer
 
 
   protected
+
+  def generic_prepare
+    load_credential
+    load_key_pair
+  end
 
   def get_chef_node
     ChefNodesManager.instance.get_node(@node_name)
@@ -296,9 +309,6 @@ class ChefNodeDeployer < BaseDeployer
   end
 
   def delete_instance
-    load_credential
-    load_key_pair
-
     instance_id = get_instance_id
     if instance_id.nil?
       return true
