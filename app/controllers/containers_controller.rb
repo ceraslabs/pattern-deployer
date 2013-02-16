@@ -56,7 +56,8 @@ class ContainersController < RestfulController
   ##
   def index
     @topology, @containers = get_list_resources(params[:topology_id])
-    render :formats => "xml"
+    @pattern = get_pattern(@containers)
+    render :formats => "json"
   end
 
 
@@ -100,7 +101,8 @@ class ContainersController < RestfulController
                                                 :owner => current_user
     end
 
-    render :action => "show", :formats => "xml"
+    @pattern = get_pattern(@container)
+    render :action => "show", :formats => "json"
   end
 
 
@@ -126,7 +128,8 @@ class ContainersController < RestfulController
   ##
   def show
     @topology, @container = get_resource params[:topology_id], params[:id]
-    render :formats => "xml"
+    @pattern = get_pattern(@container)
+    render :formats => "json"
   end
 
 
@@ -153,7 +156,9 @@ class ContainersController < RestfulController
   def destroy
     @topology, @containers = get_list_resources params[:topology_id]
     destroy_resource_by_id! @containers, params[:id]
-    render :action => "index", :formats => "xml"
+
+    @pattern = get_pattern(@containers)
+    render :action => "index", :formats => "json"
   end
 
   module ContainerOp
@@ -230,7 +235,8 @@ class ContainersController < RestfulController
       raise ParametersValidationError.new(:message => err_msg)
     end
 
-    render :action => "show", :formats => "xml"
+    @pattern = get_pattern(@container)
+    render :action => "show", :formats => "json"
   end
 
 
@@ -264,6 +270,10 @@ class ContainersController < RestfulController
 
   def scale_at_runtime?
     @topology.get_state == State::DEPLOY_SUCCESS || @topology.get_state == State::DEPLOY_FAIL
+  end
+
+  def get_model_name(options={})
+    options[:plural] ? "containers" : "container"
   end
 
 end

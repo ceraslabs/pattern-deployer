@@ -41,7 +41,7 @@ class UploadedFilesController < RestfulController
   ##
   def index
     @files = get_resources_readable_by_me(UploadedFile.all)
-    render :formats => "xml"
+    render :formats => "json"
   end
 
 
@@ -114,7 +114,7 @@ class UploadedFilesController < RestfulController
     @file.upload(file_io)
 
     if @file.save
-      render :formats => "xml", :action => "show"
+      render :formats => "json", :action => "show"
     else
       raise ParametersValidationError.new(:ar_obj => @file)
     end
@@ -139,7 +139,7 @@ class UploadedFilesController < RestfulController
   ##
   def show
     @file = UploadedFile.find(params[:id])
-    render :formats => "xml"
+    render :formats => "json"
   end
 
 
@@ -163,7 +163,7 @@ class UploadedFilesController < RestfulController
     UploadedFile.find(params[:id]).destroy
 
     @files = get_resources_readable_by_me(UploadedFile.all)
-    render :formats => "xml", :action => "index"
+    render :formats => "json", :action => "index"
   end
 
   module FileOp
@@ -222,6 +222,6 @@ class UploadedFilesController < RestfulController
       raise ParametersValidationError.new(:message => err_msg)
     end
 
-    render :formats => "xml", :action => "show"
+    render :formats => "json", :action => "show"
   end
 end

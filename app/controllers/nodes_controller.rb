@@ -82,7 +82,8 @@ class NodesController < RestfulController
   ##
   def index
     @topology, @container, @nodes = get_list_resources params[:topology_id], params[:container_id]
-    render :formats => "xml"
+    @pattern = get_pattern(@nodes)
+    render :formats => "json"
   end
 
 
@@ -150,7 +151,8 @@ class NodesController < RestfulController
       end
     end
 
-    render :action => "show", :formats => "xml"
+    @pattern = get_pattern(@node)
+    render :action => "show", :formats => "json"
   end
 
 
@@ -200,7 +202,8 @@ class NodesController < RestfulController
   ##
   def show
     @topology, @container, @node = get_resource params[:topology_id], params[:container_id], params[:id]
-    render :formats => "xml"
+    @pattern = get_pattern(@node)
+    render :formats => "json"
   end
 
 
@@ -252,7 +255,8 @@ class NodesController < RestfulController
     @topology, @container, @nodes = get_list_resources params[:topology_id], params[:container_id]
     destroy_resource_by_id! @nodes, params[:id]
 
-    render :action => "index", :formats => "xml"
+    @pattern = get_pattern(@nodes)
+    render :action => "index", :formats => "json"
   end
 
   module NodeOp
@@ -363,7 +367,8 @@ class NodesController < RestfulController
       raise ParametersValidationError.new(:message => err_msg)
     end
 
-    render :formats => "xml", :action => "show"
+    @pattern = get_pattern(@node)
+    render :formats => "json", :action => "show"
   end
 
 
@@ -402,4 +407,9 @@ class NodesController < RestfulController
 
     return topology, container, node
   end
+
+  def get_model_name(options={})
+    options[:plural] ? "nodes" : "node"
+  end
+
 end

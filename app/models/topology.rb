@@ -141,9 +141,9 @@ class Topology < ActiveRecord::Base
 
   alias :get_deployment_status :get_state
 
-  def get_deployed_nodes
-    if get_state == State::DEPLOY_SUCCESS || get_state == State::DEPLOY_FAIL
-      return get_deployer.get_nodes_deployers
+  def get_deployed_nodes(topology_xml)
+    if get_state != State::UNDEPLOY
+      return get_deployer.get_nodes_deployers(topology_xml)
     else
       return Array.new
     end
@@ -152,7 +152,7 @@ class Topology < ActiveRecord::Base
   def get_error
     deployer = get_deployer
     if deployer && get_state == State::DEPLOY_FAIL
-      return deployer.get_err_msg
+      return deployer.get_deploy_state == State::DEPLOY_FAIL ? deployer.get_deploy_error : deployer.get_update_error
     else
       return nil
     end

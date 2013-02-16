@@ -43,8 +43,8 @@ class SupportingServicesController < RestfulController
   ##~ errors.each{|err| op.errorResponses.add err if err[:code] != 400}
   ##
   def index
-    @services = get_list_resources
-    render :formats => "xml"
+    @supporting_services = get_list_resources
+    render :formats => "json"
   end
 
 
@@ -65,8 +65,8 @@ class SupportingServicesController < RestfulController
   ##~ param.description = "The unique id of supporting service"
   ##
   def show
-    @service = SupportingService.find(params[:id])
-    render :formats => "xml"
+    @supporting_service = SupportingService.find(params[:id])
+    render :formats => "json"
   end
 
 
@@ -96,16 +96,16 @@ class SupportingServicesController < RestfulController
     operation = params[:operation]
     validate_operation!(operation)
 
-    @service = SupportingService.find(params[:id])
+    @supporting_service = SupportingService.find(params[:id])
     resources = get_resources
 
     if operation == "enable"
-      @service.enable(resources)
+      @supporting_service.enable(resources)
     else
-      @service.disable(resources)
+      @supporting_service.disable(resources)
     end
 
-    render :action => "show", :formats => "xml"
+    render :action => "show", :formats => "json"
   end
 
 

@@ -112,7 +112,8 @@ class ServicesController < RestfulController
   ##
   def index
     @topology, @container, @node, @template, @services = get_list_resources params[:topology_id], params[:container_id], params[:node_id], params[:template_id]
-    render :formats => "xml"
+    @pattern = get_pattern(@services)
+    render :formats => "json"
   end
 
 
@@ -205,7 +206,8 @@ class ServicesController < RestfulController
       end
     end
 
-    render :action => "show", :formats => "xml"
+    @pattern = get_pattern(@service)
+    render :action => "show", :formats => "json"
   end
 
 
@@ -282,7 +284,8 @@ class ServicesController < RestfulController
   ##
   def show
     @topology, @container, @node, @template, @service = get_resource params[:topology_id], params[:container_id], params[:node_id], params[:template_id], params[:id]
-    render :formats => "xml"
+    @pattern = get_pattern(@service)
+    render :formats => "json"
   end
 
 
@@ -355,7 +358,8 @@ class ServicesController < RestfulController
     @topology, @container, @node, @template, @services = get_list_resources params[:topology_id], params[:container_id], params[:node_id], params[:template_id]
     destroy_resource_by_id! @services, params[:id]
 
-    render :action => "index", :formats => "xml"
+    @pattern = get_pattern(@services)
+    render :action => "index", :formats => "json"
   end
 
   module ServiceOp
@@ -467,7 +471,8 @@ class ServicesController < RestfulController
       raise ParametersValidationError.new(:message => err_msg)
     end
 
-    render :formats => "xml", :action => "show"
+    @pattern = get_pattern(@service)
+    render :formats => "json", :action => "show"
   end
 
 
@@ -512,4 +517,9 @@ class ServicesController < RestfulController
 
     return topology, container, node, template, service
   end
+
+  def get_model_name(options={})
+    options[:plural] ? "services" : "service"
+  end
+
 end

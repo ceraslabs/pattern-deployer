@@ -232,7 +232,8 @@ class MainDeployer < BaseDeployer
     super()
   end
 
-  def get_nodes_deployers
+  def get_nodes_deployers(topology_xml)
+    initialize_deployers_if_not_before(topology_xml, Array.new, Array.new) unless Rails.env.production? #TODO This is a temp walk-around. Need to re-work the deployers initialization logic.
     if @topology_deployer
       return @topology_deployer.get_children
     else

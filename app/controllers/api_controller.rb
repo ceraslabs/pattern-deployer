@@ -18,8 +18,6 @@ class ApiController < RestfulController
 
   skip_load_and_authorize_resource
 
-  rescue_from ActiveRecord::RecordNotFound, :with => :render_404
-
   ##
   # Show a list of resources
   #
@@ -28,6 +26,10 @@ class ApiController < RestfulController
   # @example_response
   # TODO
   def index
-    render :formats => "xml"
+    @supporting_services = get_resources_readable_by_me(SupportingService.all)
+    @topologies = get_resources_readable_by_me(Topology.all)
+    @uploaded_files = get_resources_readable_by_me(UploadedFile.all)
+    @credentials = get_resources_readable_by_me(Credential.all)
+    render :formats => "json"
   end
 end

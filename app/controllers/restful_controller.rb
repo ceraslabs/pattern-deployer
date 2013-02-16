@@ -22,38 +22,15 @@ class RestfulController < ApplicationController
   load_and_authorize_resource
 
   before_filter :remove_undefined_params
-  #before_filter :set_cwd
 
   rescue_from Exception, :with => :render_internal_error
   rescue_from ActiveRecord::RecordInvalid, :with => :render_validation_error_when_record_invalid
   rescue_from ActiveRecord::RecordNotFound, :with => :render_validation_error_when_record_not_found
-  rescue_from NestedQemuError, :with => :render_app_error
+  rescue_from PatternDeployerError, :with => :render_app_error
   rescue_from CanCan::AccessDenied, :with => :render_access_denied
-
-  def set_cwd
-    if Rails.env != "test" && !Dir.pwd.end_with?("chef-repo")
-      Dir.chdir(Dir.pwd + "/chef-repo")
-    end
-  end
 
   def http_authenticate
     request_http_basic_authentication unless user_signed_in?
-  end
-
-  def render_all
-    @topologies = Topology.all
-    render :formats => "xml", :template => "restful/template"
-  end
-
-  def render_404(exception = nil)
-    err_msg = nil
-    if exception
-      err_msg = exception.message
-    elsif params[:path]
-      err_msg ||= "'#{request.method} #{params[:path]}' does not match to any resource"
-    end
-    my_exception = InvalidUrlError.new(:message => err_msg)
-    render :formats => "xml", :template => "restful/app_errors", :status => my_exception.http_error_code, :locals => { :exception => my_exception }
   end
 
   def get_resources_readable_by_me(resources)
@@ -136,13 +113,6 @@ class RestfulController < ApplicationController
            :locals => { :exception => ParametersValidationError.new(:message => exception, :inner_exception => exception) }
   end
 
-  def render_notsaved_error(exception)
-    render :formats => "xml",
-           :template => "restful/app_errors",
-           :status => 400,
-           :locals => { :exception => ParametersValidationError.new(:message => exception.message, :inner_exception => exception) }
-  end
-
   def render_access_denied(exception)
     render :formats => "xml",
            :template => "restful/app_errors",
@@ -150,26 +120,20 @@ class RestfulController < ApplicationController
            :locals => { :exception => AccessDeniedError.new(:message => exception.message, :inner_exception => exception) }
   end
 
-  def convert_to_boolean(str)
-    if str.class != String
-      err_msg = "Cannot convert '#{str}' to boolean, since '#{str}' is not of type of String"
-      raise ParametersValidationError.new(:message => err_msg)
-    end
-
-    test_str = str.downcase
-    if test_str == "true"
-      return true
-    elsif test_str == "false"
-      return false
-    else
-      err_msg = "Cannot convert '#{str}' to boolean, since '#{str}' is not of value 'true' or 'false'"
-      raise ParametersValidationError.new(:message => err_msg)
-    end
-  end
-
   def remove_undefined_params
     params.delete_if do |key, value|
       request.POST.has_key?(key) && value == "undefined"
     end
   end
+
+  def get_pattern(obj)
+    if obj.class == Array
+      model_name = get_model_name(:plural => true)
+    else
+      model_name = get_model_name
+    end
+    self.formats = [:xml]
+    render_to_string(:partial => model_name, :locals => {model_name.to_sym => obj}).squish.gsub('"', "'")
+  end
+
 end

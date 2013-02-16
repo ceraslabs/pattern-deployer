@@ -39,7 +39,7 @@ class TopologiesController < RestfulController
   ##
   def index
     @topologies = get_resources_readable_by_me(Topology.all)
-    render :formats => "xml"
+    render :formats => "json"
   end
 
 
@@ -87,7 +87,8 @@ class TopologiesController < RestfulController
       end
     end
 
-    render :action => "show", :formats => "xml"
+    @pattern = get_pattern(@topology)
+    render :action => "show", :formats => "json"
   end
 
 
@@ -112,7 +113,8 @@ class TopologiesController < RestfulController
                                   :nodes => {:services => :nodes},
                                   :containers => {:nodes => {:services => :nodes}}
                                  ).find(params[:id])
-    render :formats => "xml"
+    @pattern = get_pattern(@topology)
+    render :formats => "json"
   end
 
 
@@ -136,7 +138,7 @@ class TopologiesController < RestfulController
     Topology.find(params[:id]).destroy
 
     @topologies = get_resources_readable_by_me(Topology.all)
-    render :action => "index", :formats => "xml"
+    render :action => "index", :formats => "json"
   end
 
   module TopologyOp
@@ -192,8 +194,7 @@ class TopologiesController < RestfulController
     when TopologyOp::DEPLOY, TopologyOp::UNDEPLOY
       resources = get_resources
       services = SupportingService.get_all_services
-      self.formats = [:xml]
-      topology_xml = render_to_string(:partial => "topology", :locals => {:topology => @topology})
+      topology_xml = get_pattern(@topology)
 
       if operation == TopologyOp::DEPLOY
         @topology.deploy(topology_xml, services, resources)
@@ -205,7 +206,8 @@ class TopologiesController < RestfulController
       raise ParametersValidationError.new(:message => err_msg)
     end
 
-    render :action => "show", :formats => "xml"
+    @pattern = get_pattern(@topology)
+    render :action => "show", :formats => "json"
   end
 
 
@@ -223,6 +225,10 @@ class TopologiesController < RestfulController
     topology
   rescue ActiveRecord::RecordInvalid => ex
     raise XmlValidationError.new(:message => ex.message, :inner_exception => ex)
+  end
+
+  def get_model_name(options={})
+    options[:plural] ? "topologies" : "topology"
   end
 
 end

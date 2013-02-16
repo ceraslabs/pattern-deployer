@@ -36,7 +36,7 @@ class CredentialsController < RestfulController
   ##
   def index
     @credentials = get_resources_readable_by_me(Credential.all)
-    render :formats => "xml"
+    render :formats => "json"
   end
 
 
@@ -115,7 +115,7 @@ class CredentialsController < RestfulController
     end
 
     if @credential.save
-      render :formats => "xml", :action => "show"
+      render :formats => "json", :action => "show"
     else
       raise ParametersValidationError.new(:ar_obj => @credential)
     end
@@ -140,7 +140,7 @@ class CredentialsController < RestfulController
   ##
   def show
     @credential = Credential.find(params[:id])
-    render :formats => "xml"
+    render :formats => "json"
   end
 
   ####
@@ -163,7 +163,7 @@ class CredentialsController < RestfulController
     Credential.find(params[:id]).destroy
 
     @credentials = get_resources_readable_by_me(Credential.all)
-    render :formats => "xml", :action => "index"
+    render :formats => "json", :action => "index"
   end
 
   module CredentialOp
@@ -247,6 +247,6 @@ class CredentialsController < RestfulController
       raise ParametersValidationError.new(:ar_obj => @credential)
     end
 
-    render :action => "show", :formats => "xml"
+    render :action => "show", :formats => "json"
   end
 end

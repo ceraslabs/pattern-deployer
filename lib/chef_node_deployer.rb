@@ -32,17 +32,9 @@ class ChefNodeDeployer < BaseDeployer
 
     @node_name = get_id
     @node_info.merge!({"node_name" => @node_name})
-    #@chef_node = ChefNodesManager.instance.get_node(@node_name)
-    #if @chef_node.nil?
-    #  @chef_node = ChefNodesManager.instance.create_node(@node_name)
-    #end
   end
 
   def get_id
-    #if @parent.nil?
-    #  raise "Undefined parent deployer for node #{@node_name}"
-    #end
-
     prefix = @parent.get_id
     [prefix, "node", @short_name].join("_")
   end
@@ -51,33 +43,17 @@ class ChefNodeDeployer < BaseDeployer
     @short_name
   end
 
-  def get_name_without_suffix
-    @short_name.sub(/_\d+$/, "")
+  def get_pretty_name
+    name_no_suffix = @short_name.sub(/_\d+$/, "")
+    if @parent.class == TopologyDeployer && @parent.get_topology.get_num_of_copies(name_no_suffix) > 1
+      return @short_name
+    else
+      return name_no_suffix
+    end
   end
 
   def get_deployment_status
     get_state
-  end
-
-  def get_services_info
-    infos = Hash.new
-    @services.each do |service_name|
-      info = Hash.new
-      if service_name == "web_server" && self.has_key?("war_file")
-        info["url"] = get_app_url if get_app_url
-      elsif service_name == "database_server" && self.has_key?("database")
-        info["user"] = self["database"]["user"]
-        info["password"]  = self["database"]["password"]
-        info["url"]  = get_db_url if get_db_url
-        if chef_node = get_chef_node
-          info["root_password"] = chef_node["mysql"]["server_root_password"]
-        end
-      end
-
-      (infos[service_name] ||= Array.new) << info
-    end
-
-    infos
   end
 
   def prepare_deploy
@@ -179,6 +155,10 @@ class ChefNodeDeployer < BaseDeployer
     return success, msg
   end
 
+  def get_services
+    @services
+  end
+
   def set_services(services)
     @services = services
   end
@@ -242,6 +222,42 @@ class ChefNodeDeployer < BaseDeployer
 
   def get_server_ip
     self["public_ip"]
+  end
+
+  def application_server?
+    @services.include?("web_server") && self.has_key?("war_file")
+  end
+
+  def database_server?
+    @services.include?("database_server") && self.has_key?("database")
+  end
+
+  def get_app_name
+    raise "Applicaton information missing" if !self.has_key?("war_file") || !self["war_file"].has_key?("name")
+    self["war_file"]["name"].sub(/\.war/, "")
+  end
+
+  def get_app_url
+    "http://" + get_server_ip + "/" + get_app_name if get_server_ip
+  end
+
+  def get_db_system
+    self["database"]["system"]
+  end
+
+  def get_db_user
+    self["database"]["user"]
+  end
+
+  def get_db_pwd
+    self["database"]["password"]
+  end
+
+  def get_db_root_pwd
+    #TODO handle other db
+    if chef_node = get_chef_node
+      chef_node["mysql"]["server_root_password"]
+    end
   end
 
   # This method is called to update the databag whenever interesting data print is print to console
@@ -441,25 +457,4 @@ class ChefNodeDeployer < BaseDeployer
     end
   end
 
-  def get_app_url
-    app_name = self["war_file"]["name"].sub(/\.war/, "")
-    "http://" + get_server_ip + "/" + app_name if get_server_ip
-  end
-
-  def get_db_url
-    if get_server_ip
-      url = "http://" + get_server_ip + ":"
-      if self["database"]["system"] == "mysql"
-        url += "3306"
-      elsif self["database"]["system"] == "postgresql"
-        url += "5432"
-      elsif self["database"].has_key?("port")
-        url += self["database"]["port"]
-      else
-        raise "Unexpected case"
-      end
-    else
-      return nil
-    end
-  end
 end

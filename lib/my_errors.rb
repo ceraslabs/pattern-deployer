@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class NestedQemuError < StandardError
+class PatternDeployerError < StandardError
   def initialize(message, error_type, http_error_code, inner_exception = nil)
     super(message)
     @error_type = error_type
@@ -35,7 +35,7 @@ class NestedQemuError < StandardError
   end
 end
 
-class ParametersValidationError < NestedQemuError
+class ParametersValidationError < PatternDeployerError
   DEFAULT_MSG = "The request parameter(s) is/are invalid"
 
   def initialize(options = {})
@@ -47,7 +47,7 @@ class ParametersValidationError < NestedQemuError
   end
 end
 
-class InvalidUrlError < NestedQemuError
+class InvalidUrlError < PatternDeployerError
   DEFAULT_MSG = "The request url doesnot match to any resources"
 
   def initialize(options = {})
@@ -57,7 +57,7 @@ class InvalidUrlError < NestedQemuError
   end
 end
 
-class XmlValidationError < NestedQemuError
+class XmlValidationError < PatternDeployerError
   DEFAULT_MSG = "The request xml document is invalid"
 
   def initialize(options = {})
@@ -69,7 +69,7 @@ class XmlValidationError < NestedQemuError
   end
 end
 
-class DeploymentError < NestedQemuError
+class DeploymentError < PatternDeployerError
   DEFAULT_MSG = "Deployment failed, please check the logs for details"
 
   def initialize(options = {})
@@ -93,7 +93,7 @@ class DeploymentError < NestedQemuError
   end
 end
 
-class AccessDeniedError < NestedQemuError
+class AccessDeniedError < PatternDeployerError
   DEFAULT_MSG = "Permission denied, please contact the site admin to grant you permissions"
 
   def initialize(options = {})
@@ -104,7 +104,7 @@ class AccessDeniedError < NestedQemuError
   end
 end
 
-class InternalServerError < NestedQemuError
+class InternalServerError < PatternDeployerError
   DEFAULT_MSG = "Unexpected error"
 
   def initialize(options = {})

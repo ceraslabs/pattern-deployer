@@ -49,7 +49,8 @@ class TemplatesController < RestfulController
   ##
   def index
     @topology, @templates = get_list_resources params[:topology_id]
-    render :formats => "xml"
+    @pattern = get_pattern(@templates)
+    render :formats => "json"
   end
 
   ####
@@ -94,7 +95,8 @@ class TemplatesController < RestfulController
       end
     end
 
-    render :action => "show", :formats => "xml"
+    @pattern = get_pattern(@template)
+    render :action => "show", :formats => "json"
   end
 
 
@@ -124,7 +126,8 @@ class TemplatesController < RestfulController
   ##
   def show
     @topology, @template = get_resource params[:topology_id], params[:id]
-    render :formats => "xml"
+    @pattern = get_pattern(@template)
+    render :formats => "json"
   end
 
 
@@ -157,7 +160,8 @@ class TemplatesController < RestfulController
     @topology, @templates = get_list_resources params[:topology_id]
     destroy_resource_by_id! @templates, params[:id]
 
-    render :action => "show", :formats => "xml"
+    @pattern = get_pattern(@templates)
+    render :action => "index", :formats => "json"
   end
 
   module TemplateOp
@@ -245,7 +249,8 @@ class TemplatesController < RestfulController
       raise ParametersValidationError.new(:ar_obj => @template)
     end
 
-    render :formats => "xml", :action => "show"
+    @pattern = get_pattern(@template)
+    render :formats => "json", :action => "show"
   end
 
 
@@ -277,4 +282,9 @@ class TemplatesController < RestfulController
 
     return topology, template
   end
+
+  def get_model_name(options={})
+    options[:plural] ? "templates" : "template"
+  end
+
 end
