@@ -21,12 +21,12 @@
             }
           ],
           "httpMethod": "GET",
-          "nickname": "get_list_of_topologies",
-          "responseClass": "string",
+          "nickname": "getTopologies",
+          "responseClass": "Topologies",
           "summary": "Get a list of topologies"
         }
       ],
-      "path": "/api/topologies"
+      "path": "/topologies"
     },
     {
       "description": "Create a new topologies definition",
@@ -52,7 +52,7 @@
             }
           ],
           "httpMethod": "POST",
-          "nickname": "create_topology",
+          "nickname": "createTopology",
           "notes": "User can upload an XML file which should contain an XML document to define the topology. Alternatively, user can send the XML definition by plain text through 'definition' parameter. Or, user can defer the topology definition by just provide the name and description.",
           "parameters": [
             {
@@ -88,11 +88,11 @@
               "required": false
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Topology",
           "summary": "Create a new topologies definition"
         }
       ],
-      "path": "/api/topologies"
+      "path": "/topologies"
     },
     {
       "description": "Get the topology definition with id",
@@ -118,22 +118,22 @@
             }
           ],
           "httpMethod": "GET",
-          "nickname": "get_topology_by_id",
+          "nickname": "getTopologyById",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology",
               "name": "id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Topology",
           "summary": "Get the topology definition with id"
         }
       ],
-      "path": "/api/topologies/{id}"
+      "path": "/topologies/{id}"
     },
     {
       "description": "Delete the topology definition with id",
@@ -159,22 +159,22 @@
             }
           ],
           "httpMethod": "DELETE",
-          "nickname": "delete_topology_by_id",
+          "nickname": "deleteTopologyById",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology",
               "name": "id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Topologies",
           "summary": "Delete the topology definition with id"
         }
       ],
-      "path": "/api/topologies/{id}"
+      "path": "/topologies/{id}"
     },
     {
       "description": "Modify the topology.",
@@ -200,12 +200,12 @@
             }
           ],
           "httpMethod": "PUT",
-          "nickname": "modify_topology_by_id",
+          "nickname": "modifyTopologyById",
           "notes": "User can use this operation to deploy or undeploy the topology to cloud. Deploying a topology will launch a set of instance(s) on the cloud(s) and install the required software stack on the instance(s). Undeploying a topology will shutdown the deployed instance(s) on the cloud(s) and cleanup the corresponse resource",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology",
               "name": "id",
               "paramType": "path",
@@ -245,16 +245,211 @@
               "required": false
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Topology",
           "summary": "Modify the topology."
         }
       ],
-      "path": "/api/topologies/{id}"
+      "path": "/topologies/{id}"
     }
   ],
-  "basePath": "<%= request.protocol + request.host_with_port %>",
+  "basePath": "<%= request.protocol + request.host_with_port %>/api",
   "models": {
-
+    "Application": {
+      "id": "Application",
+      "properties": {
+        "inServer": {
+          "description": "The name of the server which host the application",
+          "type": "string"
+        },
+        "name": {
+          "description": "The name of the application",
+          "type": "string"
+        },
+        "url": {
+          "description": "The url of the application",
+          "type": "string"
+        }
+      }
+    },
+    "Database": {
+      "id": "Database",
+      "properties": {
+        "host": {
+          "description": "The host of the database",
+          "type": "string"
+        },
+        "inServer": {
+          "description": "The name of the server which host the database server",
+          "type": "string"
+        },
+        "password": {
+          "description": "The password of the database's user",
+          "type": "string"
+        },
+        "rootPassword": {
+          "description": "The password of the root user",
+          "type": "string"
+        },
+        "system": {
+          "allowableValues": {
+            "valueType": "LIST",
+            "values": [
+              "mysql",
+              "postgresql"
+            ]
+          },
+          "description": "The database management system",
+          "type": "string"
+        },
+        "user": {
+          "description": "The username of the database",
+          "type": "string"
+        }
+      }
+    },
+    "Deployment": {
+      "id": "Deployment",
+      "properties": {
+        "applications": {
+          "description": "The list of applications that being deployed",
+          "items": {
+            "$ref": "Application"
+          },
+          "type": "List"
+        },
+        "databases": {
+          "description": "The list of databases that being deployed",
+          "items": {
+            "$ref": "Database"
+          },
+          "type": "List"
+        },
+        "error": {
+          "description": "The error message of the deployment",
+          "type": "string"
+        },
+        "message": {
+          "description": "The message of the deployment",
+          "type": "string"
+        },
+        "servers": {
+          "description": "The list of nodes that being deployed",
+          "items": {
+            "$ref": "Server"
+          },
+          "type": "List"
+        },
+        "status": {
+          "allowableValues": {
+            "valueType": "LIST",
+            "values": [
+              "deployed",
+              "deploying",
+              "failed",
+              "undeployed"
+            ]
+          },
+          "description": "The status of the deployment of topology",
+          "type": "string"
+        }
+      }
+    },
+    "Server": {
+      "id": "Server",
+      "properties": {
+        "name": {
+          "description": "The name of the server",
+          "type": "string"
+        },
+        "serverIp": {
+          "description": "The IP address of the server",
+          "type": "string"
+        },
+        "services": {
+          "description": "A list of services deployed/deploying to the server",
+          "items": {
+            "$ref": "string"
+          },
+          "type": "List"
+        },
+        "status": {
+          "allowableValues": {
+            "valueType": "LIST",
+            "values": [
+              "deployed",
+              "deploying",
+              "failed",
+              "undeployed"
+            ]
+          },
+          "description": "The status of the server",
+          "type": "string"
+        }
+      }
+    },
+    "Topologies": {
+      "id": "Topologies",
+      "properties": {
+        "all": {
+          "description": "The information of the topology",
+          "items": {
+            "$ref": "Topology"
+          },
+          "type": "List"
+        }
+      }
+    },
+    "Topology": {
+      "id": "Topology",
+      "properties": {
+        "containers": {
+          "description": "The list of containers of the topology",
+          "items": {
+            "$ref": "Container"
+          },
+          "type": "List"
+        },
+        "deployment": {
+          "description": "The deployment of the topology",
+          "type": "Deployment"
+        },
+        "description": {
+          "description": "The description of the topology",
+          "type": "string"
+        },
+        "id": {
+          "description": "The id of the topology",
+          "type": "int"
+        },
+        "link": {
+          "description": "The link of the topology",
+          "type": "string"
+        },
+        "name": {
+          "description": "The name of the topology",
+          "type": "string"
+        },
+        "nodes": {
+          "description": "The list of nodes that is not in any containers",
+          "items": {
+            "$ref": "Node"
+          },
+          "type": "List"
+        },
+        "pattern": {
+          "description": "The pattern of the topology",
+          "type": "string"
+        },
+        "templates": {
+          "description": "The list of templates of the topology",
+          "items": {
+            "$ref": "Template"
+          },
+          "type": "List"
+        }
+      }
+    }
   },
+  "resourcePath": "/topologies",
   "swaggerVersion": "1.1"
 }

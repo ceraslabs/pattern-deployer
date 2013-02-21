@@ -17,10 +17,47 @@
 require "my_errors"
 
 ##~ @template = source2swagger.namespace("template")
-##~ @template.basePath = "<%= request.protocol + request.host_with_port %>"
+##~ @template.basePath = "<%= request.protocol + request.host_with_port %>/api"
+##~ @template.resourcePath = "/topologies/{topology_id}/templates"
 ##~ @template.swaggerVersion = "1.1"
 ##~ @template.apiVersion = "0.2"
-##~ @template.models = {}
+##
+##~ errors = []
+##~ errors << {:reason => "user provided invalid parameter(s)", :code => 400}
+##~ errors << {:reason => "user haven't logined", :code => 401}
+##~ errors << {:reason => "user doesnot have permission for this operation", :code => 403}
+##~ errors << {:reason => "some weird error occurs, possibly due to bug(s)", :code => 500}
+##
+## * Model Template
+##
+##~ model = @template.models.Template
+##~ model.id = "Template"
+##~ fields = model.properties
+##
+##~ field = fields.id
+##~ field.set :type => "int", :description => "The id of the template"
+##
+##~ field = fields.name
+##~ field.set :type => "string", :description => "The name of the template"
+##
+##~ field = fields.pattern
+##~ field.set :type => "string", :description => "The pattern of the template"
+##
+##~ field = fields.link
+##~ field.set :type => "string", :description => "The link of the template"
+##
+##~ field = fields.services
+##~ field.set :type => "List", :description => "The list of services of the template", :items => {:$ref => "Service"}
+##
+## * Model Templates
+##
+##~ model = @template.models.Templates
+##~ model.id = "Templates"
+##~ fields = model.properties
+##
+##~ field = fields.all
+##~ field.set :type => "List", :description => "The information of the templates", :items => {:$ref => "Template"}
+##
 class TemplatesController < RestfulController
 
   include RestfulHelper
@@ -29,11 +66,11 @@ class TemplatesController < RestfulController
 
   ####
   ##~ api = @template.apis.add
-  ##~ api.path = "/api/topologies/{topology_id}/templates"
+  ##~ api.path = "/topologies/{topology_id}/templates"
   ##~ api.description = "Show a list of templates definitions"
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_templates", :deprecated => false, :summary => api.description, :responseClass => "string"
+  ##~ op.set :httpMethod => "GET", :nickname => "getTemplates", :deprecated => false, :summary => api.description, :responseClass => "Templates"
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
   ##
@@ -41,7 +78,7 @@ class TemplatesController < RestfulController
   ##
   ##~ params = []
   ##
-  ##~ param = {:name => "topology_id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"}
+  ##~ param = {:name => "topology_id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"}
   ##~ param[:description] = "The unique id of topology that template(s) belongs to"
   ##~ params << param
   ##
@@ -55,11 +92,11 @@ class TemplatesController < RestfulController
 
   ####
   ##~ api = @template.apis.add
-  ##~ api.path = "/api/topologies/{topology_id}/templates"
+  ##~ api.path = "/topologies/{topology_id}/templates"
   ##~ api.description = "Create a new template definition"
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "POST", :nickname => "create_template", :deprecated => false, :summary => api.description, :responseClass => "string"
+  ##~ op.set :httpMethod => "POST", :nickname => "createTemplate", :deprecated => false, :summary => api.description, :responseClass => "Template"
   ##~ @template_desc = "Template is introduced to provide a template for node definition. For example, if the several nodes share the same set of attributes/services, user can wrap those common attributes/services in a template and let the node to use that template. In addition, template can extend another template(s). If several templates share the same set of attributes/services, user can package those common definition in a base template and let the defining templates extend the base template. User can define a list of attributes of the template as they do for node" + @node_attrs_desc
   ##~ op.notes = @template_desc
   ##
@@ -69,7 +106,7 @@ class TemplatesController < RestfulController
   ##
   ##~ params = []
   ##
-  ##~ param = {:name => "topology_id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"}
+  ##~ param = {:name => "topology_id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"}
   ##~ param[:description] = "The unique id of topology that created template belongs to"
   ##~ params << param
   ##
@@ -102,11 +139,11 @@ class TemplatesController < RestfulController
 
   ####
   ##~ api = @template.apis.add
-  ##~ api.path = "/api/topologies/{topology_id}/templates/{id}"
+  ##~ api.path = "/topologies/{topology_id}/templates/{id}"
   ##~ api.description = "Show a template definition by id"
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "GET", :nickname => "get_template_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
+  ##~ op.set :httpMethod => "GET", :nickname => "getTemplateById", :deprecated => false, :summary => api.description, :responseClass => "Template"
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
   ##
@@ -114,11 +151,11 @@ class TemplatesController < RestfulController
   ##
   ##~ params = []
   ##
-  ##~ param = {:name => "topology_id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"}
+  ##~ param = {:name => "topology_id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"}
   ##~ param[:description] = "The unique id of topology that the template belongs to"
   ##~ params << param
   ##
-  ##~ param = {:name => "id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"}
+  ##~ param = {:name => "id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"}
   ##~ param[:description] = "The unique id of the template"
   ##~ params << param
   ##
@@ -133,12 +170,12 @@ class TemplatesController < RestfulController
 
   ####
   ##~ api = @template.apis.add
-  ##~ api.path = "/api/topologies/{topology_id}/templates/{id}"
+  ##~ api.path = "/topologies/{topology_id}/templates/{id}"
   ##~ description = "Delete the template definition"
   ##~ api.description = description
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_template_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
+  ##~ op.set :httpMethod => "DELETE", :nickname => "deleteTemplateById", :deprecated => false, :summary => api.description, :responseClass => "Templates"
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
   ##
@@ -146,11 +183,11 @@ class TemplatesController < RestfulController
   ##
   ##~ params = []
   ##
-  ##~ param = {:name => "topology_id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"}
+  ##~ param = {:name => "topology_id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"}
   ##~ param[:description] = "The unique id of topology that template belongs to"
   ##~ params << param
   ##
-  ##~ param = {:name => "id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"}
+  ##~ param = {:name => "id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"}
   ##~ param[:description] = "The unique id of the template"
   ##~ params << param
   ##
@@ -175,12 +212,12 @@ class TemplatesController < RestfulController
 
   ####
   ##~ api = @template.apis.add
-  ##~ api.path = "/api/topologies/{topology_id}/templates/{id}"
+  ##~ api.path = "/topologies/{topology_id}/templates/{id}"
   ##~ description = "Modify the definition of the template"
   ##~ api.description = description
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "PUT", :nickname => "modify_template_by_id", :deprecated => false, :summary => api.description, :responseClass => "string"
+  ##~ op.set :httpMethod => "PUT", :nickname => "modifyTemplateById", :deprecated => false, :summary => api.description, :responseClass => "Template"
   ##~ op.notes = "User can rename the template, add/remove base templates, or set/remove attributes of the template. " + @template_desc
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -189,11 +226,11 @@ class TemplatesController < RestfulController
   ##
   ##~ params = []
   ##
-  ##~ param = {:name => "topology_id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"}
+  ##~ param = {:name => "topology_id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"}
   ##~ param[:description] = "The unique id of topology that template belongs to"
   ##~ params << param
   ##
-  ##~ param = {:name => "id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"}
+  ##~ param = {:name => "id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"}
   ##~ param[:description] = "The unique id of the template"
   ##~ params << param
   ##

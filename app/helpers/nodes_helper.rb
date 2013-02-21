@@ -37,4 +37,12 @@ module NodesHelper
       raise XmlValidationError.new(:message => err_msg)
     end
   end
+
+  def get_node_pattern(xml, node)
+    doc = parse_xml("<root>" + xml + "</root>")
+    element = doc.find_first("//topology[@id='#{node.topology.topology_id}']//node[@id='#{node.node_id}']")
+    element = doc.find_first("//node[@id='#{node.node_id}']") if element.nil?
+    element.to_s
+  end
+
 end

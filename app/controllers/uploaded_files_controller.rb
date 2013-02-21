@@ -17,24 +17,67 @@
 require "my_errors"
 
 ##~ @file = source2swagger.namespace("uploaded_file")
-##~ @file.basePath = "<%= request.protocol + request.host_with_port %>"
+##~ @file.basePath = "<%= request.protocol + request.host_with_port %>/api"
+##~ @file.resourcePath = "/uploaded_files"
 ##~ @file.swaggerVersion = "1.1"
 ##~ @file.apiVersion = "0.2"
-##~ @file.models = {}
 ##
+##~ errors = []
+##~ errors << {:reason => "user provided invalid parameter(s)", :code => 400}
+##~ errors << {:reason => "user haven't logined", :code => 401}
+##~ errors << {:reason => "user doesnot have permission for this operation", :code => 403}
+##~ errors << {:reason => "some weird error occurs, possibly due to bug(s)", :code => 500}
+##
+##~ @clouds = ["ec2", "openstack"]
 ##~ @types_descs = {}
 ##~ @types_descs["identity_file"] = "Identity file contains private key that is used to ssh to the deployed instance. An identity file should match a keypair of the cloud and should have an suffix '.pem'"
 ##~ @types_descs["war_file"] = "Java application archive. An war file should have suffix '.war'"
 ##~ @types_descs["sql_script_file"] = "An sql script file which is used to setup the schema/tables of database"
 ##~ @file_type_desc = "<h4>File types</h4><table><thead><tr><th>type</th><th>description</th></tr></thead>" + @types_descs.sort.map{|key, value| "<tr><td>#{key}</td><td>#{value}</td></tr>"}.join + "</table>"
+##
+## * Model UploadedFile
+##
+##~ model = @file.models.UploadedFile
+##~ model.id = "UploadedFile"
+##~ fields = model.properties
+##
+##~ field = fields.id
+##~ field.set :type => "int", :description => "The id of the uploaded file"
+##
+##~ field = fields.fileName
+##~ field.set :type => "string", :description => "The name of the uploaded file"
+##
+##~ field = fields.fileType
+##~ field.set :type => "string", :description => "The type of the uploaded file"
+##~ field.allowableValues = {:valueType => "LIST", :values => @types_descs.keys}
+##
+##~ field = fields.forCloud
+##~ field.set :type => "string", :description => "The cloud that the identity file belongs to"
+##~ field.allowableValues = {:valueType => "LIST", :values => @clouds}
+##
+##~ field = fields.keyPairId
+##~ field.set :type => "string", :description => "The key pair id of the identity file"
+##
+##~ field = fields.link
+##~ field.set :type => "string", :description => "The link of the uploaded file"
+##
+## * Model UploadedFiles
+##
+##~ model = @file.models.UploadedFiles
+##~ model.id = "UploadedFiles"
+##~ fields = model.properties
+##
+##~ field = fields.all
+##~ field.set :type => "List", :description => "The information of the uploaded files", :items => {:$ref => "UploadedFile"}
+##
 class UploadedFilesController < RestfulController
 
   ####
   ##~ api = @file.apis.add
-  ##~ api.path = "/api/uploaded_files"
+  ##~ api.path = "/uploaded_files"
   ##~ api.description = "Show a list of uploaded files"
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_files", :deprecated => false, :responseClass => "string"
+  ##~ op.set :httpMethod => "GET", :nickname => "getFiles", :deprecated => false, :responseClass => "UploadedFiles"
   ##~ op.summary = api.description
   ##  
   ##~ errors.each{|err| op.errorResponses.add err if err[:code] != 400}
@@ -47,10 +90,10 @@ class UploadedFilesController < RestfulController
 
   ####
   ##~ api = @file.apis.add
-  ##~ api.path = "/api/uploaded_files"
+  ##~ api.path = "/uploaded_files"
   ##~ api.description = "Upload a file"
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "POST", :nickname => "create_file", :deprecated => false, :responseClass => "string"
+  ##~ op.set :httpMethod => "POST", :nickname => "createFile", :deprecated => false, :responseClass => "UploadedFile"
   ##~ op.summary = api.description
   ##~ op.notes = "User need to provide a name for the created file. Depending on file type, user may need to fill additional parameter(s)" + @file_type_desc
   ##
@@ -123,10 +166,10 @@ class UploadedFilesController < RestfulController
 
   ####
   ##~ api = @file.apis.add
-  ##~ api.set :path => "/api/uploaded_files/{id}"
+  ##~ api.set :path => "/uploaded_files/{id}"
   ##~ api.description = "Delete the uploaded file by id"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "GET", :nickname => "get_file_by_id", :deprecated => false, :responseClass => "string"
+  ##~ op.set :httpMethod => "GET", :nickname => "getFileById", :deprecated => false, :responseClass => "UploadedFile"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -134,7 +177,7 @@ class UploadedFilesController < RestfulController
   ##  * declaring parameters
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"
+  ##~ param.set :name => "id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"
   ##~ param.description = "The unique id of the uploaded file"
   ##
   def show
@@ -145,10 +188,10 @@ class UploadedFilesController < RestfulController
 
   ####
   ##~ api = @file.apis.add
-  ##~ api.set :path => "/api/uploaded_files/{id}"
+  ##~ api.set :path => "/uploaded_files/{id}"
   ##~ api.description = "Delete the uploaded file by id"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_file_by_id", :deprecated => false, :responseClass => "string"
+  ##~ op.set :httpMethod => "DELETE", :nickname => "deleteFileById", :deprecated => false, :responseClass => "UploadedFiles"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -156,7 +199,7 @@ class UploadedFilesController < RestfulController
   ##  * declaring parameters
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"
+  ##~ param.set :name => "id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"
   ##~ param.description = "The unique id of uploaded file"
   ##
   def destroy
@@ -174,10 +217,10 @@ class UploadedFilesController < RestfulController
 
   ####
   ##~ api = @file.apis.add
-  ##~ api.set :path => "/api/uploaded_files/{id}"
+  ##~ api.set :path => "/uploaded_files/{id}"
   ##~ api.description = "Modify the uploaded file by id"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "PUT", :nickname => "modify_file_by_id", :deprecated => false, :responseClass => "string"
+  ##~ op.set :httpMethod => "PUT", :nickname => "modifyFileById", :deprecated => false, :responseClass => "UploadedFile"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -185,7 +228,7 @@ class UploadedFilesController < RestfulController
   ##  * declaring parameters
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"
+  ##~ param.set :name => "id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"
   ##~ param.description = "The unique id of uploaded file"
   ##
   ##~ param = op.parameters.add

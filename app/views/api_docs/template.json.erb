@@ -25,22 +25,22 @@
             }
           ],
           "httpMethod": "GET",
-          "nickname": "get_list_of_templates",
+          "nickname": "getTemplates",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that template(s) belongs to",
               "name": "topology_id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Templates",
           "summary": "Show a list of templates definitions"
         }
       ],
-      "path": "/api/topologies/{topology_id}/templates"
+      "path": "/topologies/{topology_id}/templates"
     },
     {
       "description": "Create a new template definition",
@@ -66,12 +66,12 @@
             }
           ],
           "httpMethod": "POST",
-          "nickname": "create_template",
+          "nickname": "createTemplate",
           "notes": "Template is introduced to provide a template for node definition. For example, if the several nodes share the same set of attributes/services, user can wrap those common attributes/services in a template and let the node to use that template. In addition, template can extend another template(s). If several templates share the same set of attributes/services, user can package those common definition in a base template and let the defining templates extend the base template. User can define a list of attributes of the template as they do for node<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>availability_zone</td><td>The Availability Zone. Used in EC2.</td></tr><tr><td>cloud</td><td>The cloud this node deploy to. So far, we supported ec2, openstack</td></tr><tr><td>image_id</td><td>The id of the image the node will use</td></tr><tr><td>instance_type</td><td>The type of the instance. For EC2, it can be 't1.micro', 'm1.small', etc. For OpenStack, it is the *ID* of instance flavor(not the name).</td></tr><tr><td>key_pair_id</td><td>The ssh key pair id which is used to create the instance</td></tr><tr><td>password</td><td>The ssh password</td></tr><tr><td>port</td><td>The ssh port. Port 22 will be used if this attribute is not set</td></tr><tr><td>security_groups</td><td>list of security groups the node is using. Groups are comma-seperated if more than one.</td></tr><tr><td>ssh_user</td><td>The ssh username</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that created template belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -94,11 +94,11 @@
               "required": false
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Template",
           "summary": "Create a new template definition"
         }
       ],
-      "path": "/api/topologies/{topology_id}/templates"
+      "path": "/topologies/{topology_id}/templates"
     },
     {
       "description": "Show a template definition by id",
@@ -124,11 +124,11 @@
             }
           ],
           "httpMethod": "GET",
-          "nickname": "get_template_by_id",
+          "nickname": "getTemplateById",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that the template belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -136,18 +136,18 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the template",
               "name": "id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Template",
           "summary": "Show a template definition by id"
         }
       ],
-      "path": "/api/topologies/{topology_id}/templates/{id}"
+      "path": "/topologies/{topology_id}/templates/{id}"
     },
     {
       "description": "Delete the template definition",
@@ -173,11 +173,11 @@
             }
           ],
           "httpMethod": "DELETE",
-          "nickname": "delete_template_by_id",
+          "nickname": "deleteTemplateById",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that template belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -185,18 +185,18 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the template",
               "name": "id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Templates",
           "summary": "Delete the template definition"
         }
       ],
-      "path": "/api/topologies/{topology_id}/templates/{id}"
+      "path": "/topologies/{topology_id}/templates/{id}"
     },
     {
       "description": "Modify the definition of the template",
@@ -222,12 +222,12 @@
             }
           ],
           "httpMethod": "PUT",
-          "nickname": "modify_template_by_id",
+          "nickname": "modifyTemplateById",
           "notes": "User can rename the template, add/remove base templates, or set/remove attributes of the template. Template is introduced to provide a template for node definition. For example, if the several nodes share the same set of attributes/services, user can wrap those common attributes/services in a template and let the node to use that template. In addition, template can extend another template(s). If several templates share the same set of attributes/services, user can package those common definition in a base template and let the defining templates extend the base template. User can define a list of attributes of the template as they do for node<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>availability_zone</td><td>The Availability Zone. Used in EC2.</td></tr><tr><td>cloud</td><td>The cloud this node deploy to. So far, we supported ec2, openstack</td></tr><tr><td>image_id</td><td>The id of the image the node will use</td></tr><tr><td>instance_type</td><td>The type of the instance. For EC2, it can be 't1.micro', 'm1.small', etc. For OpenStack, it is the *ID* of instance flavor(not the name).</td></tr><tr><td>key_pair_id</td><td>The ssh key pair id which is used to create the instance</td></tr><tr><td>password</td><td>The ssh password</td></tr><tr><td>port</td><td>The ssh port. Port 22 will be used if this attribute is not set</td></tr><tr><td>security_groups</td><td>list of security groups the node is using. Groups are comma-seperated if more than one.</td></tr><tr><td>ssh_user</td><td>The ssh username</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that template belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -235,7 +235,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the template",
               "name": "id",
               "paramType": "path",
@@ -306,16 +306,56 @@
               "required": false
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Template",
           "summary": "Modify the definition of the template"
         }
       ],
-      "path": "/api/topologies/{topology_id}/templates/{id}"
+      "path": "/topologies/{topology_id}/templates/{id}"
     }
   ],
-  "basePath": "<%= request.protocol + request.host_with_port %>",
+  "basePath": "<%= request.protocol + request.host_with_port %>/api",
   "models": {
-
+    "Template": {
+      "id": "Template",
+      "properties": {
+        "id": {
+          "description": "The id of the template",
+          "type": "int"
+        },
+        "link": {
+          "description": "The link of the template",
+          "type": "string"
+        },
+        "name": {
+          "description": "The name of the template",
+          "type": "string"
+        },
+        "pattern": {
+          "description": "The pattern of the template",
+          "type": "string"
+        },
+        "services": {
+          "description": "The list of services of the template",
+          "items": {
+            "$ref": "Service"
+          },
+          "type": "List"
+        }
+      }
+    },
+    "Templates": {
+      "id": "Templates",
+      "properties": {
+        "all": {
+          "description": "The information of the templates",
+          "items": {
+            "$ref": "Template"
+          },
+          "type": "List"
+        }
+      }
+    }
   },
+  "resourcePath": "/topologies/{topology_id}/templates",
   "swaggerVersion": "1.1"
 }

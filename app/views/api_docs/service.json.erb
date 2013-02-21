@@ -25,12 +25,12 @@
             }
           ],
           "httpMethod": "GET",
-          "nickname": "get_list_of_services",
+          "nickname": "getServicesInTemplate",
           "notes": "Show a list of service definitions. In implementation point of view, each service match a set of scripts that will run on deployed instance.",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that service(s) belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -38,18 +38,18 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of template that contains the service(s)",
               "name": "template_id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Services",
           "summary": "Show a list of service definitions"
         }
       ],
-      "path": "/api/topologies/{topology_id}/templates/{template_id}/services"
+      "path": "/topologies/{topology_id}/templates/{template_id}/services"
     },
     {
       "description": "Show a list of service definitions",
@@ -75,12 +75,12 @@
             }
           ],
           "httpMethod": "GET",
-          "nickname": "get_list_of_services",
+          "nickname": "getServicesInNode",
           "notes": "Show a list of service definitions. In implementation point of view, each service match a set of scripts that will run on deployed instance.",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that service(s) belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -88,18 +88,18 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the node that contains the services(s)",
               "name": "node_id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Services",
           "summary": "Show a list of service definitions"
         }
       ],
-      "path": "/api/topologies/{topology_id}/nodes/{node_id}/services"
+      "path": "/topologies/{topology_id}/nodes/{node_id}/services"
     },
     {
       "description": "Show a list of service definitions",
@@ -125,12 +125,12 @@
             }
           ],
           "httpMethod": "GET",
-          "nickname": "get_list_of_services",
+          "nickname": "getServicesInNode",
           "notes": "Show a list of service definitions. In implementation point of view, each service match a set of scripts that will run on deployed instance.",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that service(s) belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -138,7 +138,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the container that the service(s) belong to",
               "name": "container_id",
               "paramType": "path",
@@ -146,18 +146,18 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the node that contains the services(s)",
               "name": "node_id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Services",
           "summary": "Show a list of service definitions"
         }
       ],
-      "path": "/api/topologies/{topology_id}/containers/{container_id}/nodes/{node_id}/services"
+      "path": "/topologies/{topology_id}/containers/{container_id}/nodes/{node_id}/services"
     },
     {
       "description": "Create a service node definition",
@@ -183,12 +183,12 @@
             }
           ],
           "httpMethod": "POST",
-          "nickname": "create_service",
+          "nickname": "createServiceInTemplate",
           "notes": "Users can create a service by providing an XML document or just providing the name. The services available so far is list below<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that the created service belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -196,7 +196,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of template that contains the created service",
               "name": "template_id",
               "paramType": "path",
@@ -237,11 +237,11 @@
               "required": false
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Service",
           "summary": "Create a service node definition"
         }
       ],
-      "path": "/api/topologies/{topology_id}/templates/{template_id}/services"
+      "path": "/topologies/{topology_id}/templates/{template_id}/services"
     },
     {
       "description": "Create a service node definition",
@@ -267,12 +267,12 @@
             }
           ],
           "httpMethod": "POST",
-          "nickname": "create_service",
+          "nickname": "createServiceInNode",
           "notes": "Users can create a service by providing an XML document or just providing the name. The services available so far is list below<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that the created service belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -280,7 +280,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the node that contains the created service",
               "name": "node_id",
               "paramType": "path",
@@ -321,11 +321,11 @@
               "required": false
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Service",
           "summary": "Create a service node definition"
         }
       ],
-      "path": "/api/topologies/{topology_id}/nodes/{node_id}/services"
+      "path": "/topologies/{topology_id}/nodes/{node_id}/services"
     },
     {
       "description": "Create a service node definition",
@@ -351,12 +351,12 @@
             }
           ],
           "httpMethod": "POST",
-          "nickname": "create_service",
+          "nickname": "createServiceInNode",
           "notes": "Users can create a service by providing an XML document or just providing the name. The services available so far is list below<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that the created service belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -364,7 +364,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the container that the service(s) belong to",
               "name": "container_id",
               "paramType": "path",
@@ -372,7 +372,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the node that contains the created service",
               "name": "node_id",
               "paramType": "path",
@@ -413,11 +413,11 @@
               "required": false
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Service",
           "summary": "Create a service node definition"
         }
       ],
-      "path": "/api/topologies/{topology_id}/containers/{container_id}/nodes/{node_id}/services"
+      "path": "/topologies/{topology_id}/containers/{container_id}/nodes/{node_id}/services"
     },
     {
       "description": "Show a list of service definitions",
@@ -443,12 +443,12 @@
             }
           ],
           "httpMethod": "GET",
-          "nickname": "get_service_by_id",
+          "nickname": "getServiceInTemplateById",
           "notes": "Show a list of service definitions. In implementation point of view, each service match a set of scripts that will run on deployed instance.",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that service(s) belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -456,7 +456,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of template that contains the service(s)",
               "name": "template_id",
               "paramType": "path",
@@ -464,18 +464,18 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the service",
               "name": "id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Service",
           "summary": "Show a list of service definitions"
         }
       ],
-      "path": "/api/topologies/{topology_id}/templates/{template_id}/services/{id}"
+      "path": "/topologies/{topology_id}/templates/{template_id}/services/{id}"
     },
     {
       "description": "Show a list of service definitions",
@@ -501,12 +501,12 @@
             }
           ],
           "httpMethod": "GET",
-          "nickname": "get_service_by_id",
+          "nickname": "getServiceInNodeById",
           "notes": "Show a list of service definitions. In implementation point of view, each service match a set of scripts that will run on deployed instance.",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that service(s) belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -514,7 +514,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the node that contains the created service",
               "name": "node_id",
               "paramType": "path",
@@ -522,18 +522,18 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the service",
               "name": "id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Service",
           "summary": "Show a list of service definitions"
         }
       ],
-      "path": "/api/topologies/{topology_id}/nodes/{node_id}/services/{id}"
+      "path": "/topologies/{topology_id}/nodes/{node_id}/services/{id}"
     },
     {
       "description": "Show a list of service definitions",
@@ -559,12 +559,12 @@
             }
           ],
           "httpMethod": "GET",
-          "nickname": "get_service_by_id",
+          "nickname": "getServiceInNodeById",
           "notes": "Show a list of service definitions. In implementation point of view, each service match a set of scripts that will run on deployed instance.",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that service(s) belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -572,7 +572,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the container that the service(s) belong to",
               "name": "container_id",
               "paramType": "path",
@@ -580,7 +580,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the node that contains the created service",
               "name": "node_id",
               "paramType": "path",
@@ -588,18 +588,18 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the service",
               "name": "id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Service",
           "summary": "Show a list of service definitions"
         }
       ],
-      "path": "/api/topologies/{topology_id}/containers/{container_id}/nodes/{node_id}/services/{id}"
+      "path": "/topologies/{topology_id}/containers/{container_id}/nodes/{node_id}/services/{id}"
     },
     {
       "description": "Delete the service definition",
@@ -625,11 +625,11 @@
             }
           ],
           "httpMethod": "DELETE",
-          "nickname": "delete_service_by_id",
+          "nickname": "deleteServiceInTemplateById",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that service(s) belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -637,7 +637,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of template that contains the service(s)",
               "name": "template_id",
               "paramType": "path",
@@ -645,18 +645,18 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the service",
               "name": "id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Services",
           "summary": "Delete the service definition"
         }
       ],
-      "path": "/api/topologies/{topology_id}/templates/{template_id}/services/{id}"
+      "path": "/topologies/{topology_id}/templates/{template_id}/services/{id}"
     },
     {
       "description": "Delete the service definition",
@@ -682,11 +682,11 @@
             }
           ],
           "httpMethod": "DELETE",
-          "nickname": "delete_service_by_id",
+          "nickname": "deleteServiceInNodeById",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that service(s) belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -694,7 +694,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the node that contains the service",
               "name": "node_id",
               "paramType": "path",
@@ -702,18 +702,18 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the service",
               "name": "id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Services",
           "summary": "Delete the service definition"
         }
       ],
-      "path": "/api/topologies/{topology_id}/nodes/{node_id}/services/{id}"
+      "path": "/topologies/{topology_id}/nodes/{node_id}/services/{id}"
     },
     {
       "description": "Delete the service definition",
@@ -739,11 +739,11 @@
             }
           ],
           "httpMethod": "DELETE",
-          "nickname": "delete_service_by_id",
+          "nickname": "deleteServiceInNodeById",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that service(s) belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -751,7 +751,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the container that the service belong to",
               "name": "container_id",
               "paramType": "path",
@@ -759,7 +759,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the node that contains the service",
               "name": "node_id",
               "paramType": "path",
@@ -767,18 +767,18 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the service",
               "name": "id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Services",
           "summary": "Delete the service definition"
         }
       ],
-      "path": "/api/topologies/{topology_id}/containers/{container_id}/nodes/{node_id}/services/{id}"
+      "path": "/topologies/{topology_id}/containers/{container_id}/nodes/{node_id}/services/{id}"
     },
     {
       "description": "Modify the service definition",
@@ -804,12 +804,12 @@
             }
           ],
           "httpMethod": "PUT",
-          "nickname": "modify_service_by_id",
+          "nickname": "modifyServiceInTemplateById",
           "notes": "User can 'rename' or 'redefine' the service. If redefine, user needs to provide a new XML document as service definition.<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that service(s) belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -817,7 +817,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of template that contains the service(s)",
               "name": "template_id",
               "paramType": "path",
@@ -825,7 +825,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the service",
               "name": "id",
               "paramType": "path",
@@ -881,11 +881,11 @@
               "required": false
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Service",
           "summary": "Modify the service definition"
         }
       ],
-      "path": "/api/topologies/{topology_id}/templates/{template_id}/services/{id}"
+      "path": "/topologies/{topology_id}/templates/{template_id}/services/{id}"
     },
     {
       "description": "Modify the service definition",
@@ -911,12 +911,12 @@
             }
           ],
           "httpMethod": "PUT",
-          "nickname": "modify_service_by_id",
+          "nickname": "modifyServiceInNodeById",
           "notes": "User can 'rename' or 'redefine' the service. If redefine, user needs to provide a new XML document as service definition.<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that service(s) belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -924,7 +924,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the node that contains the service",
               "name": "node_id",
               "paramType": "path",
@@ -932,7 +932,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the service",
               "name": "id",
               "paramType": "path",
@@ -988,11 +988,11 @@
               "required": false
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Service",
           "summary": "Modify the service definition"
         }
       ],
-      "path": "/api/topologies/{topology_id}/nodes/{node_id}/services/{id}"
+      "path": "/topologies/{topology_id}/nodes/{node_id}/services/{id}"
     },
     {
       "description": "Modify the service definition",
@@ -1018,12 +1018,12 @@
             }
           ],
           "httpMethod": "PUT",
-          "nickname": "modify_service_by_id",
+          "nickname": "modifyServiceInNodeById",
           "notes": "User can 'rename' or 'redefine' the service. If redefine, user needs to provide a new XML document as service definition.<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>client_installation</td><td>Install client coponents of this application, an installed server is required</td></tr><tr><td>database_server</td><td>Install an MySQL database server</td></tr><tr><td>dns_client</td><td>Config server as members of load balancing dns. The dns will despatch requests to its members for load balacing purpose. (Prerequisites: supporting services 'dns' must be enabled)</td></tr><tr><td>openvpn_client</td><td>Config server as an openvpn client(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>openvpn_server</td><td>Config server as an openvpn server(Prerequisites: supporting services 'openvpn' must be enabled)</td></tr><tr><td>ossec_client</td><td>Config server to use the services from ossec, which is an host-base protection system. (Prerequisites: supporting services 'host_protection' must be enabled)</td></tr><tr><td>server_installation</td><td>Install server components of this application, which is actually a Chef server</td></tr><tr><td>snort</td><td>Config server as snort node for network instrusion prevention</td></tr><tr><td>snort_prepost</td><td>Config server to connect to snort node</td></tr><tr><td>standalone_installation</td><td>Install this application without a server</td></tr><tr><td>virsh</td><td>Install an virtual machine, which allow nested instance on top of existing instance</td></tr><tr><td>web_balancer</td><td>Install Apache and enable its load balancing modules</td></tr><tr><td>web_server</td><td>Install an Tomcat6 application server</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that service(s) belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -1031,7 +1031,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the container that the service belong to",
               "name": "container_id",
               "paramType": "path",
@@ -1039,7 +1039,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the node that contains the service",
               "name": "node_id",
               "paramType": "path",
@@ -1047,7 +1047,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the service",
               "name": "id",
               "paramType": "path",
@@ -1103,16 +1103,67 @@
               "required": false
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Service",
           "summary": "Modify the service definition"
         }
       ],
-      "path": "/api/topologies/{topology_id}/containers/{container_id}/nodes/{node_id}/services/{id}"
+      "path": "/topologies/{topology_id}/containers/{container_id}/nodes/{node_id}/services/{id}"
     }
   ],
-  "basePath": "<%= request.protocol + request.host_with_port %>",
+  "basePath": "<%= request.protocol + request.host_with_port %>/api",
   "models": {
-
+    "Service": {
+      "id": "Service",
+      "properties": {
+        "id": {
+          "description": "The id of the service",
+          "type": "int"
+        },
+        "link": {
+          "description": "The link of the service",
+          "type": "string"
+        },
+        "name": {
+          "allowableValues": {
+            "valueType": "LIST",
+            "values": [
+              "client_installation",
+              "database_server",
+              "dns_client",
+              "openvpn_client",
+              "openvpn_server",
+              "ossec_client",
+              "server_installation",
+              "snort",
+              "snort_prepost",
+              "standalone_installation",
+              "virsh",
+              "web_balancer",
+              "web_server"
+            ]
+          },
+          "description": "The name of the service",
+          "type": "string"
+        },
+        "pattern": {
+          "description": "The pattern of the service",
+          "type": "string"
+        }
+      }
+    },
+    "Services": {
+      "id": "Services",
+      "properties": {
+        "all": {
+          "description": "The information of the services",
+          "items": {
+            "$ref": "Service"
+          },
+          "type": "List"
+        }
+      }
+    }
   },
+  "resourcePath": "/topologies/{topology_id}/nodes/{node_id}/services",
   "swaggerVersion": "1.1"
 }

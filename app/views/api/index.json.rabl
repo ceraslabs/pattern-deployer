@@ -1,10 +1,14 @@
-node :status do
-  "success"
-end
-node :links do
-  links = partial "topologies/links", :object => @topologies
-  links += partial "credentials/links", :object => @credentials
-  links += partial "uploaded_files/links", :object => @uploaded_files
-  links += partial "supporting_services/links", :object => @supporting_services
-  links
+child :links do
+  node :topologies do
+    topologies_path(:only_path => false)
+  end
+  node :credentials do
+    credentials_path(:only_path => false)
+  end
+  node :uploaded_files do
+    uploaded_files_path(:only_path => false)
+  end
+  node :supporting_services do
+    supporting_services_path(:only_path => false)
+  end
 end

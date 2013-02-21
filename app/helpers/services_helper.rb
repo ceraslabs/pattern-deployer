@@ -32,4 +32,12 @@ module ServicesHelper
       raise XmlValidationError.new(:message => err_msg)
     end
   end
+
+  def get_service_pattern(xml, service)
+    doc = parse_xml("<root>" + xml + "</root>")
+    element = doc.find_first("//topology[@id='#{service.topology.topology_id}']//service[@name='#{service.service_id}']")
+    element = doc.find_first("//service[@name='#{service.service_id}']") if element.nil?
+    element.to_s
+  end
+
 end

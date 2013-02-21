@@ -21,12 +21,12 @@
             }
           ],
           "httpMethod": "GET",
-          "nickname": "get_list_of_supporting_services",
-          "responseClass": "string",
+          "nickname": "getSupportingServices",
+          "responseClass": "SupportingServices",
           "summary": "Show a list of supporting services"
         }
       ],
-      "path": "/api/supporting_services"
+      "path": "/supporting_services"
     },
     {
       "description": "Show the supporting service by id",
@@ -52,22 +52,22 @@
             }
           ],
           "httpMethod": "GET",
-          "nickname": "get_supporting_service_by_id",
+          "nickname": "getSupportingServiceById",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of supporting service",
               "name": "id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "SupportingService",
           "summary": "Show the supporting service by id"
         }
       ],
-      "path": "/api/supporting_services/{id}"
+      "path": "/supporting_services/{id}"
     },
     {
       "description": "Enable/Disable supporting service by id",
@@ -93,12 +93,12 @@
             }
           ],
           "httpMethod": "PUT",
-          "nickname": "modify_supporting_service_by_id",
+          "nickname": "modifySupportingServiceById",
           "notes": "The deployment of some services need to be supported by additional component(s). Therefore, the concept of supporting service is introduced to describe the deployment of additional component(s). E.g. In order to setup openvpn network of topology, we need to setup a certificate authority to generate keys/certificates. Only admin can enable/disable supporting services. Once a supporting service is enabled, it can be shared by all topologies.<h4>Supporting services</h4><table><thead><tr><th>supporting service</th><th>description</th></tr></thead><tr><td>dns</td><td>Provide load-balancing DNS service. If enable, nodes can subscribe itself as members of DNS. The load-balancing DNS will dispatch requests to its member(s) according to certain load-balancing scenario.</td></tr><tr><td>host_protection</td><td>Provide host-based intrusion protection service. If enable, nodes in topology can be monitored by an ossec server to detect any potential intrusion</td></tr><tr><td>openvpn</td><td>Provide openvpn service. Specifically, enabling this service will deploy an server which dedicates to generate keys/certificates for message encryption. User can enable this service if communications between nodes need to be secured</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of supporting service",
               "name": "id",
               "paramType": "path",
@@ -120,16 +120,77 @@
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "SupportingService",
           "summary": "Enable/Disable supporting service by id"
         }
       ],
-      "path": "/api/supporting_services/{id}"
+      "path": "/supporting_services/{id}"
     }
   ],
-  "basePath": "<%= request.protocol + request.host_with_port %>",
+  "basePath": "<%= request.protocol + request.host_with_port %>/api",
   "models": {
-
+    "SupportingService": {
+      "id": "SupportingService",
+      "properties": {
+        "available": {
+          "description": "The availability of the supporting service",
+          "type": "boolean"
+        },
+        "deploymentError": {
+          "description": "The error message about deployment",
+          "type": "string"
+        },
+        "deploymentMessage": {
+          "description": "The message about deployment",
+          "type": "string"
+        },
+        "deploymentStatus": {
+          "allowableValues": {
+            "valueType": "LIST",
+            "values": [
+              "disabled",
+              "enabled",
+              "enabling"
+            ]
+          },
+          "description": "The deployment status of the supporting service",
+          "type": "string"
+        },
+        "id": {
+          "description": "The id of the supporting service",
+          "type": "int"
+        },
+        "link": {
+          "description": "The link of the supporting service",
+          "type": "string"
+        },
+        "name": {
+          "allowableValues": {
+            "valueType": "LIST",
+            "values": [
+              "dns",
+              "host_protection",
+              "openvpn"
+            ]
+          },
+          "description": "The name of the supporting service",
+          "type": "string"
+        }
+      }
+    },
+    "SupportingServices": {
+      "id": "SupportingServices",
+      "properties": {
+        "all": {
+          "description": "The information of the supporting services",
+          "items": {
+            "$ref": "SupportingService"
+          },
+          "type": "List"
+        }
+      }
+    }
   },
+  "resourcePath": "/supporting_services",
   "swaggerVersion": "1.1"
 }

@@ -25,22 +25,22 @@
             }
           ],
           "httpMethod": "GET",
-          "nickname": "get_list_of_nodes",
+          "nickname": "getNodes",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that node(s) belongs to",
               "name": "topology_id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Nodes",
           "summary": "Show a list of nodes definitions"
         }
       ],
-      "path": "/api/topologies/{topology_id}/nodes"
+      "path": "/topologies/{topology_id}/nodes"
     },
     {
       "description": "Show a list of nodes definitions",
@@ -66,11 +66,11 @@
             }
           ],
           "httpMethod": "GET",
-          "nickname": "get_list_of_nodes",
+          "nickname": "getNodes",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that node(s) belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -78,18 +78,18 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the container that contains the node(s)",
               "name": "container_id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Nodes",
           "summary": "Show a list of nodes definitions"
         }
       ],
-      "path": "/api/topologies/{topology_id}/containers/{container_id}/nodes"
+      "path": "/topologies/{topology_id}/containers/{container_id}/nodes"
     },
     {
       "description": "Create a new node definition",
@@ -115,12 +115,12 @@
             }
           ],
           "httpMethod": "POST",
-          "nickname": "create_node",
+          "nickname": "createNode",
           "notes": "User has options to create the node by name or by definition. If by name, the parameter 'name' need to be filled. If by definition, user need to send the XML document through the 'definition' parameter. Node can have a list of attributes to describe itself. The supported attributes is list below.<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>availability_zone</td><td>The Availability Zone. Used in EC2.</td></tr><tr><td>cloud</td><td>The cloud this node deploy to. So far, we supported ec2, openstack</td></tr><tr><td>image_id</td><td>The id of the image the node will use</td></tr><tr><td>instance_type</td><td>The type of the instance. For EC2, it can be 't1.micro', 'm1.small', etc. For OpenStack, it is the *ID* of instance flavor(not the name).</td></tr><tr><td>key_pair_id</td><td>The ssh key pair id which is used to create the instance</td></tr><tr><td>password</td><td>The ssh password</td></tr><tr><td>port</td><td>The ssh port. Port 22 will be used if this attribute is not set</td></tr><tr><td>security_groups</td><td>list of security groups the node is using. Groups are comma-seperated if more than one.</td></tr><tr><td>ssh_user</td><td>The ssh username</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that created node belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -143,11 +143,11 @@
               "required": false
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Node",
           "summary": "Create a new node definition"
         }
       ],
-      "path": "/api/topologies/{topology_id}/nodes"
+      "path": "/topologies/{topology_id}/nodes"
     },
     {
       "description": "Create a new node definition",
@@ -173,12 +173,12 @@
             }
           ],
           "httpMethod": "POST",
-          "nickname": "get_list_of_nodes",
+          "nickname": "createNode",
           "notes": "User has options to create the node by name or by definition. If by name, the parameter 'name' need to be filled. If by definition, user need to send the XML document through the 'definition' parameter. Node can have a list of attributes to describe itself. The supported attributes is list below.<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>availability_zone</td><td>The Availability Zone. Used in EC2.</td></tr><tr><td>cloud</td><td>The cloud this node deploy to. So far, we supported ec2, openstack</td></tr><tr><td>image_id</td><td>The id of the image the node will use</td></tr><tr><td>instance_type</td><td>The type of the instance. For EC2, it can be 't1.micro', 'm1.small', etc. For OpenStack, it is the *ID* of instance flavor(not the name).</td></tr><tr><td>key_pair_id</td><td>The ssh key pair id which is used to create the instance</td></tr><tr><td>password</td><td>The ssh password</td></tr><tr><td>port</td><td>The ssh port. Port 22 will be used if this attribute is not set</td></tr><tr><td>security_groups</td><td>list of security groups the node is using. Groups are comma-seperated if more than one.</td></tr><tr><td>ssh_user</td><td>The ssh username</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that created node belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -186,7 +186,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the container that contains the created node",
               "name": "container_id",
               "paramType": "path",
@@ -209,11 +209,11 @@
               "required": false
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Node",
           "summary": "Create a new node definition"
         }
       ],
-      "path": "/api/topologies/{topology_id}/containers/{container_id}/nodes"
+      "path": "/topologies/{topology_id}/containers/{container_id}/nodes"
     },
     {
       "description": "Show a node definition by id",
@@ -239,11 +239,11 @@
             }
           ],
           "httpMethod": "GET",
-          "nickname": "get_node_by_id",
+          "nickname": "getNodeById",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that the node belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -251,18 +251,18 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the node",
               "name": "id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Node",
           "summary": "Show a node definition by id"
         }
       ],
-      "path": "/api/topologies/{topology_id}/nodes/{id}"
+      "path": "/topologies/{topology_id}/nodes/{id}"
     },
     {
       "description": "Show a node definition by id",
@@ -288,11 +288,11 @@
             }
           ],
           "httpMethod": "GET",
-          "nickname": "get_node_by_id",
+          "nickname": "getNodeById",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that the node belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -300,7 +300,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the container that containers the node",
               "name": "container_id",
               "paramType": "path",
@@ -308,18 +308,18 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the node",
               "name": "id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Node",
           "summary": "Show a node definition by id"
         }
       ],
-      "path": "/api/topologies/{topology_id}/containers/{container_id}/nodes/{id}"
+      "path": "/topologies/{topology_id}/containers/{container_id}/nodes/{id}"
     },
     {
       "description": "Delete the node definition",
@@ -345,11 +345,11 @@
             }
           ],
           "httpMethod": "DELETE",
-          "nickname": "delete_node_by_id",
+          "nickname": "deleteNodeById",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that node belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -357,18 +357,18 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the node",
               "name": "id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Nodes",
           "summary": "Delete the node definition"
         }
       ],
-      "path": "/api/topologies/{topology_id}/nodes/{id}"
+      "path": "/topologies/{topology_id}/nodes/{id}"
     },
     {
       "description": "Delete the node definition",
@@ -394,11 +394,11 @@
             }
           ],
           "httpMethod": "DELETE",
-          "nickname": "delete_node_by_id",
+          "nickname": "deleteNodeById",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that node belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -406,7 +406,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the container that containers the node",
               "name": "container_id",
               "paramType": "path",
@@ -414,18 +414,18 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the node",
               "name": "id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Nodes",
           "summary": "Delete the node definition"
         }
       ],
-      "path": "/api/topologies/{topology_id}/containers/{container_id}/nodes/{id}"
+      "path": "/topologies/{topology_id}/containers/{container_id}/nodes/{id}"
     },
     {
       "description": "Modify the definition of the node",
@@ -451,12 +451,12 @@
             }
           ],
           "httpMethod": "PUT",
-          "nickname": "modify_node_by_id",
+          "nickname": "modifyNodeById",
           "notes": "User can rename the node, add/remove template the node is using, or set/remove attributes of the node.<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>availability_zone</td><td>The Availability Zone. Used in EC2.</td></tr><tr><td>cloud</td><td>The cloud this node deploy to. So far, we supported ec2, openstack</td></tr><tr><td>image_id</td><td>The id of the image the node will use</td></tr><tr><td>instance_type</td><td>The type of the instance. For EC2, it can be 't1.micro', 'm1.small', etc. For OpenStack, it is the *ID* of instance flavor(not the name).</td></tr><tr><td>key_pair_id</td><td>The ssh key pair id which is used to create the instance</td></tr><tr><td>password</td><td>The ssh password</td></tr><tr><td>port</td><td>The ssh port. Port 22 will be used if this attribute is not set</td></tr><tr><td>security_groups</td><td>list of security groups the node is using. Groups are comma-seperated if more than one.</td></tr><tr><td>ssh_user</td><td>The ssh username</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that node belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -464,7 +464,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the node",
               "name": "id",
               "paramType": "path",
@@ -535,11 +535,11 @@
               "required": false
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Node",
           "summary": "Modify the definition of the node"
         }
       ],
-      "path": "/api/topologies/{topology_id}/nodes/{id}"
+      "path": "/topologies/{topology_id}/nodes/{id}"
     },
     {
       "description": "Modify the definition of the node",
@@ -565,12 +565,12 @@
             }
           ],
           "httpMethod": "PUT",
-          "nickname": "modify_node_by_id",
+          "nickname": "modifyNodeById",
           "notes": "User can rename the node, add/remove template the node is using, or set/remove attributes of the node.<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead><tr><td>availability_zone</td><td>The Availability Zone. Used in EC2.</td></tr><tr><td>cloud</td><td>The cloud this node deploy to. So far, we supported ec2, openstack</td></tr><tr><td>image_id</td><td>The id of the image the node will use</td></tr><tr><td>instance_type</td><td>The type of the instance. For EC2, it can be 't1.micro', 'm1.small', etc. For OpenStack, it is the *ID* of instance flavor(not the name).</td></tr><tr><td>key_pair_id</td><td>The ssh key pair id which is used to create the instance</td></tr><tr><td>password</td><td>The ssh password</td></tr><tr><td>port</td><td>The ssh port. Port 22 will be used if this attribute is not set</td></tr><tr><td>security_groups</td><td>list of security groups the node is using. Groups are comma-seperated if more than one.</td></tr><tr><td>ssh_user</td><td>The ssh username</td></tr></table>",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of topology that node belongs to",
               "name": "topology_id",
               "paramType": "path",
@@ -578,7 +578,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the container that containers the node",
               "name": "container_id",
               "paramType": "path",
@@ -586,7 +586,7 @@
             },
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the node",
               "name": "id",
               "paramType": "path",
@@ -657,16 +657,56 @@
               "required": false
             }
           ],
-          "responseClass": "string",
+          "responseClass": "Node",
           "summary": "Modify the definition of the node"
         }
       ],
-      "path": "/api/topologies/{topology_id}/containers/{container_id}/nodes/{id}"
+      "path": "/topologies/{topology_id}/containers/{container_id}/nodes/{id}"
     }
   ],
-  "basePath": "<%= request.protocol + request.host_with_port %>",
+  "basePath": "<%= request.protocol + request.host_with_port %>/api",
   "models": {
-
+    "Node": {
+      "id": "Node",
+      "properties": {
+        "id": {
+          "description": "The id of the node",
+          "type": "int"
+        },
+        "link": {
+          "description": "The link of the node",
+          "type": "string"
+        },
+        "name": {
+          "description": "The name of the node",
+          "type": "string"
+        },
+        "pattern": {
+          "description": "The pattern of the node",
+          "type": "string"
+        },
+        "services": {
+          "description": "The list of services of the node",
+          "items": {
+            "$ref": "Service"
+          },
+          "type": "List"
+        }
+      }
+    },
+    "Nodes": {
+      "id": "Nodes",
+      "properties": {
+        "all": {
+          "description": "The information of the nodes",
+          "items": {
+            "$ref": "Node"
+          },
+          "type": "List"
+        }
+      }
+    }
   },
+  "resourcePath": "/topologies/{topology_id}/nodes",
   "swaggerVersion": "1.1"
 }

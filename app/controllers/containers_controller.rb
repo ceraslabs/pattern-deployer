@@ -18,10 +18,10 @@ require "base_deployer"
 require "my_errors"
 
 ##~ @container = source2swagger.namespace("container")
-##~ @container.basePath = "<%= request.protocol + request.host_with_port %>"
+##~ @container.basePath = "<%= request.protocol + request.host_with_port %>/api"
+##~ @container.resourcePath = "/topologies/{topology_id}/containers"
 ##~ @container.swaggerVersion = "1.1"
 ##~ @container.apiVersion = "0.2"
-##~ @container.models = {}
 ##
 ##~ errors = []
 ##~ errors << {:reason => "user provided invalid parameter(s)", :code => 400}
@@ -30,6 +30,40 @@ require "my_errors"
 ##~ errors << {:reason => "some weird error occurs, possibly due to bug(s)", :code => 500}
 ##
 ##~ @container_desc = "Container is used to contain node(s). Node(s) inside container can be scaled by 'num_of_copies' attribute. "
+##
+## * Model Container
+##
+##~ model = @container.models.Container
+##~ model.id = "Container"
+##~ fields = model.properties
+##
+##~ field = fields.id
+##~ field.set :type => "int", :description => "The id of the container"
+##
+##~ field = fields.name
+##~ field.set :type => "string", :description => "The name of the container"
+##
+##~ field = fields.numOfCopies
+##~ field.set :type => "int", :description => "The number of copies of nodes inside the container"
+##
+##~ field = fields.pattern
+##~ field.set :type => "string", :description => "The pattern of the container"
+##
+##~ field = fields.nodes
+##~ field.set :type => "List", :description => "The list of nodes of the container", :items => {:$ref => "Node"}
+##
+##~ field = fields.link
+##~ field.set :type => "string", :description => "The link of the container"
+##
+## * Model Containers
+##
+##~ model = @container.models.Containers
+##~ model.id = "Containers"
+##~ fields = model.properties
+##
+##~ field = fields.all
+##~ field.set :type => "List", :description => "The information of the containers", :items => {:$ref => "Container"}
+##
 class ContainersController < RestfulController
 
   include RestfulHelper
@@ -38,11 +72,11 @@ class ContainersController < RestfulController
 
   ####
   ##~ api = @container.apis.add
-  ##~ api.path = "/api/topologies/{topology_id}/containers"
+  ##~ api.path = "/topologies/{topology_id}/containers"
   ##~ api.description = "Show a list of containers definitions"
   ##
   ##~ op = api.operations.add
-  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_containers", :deprecated => false, :responseClass => "string"
+  ##~ op.set :httpMethod => "GET", :nickname => "getContainers", :deprecated => false, :responseClass => "Containers"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err if err[:code] != 400}
@@ -50,9 +84,8 @@ class ContainersController < RestfulController
   ##  * declaring parameters
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "topology_id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"
+  ##~ param.set :name => "topology_id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"
   ##~ param.description = "The unique id of topology that container(s) belongs to"
-  ##  
   ##
   def index
     @topology, @containers = get_list_resources(params[:topology_id])
@@ -63,10 +96,10 @@ class ContainersController < RestfulController
 
   ####
   ##~ api = @container.apis.add
-  ##~ api.set :path => "/api/topologies/{topology_id}/containers"
+  ##~ api.set :path => "/topologies/{topology_id}/containers"
   ##~ api.description = "Create a new containers definition"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "POST", :nickname => "create_container", :deprecated => false, :responseClass => "string"
+  ##~ op.set :httpMethod => "POST", :nickname => "createContainer", :deprecated => false, :responseClass => "Container"
   ##~ op.summary = api.description
   ##~ op.notes = @container_desc + " Users have 2 options to create a container: provide an XML definition or just provide the name(optionally together with the number of copies)."
   ##
@@ -75,7 +108,7 @@ class ContainersController < RestfulController
   ##  * declaring parameters
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "topology_id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"
+  ##~ param.set :name => "topology_id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"
   ##~ param.description = "The unique id of topology which the list of containers belong to"
   ##
   ##~ param = op.parameters.add
@@ -87,7 +120,7 @@ class ContainersController < RestfulController
   ##~ param.description = "The name of the container to be created"
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "num_of_copies", :dataType => "integer", :allowMultiple => false, :required => false, :paramType => "query"
+  ##~ param.set :name => "num_of_copies", :dataType => "int", :allowMultiple => false, :required => false, :paramType => "query"
   ##~ param.description = "The number of copies property. Each node inside this container will be scaled by this number of copies. Default is one"
   ##
   def create
@@ -108,10 +141,10 @@ class ContainersController < RestfulController
 
   ####
   ##~ api = @container.apis.add
-  ##~ api.set :path => "/api/topologies/{topology_id}/containers/{id}"
+  ##~ api.set :path => "/topologies/{topology_id}/containers/{id}"
   ##~ api.description = "Get the container definition with id"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "GET", :nickname => "get_container_by_id", :deprecated => false, :responseClass => "string"
+  ##~ op.set :httpMethod => "GET", :nickname => "getContainerById", :deprecated => false, :responseClass => "Container"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -119,11 +152,11 @@ class ContainersController < RestfulController
   ##  * declaring parameters
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "topology_id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"
+  ##~ param.set :name => "topology_id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"
   ##~ param.description = "The unique id of topology which the container belongs to"
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"
+  ##~ param.set :name => "id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"
   ##~ param.description = "The unique id of container"
   ##
   def show
@@ -135,10 +168,10 @@ class ContainersController < RestfulController
 
   ####
   ##~ api = @container.apis.add
-  ##~ api.set :path => "/api/topologies/{topology_id}/containers/{id}"
+  ##~ api.set :path => "/topologies/{topology_id}/containers/{id}"
   ##~ api.description = "Delete the container definition"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_container_by_id", :deprecated => false, :responseClass => "string"
+  ##~ op.set :httpMethod => "DELETE", :nickname => "deleteContainerById", :deprecated => false, :responseClass => "Containers"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -146,11 +179,11 @@ class ContainersController < RestfulController
   ##  * declaring parameters
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "topology_id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"
+  ##~ param.set :name => "topology_id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"
   ##~ param.description = "The unique id of topology which the container belongs to"
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"
+  ##~ param.set :name => "id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"
   ##~ param.description = "The unique id of container"
   ##
   def destroy
@@ -169,10 +202,10 @@ class ContainersController < RestfulController
 
   ####
   ##~ api = @container.apis.add
-  ##~ api.set :path => "/api/topologies/{topology_id}/containers/{id}"
+  ##~ api.set :path => "/topologies/{topology_id}/containers/{id}"
   ##~ api.description = "Modify the definition of the container"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "PUT", :nickname => "modify_container_by_id", :deprecated => false, :responseClass => "string"
+  ##~ op.set :httpMethod => "PUT", :nickname => "modifyContainerById", :deprecated => false, :responseClass => "Container"
   ##~ op.summary = api.description
   ##~ op.notes = @container_desc + "User can change the name of the container or change the 'num_of_copies' attribute of the container"
   ##
@@ -181,11 +214,11 @@ class ContainersController < RestfulController
   ##  * declaring parameters
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "topology_id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"
+  ##~ param.set :name => "topology_id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"
   ##~ param.description = "The unique id of topology which the container belongs to"
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"
+  ##~ param.set :name => "id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"
   ##~ param.description = "The unique id of container"
   ##
   ##~ param = op.parameters.add
@@ -198,7 +231,7 @@ class ContainersController < RestfulController
   ##~ param.description = "The new name. Used with 'rename' operation"
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "num_of_copies", :dataType => "integer", :allowMultiple => false, :required => false, :paramType => "query"
+  ##~ param.set :name => "num_of_copies", :dataType => "int", :allowMultiple => false, :required => false, :paramType => "query"
   ##~ param.description = "The number of copies property. Each node inside this container will be scaled by this number of copies. Used with 'scale' operation"
   ##
   def update

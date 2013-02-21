@@ -37,4 +37,12 @@ module TemplatesHelper
       raise XmlValidationError.new(:message => err_msg)
     end
   end
+
+  def get_template_pattern(xml, template)
+    doc = parse_xml("<root>" + xml + "</root>")
+    element = doc.find_first("//topology[@id='#{template.topology.topology_id}']/template[@id='#{template.template_id}']")
+    element = doc.find_first("//template[@id='#{template.template_id}']") if element.nil?
+    element.to_s
+  end
+
 end

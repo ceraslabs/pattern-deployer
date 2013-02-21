@@ -17,16 +17,61 @@
 require "my_errors"
 
 ##~ @supporting_service = source2swagger.namespace("supporting_service")
-##~ @supporting_service.basePath = "<%= request.protocol + request.host_with_port %>"
+##~ @supporting_service.basePath = "<%= request.protocol + request.host_with_port %>/api"
+##~ @supporting_service.resourcePath = "/supporting_services"
 ##~ @supporting_service.swaggerVersion = "1.1"
 ##~ @supporting_service.apiVersion = "0.2"
-##~ @supporting_service.models = {}
 ##
 ##~ @supporting_services_descs = {}
 ##~ @supporting_services_descs["openvpn"] = "Provide openvpn service. Specifically, enabling this service will deploy an server which dedicates to generate keys/certificates for message encryption. User can enable this service if communications between nodes need to be secured"
 ##~ @supporting_services_descs["host_protection"] = "Provide host-based intrusion protection service. If enable, nodes in topology can be monitored by an ossec server to detect any potential intrusion"
 ##~ @supporting_services_descs["dns"] = "Provide load-balancing DNS service. If enable, nodes can subscribe itself as members of DNS. The load-balancing DNS will dispatch requests to its member(s) according to certain load-balancing scenario."
 ##~ @supporting_services_desc = "<h4>Supporting services</h4><table><thead><tr><th>supporting service</th><th>description</th></tr></thead>" + @supporting_services_descs.sort.map{|key, value| "<tr><td>#{key}</td><td>#{value}</td></tr>"}.join + "</table>"
+##
+##~ errors = []
+##~ errors << {:reason => "user provided invalid parameter(s)", :code => 400}
+##~ errors << {:reason => "user haven't logined", :code => 401}
+##~ errors << {:reason => "user doesnot have permission for this operation", :code => 403}
+##~ errors << {:reason => "some weird error occurs, possibly due to bug(s)", :code => 500}
+##
+## * Model SupportingService
+##
+##~ model = @supporting_service.models.SupportingService
+##~ model.id = "SupportingService"
+##~ fields = model.properties
+##
+##~ field = fields.id
+##~ field.set :type => "int", :description => "The id of the supporting service"
+##
+##~ field = fields.name
+##~ field.set :type => "string", :description => "The name of the supporting service"
+##~ field.allowableValues = {:valueType => "LIST", :values => @supporting_services_descs.keys}
+##
+##~ field = fields.available
+##~ field.set :type => "boolean", :description => "The availability of the supporting service"
+##
+##~ field = fields.deploymentStatus
+##~ field.set :type => "string", :description => "The deployment status of the supporting service"
+##~ field.allowableValues = {:valueType => "LIST", :values => ["disabled", "enabling", "enabled"]}
+##
+##~ field = fields.deploymentError
+##~ field.set :type => "string", :description => "The error message about deployment"
+##
+##~ field = fields.deploymentMessage
+##~ field.set :type => "string", :description => "The message about deployment"
+##
+##~ field = fields.link
+##~ field.set :type => "string", :description => "The link of the supporting service"
+##
+## * Model SupportingServices
+##
+##~ model = @supporting_service.models.SupportingServices
+##~ model.id = "SupportingServices"
+##~ fields = model.properties
+##
+##~ field = fields.all
+##~ field.set :type => "List", :description => "The information of the supporting services", :items => {:$ref => "SupportingService"}
+##
 class SupportingServicesController < RestfulController
 
   before_filter :initialize_db
@@ -34,10 +79,10 @@ class SupportingServicesController < RestfulController
 
   ####
   ##~ api = @supporting_service.apis.add
-  ##~ api.path = "/api/supporting_services"
+  ##~ api.path = "/supporting_services"
   ##~ api.description = "Show a list of supporting services"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_supporting_services", :deprecated => false, :responseClass => "string"
+  ##~ op.set :httpMethod => "GET", :nickname => "getSupportingServices", :deprecated => false, :responseClass => "SupportingServices"
   ##~ op.summary = api.description
   ##  
   ##~ errors.each{|err| op.errorResponses.add err if err[:code] != 400}
@@ -50,10 +95,10 @@ class SupportingServicesController < RestfulController
 
   ####
   ##~ api = @supporting_service.apis.add
-  ##~ api.set :path => "/api/supporting_services/{id}"
+  ##~ api.set :path => "/supporting_services/{id}"
   ##~ api.description = "Show the supporting service by id"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "GET", :nickname => "get_supporting_service_by_id", :deprecated => false, :responseClass => "string"
+  ##~ op.set :httpMethod => "GET", :nickname => "getSupportingServiceById", :deprecated => false, :responseClass => "SupportingService"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -61,7 +106,7 @@ class SupportingServicesController < RestfulController
   ##  * declaring parameters
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"
+  ##~ param.set :name => "id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"
   ##~ param.description = "The unique id of supporting service"
   ##
   def show
@@ -72,10 +117,10 @@ class SupportingServicesController < RestfulController
 
   ####
   ##~ api = @supporting_service.apis.add
-  ##~ api.set :path => "/api/supporting_services/{id}"
+  ##~ api.set :path => "/supporting_services/{id}"
   ##~ api.description = "Enable/Disable supporting service by id"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "PUT", :nickname => "modify_supporting_service_by_id", :deprecated => false, :responseClass => "string"
+  ##~ op.set :httpMethod => "PUT", :nickname => "modifySupportingServiceById", :deprecated => false, :responseClass => "SupportingService"
   ##~ op.summary = api.description
   ##~ op.notes = "The deployment of some services need to be supported by additional component(s). Therefore, the concept of supporting service is introduced to describe the deployment of additional component(s). E.g. In order to setup openvpn network of topology, we need to setup a certificate authority to generate keys/certificates. Only admin can enable/disable supporting services. Once a supporting service is enabled, it can be shared by all topologies." + @supporting_services_desc
   ##
@@ -84,7 +129,7 @@ class SupportingServicesController < RestfulController
   ##  * declaring parameters
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"
+  ##~ param.set :name => "id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"
   ##~ param.description = "The unique id of supporting service"
   ##
   ##~ param = op.parameters.add

@@ -21,12 +21,12 @@
             }
           ],
           "httpMethod": "GET",
-          "nickname": "get_list_of_files",
-          "responseClass": "string",
+          "nickname": "getFiles",
+          "responseClass": "UploadedFiles",
           "summary": "Show a list of uploaded files"
         }
       ],
-      "path": "/api/uploaded_files"
+      "path": "/uploaded_files"
     },
     {
       "description": "Upload a file",
@@ -52,7 +52,7 @@
             }
           ],
           "httpMethod": "POST",
-          "nickname": "create_file",
+          "nickname": "createFile",
           "notes": "User need to provide a name for the created file. Depending on file type, user may need to fill additional parameter(s)<h4>File types</h4><table><thead><tr><th>type</th><th>description</th></tr></thead><tr><td>identity_file</td><td>Identity file contains private key that is used to ssh to the deployed instance. An identity file should match a keypair of the cloud and should have an suffix '.pem'</td></tr><tr><td>sql_script_file</td><td>An sql script file which is used to setup the schema/tables of database</td></tr><tr><td>war_file</td><td>Java application archive. An war file should have suffix '.war'</td></tr></table>",
           "parameters": [
             {
@@ -111,11 +111,11 @@
               "required": false
             }
           ],
-          "responseClass": "string",
+          "responseClass": "UploadedFile",
           "summary": "Upload a file"
         }
       ],
-      "path": "/api/uploaded_files"
+      "path": "/uploaded_files"
     },
     {
       "description": "Delete the uploaded file by id",
@@ -141,22 +141,22 @@
             }
           ],
           "httpMethod": "GET",
-          "nickname": "get_file_by_id",
+          "nickname": "getFileById",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of the uploaded file",
               "name": "id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "UploadedFile",
           "summary": "Delete the uploaded file by id"
         }
       ],
-      "path": "/api/uploaded_files/{id}"
+      "path": "/uploaded_files/{id}"
     },
     {
       "description": "Delete the uploaded file by id",
@@ -182,22 +182,22 @@
             }
           ],
           "httpMethod": "DELETE",
-          "nickname": "delete_file_by_id",
+          "nickname": "deleteFileById",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of uploaded file",
               "name": "id",
               "paramType": "path",
               "required": true
             }
           ],
-          "responseClass": "string",
+          "responseClass": "UploadedFiles",
           "summary": "Delete the uploaded file by id"
         }
       ],
-      "path": "/api/uploaded_files/{id}"
+      "path": "/uploaded_files/{id}"
     },
     {
       "description": "Modify the uploaded file by id",
@@ -223,11 +223,11 @@
             }
           ],
           "httpMethod": "PUT",
-          "nickname": "modify_file_by_id",
+          "nickname": "modifyFileById",
           "parameters": [
             {
               "allowMultiple": false,
-              "dataType": "integer",
+              "dataType": "int",
               "description": "The unique id of uploaded file",
               "name": "id",
               "paramType": "path",
@@ -265,16 +265,72 @@
               "required": false
             }
           ],
-          "responseClass": "string",
+          "responseClass": "UploadedFile",
           "summary": "Modify the uploaded file by id"
         }
       ],
-      "path": "/api/uploaded_files/{id}"
+      "path": "/uploaded_files/{id}"
     }
   ],
-  "basePath": "<%= request.protocol + request.host_with_port %>",
+  "basePath": "<%= request.protocol + request.host_with_port %>/api",
   "models": {
-
+    "UploadedFile": {
+      "id": "UploadedFile",
+      "properties": {
+        "fileName": {
+          "description": "The name of the uploaded file",
+          "type": "string"
+        },
+        "fileType": {
+          "allowableValues": {
+            "valueType": "LIST",
+            "values": [
+              "identity_file",
+              "sql_script_file",
+              "war_file"
+            ]
+          },
+          "description": "The type of the uploaded file",
+          "type": "string"
+        },
+        "forCloud": {
+          "allowableValues": {
+            "valueType": "LIST",
+            "values": [
+              "ec2",
+              "openstack"
+            ]
+          },
+          "description": "The cloud that the identity file belongs to",
+          "type": "string"
+        },
+        "id": {
+          "description": "The id of the uploaded file",
+          "type": "int"
+        },
+        "keyPairId": {
+          "description": "The key pair id of the identity file",
+          "type": "string"
+        },
+        "link": {
+          "description": "The link of the uploaded file",
+          "type": "string"
+        }
+      }
+    },
+    "UploadedFiles": {
+      "id": "UploadedFiles",
+      "properties": {
+        "all": {
+          "description": "The information of the uploaded files",
+          "items": {
+            "$ref": "UploadedFile"
+          },
+          "type": "List"
+        }
+      }
+    }
   },
+  "resourcePath": "/uploaded_files",
   "swaggerVersion": "1.1"
 }

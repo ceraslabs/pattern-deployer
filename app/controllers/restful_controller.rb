@@ -133,7 +133,7 @@ class RestfulController < ApplicationController
       model_name = get_model_name
     end
     self.formats = [:xml]
-    render_to_string(:partial => model_name, :locals => {model_name.to_sym => obj}).squish.gsub('"', "'")
+    render_to_string(:partial => model_name, :locals => {model_name.to_sym => obj}).squish
   end
 
 end

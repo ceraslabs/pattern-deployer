@@ -17,19 +17,66 @@
 require "my_errors"
 
 ##~ @credential = source2swagger.namespace("credential")
-##~ @credential.basePath = "<%= request.protocol + request.host_with_port %>"
+##~ @credential.basePath = "<%= request.protocol + request.host_with_port %>/api"
+##~ @credential.resourcePath = "/credentials"
 ##~ @credential.swaggerVersion = "1.1"
 ##~ @credential.apiVersion = "0.2"
-##~ @credential.models = {}
 ##~ @clouds = ["ec2", "openstack"]
+##
+##~ errors = []
+##~ errors << {:reason => "user provided invalid parameter(s)", :code => 400}
+##~ errors << {:reason => "user haven't logined", :code => 401}
+##~ errors << {:reason => "user doesnot have permission for this operation", :code => 403}
+##~ errors << {:reason => "some weird error occurs, possibly due to bug(s)", :code => 500}
+##
+## * Model Credential
+##
+##~ model = @credential.models.Credential
+##~ model.id = "Credential"
+##~ fields = model.properties
+##
+##~ field = fields.id
+##~ field.set :type => "int", :description => "The id of the credential"
+##
+##~ field = fields.name
+##~ field.set :type => "string", :description => "The name of the credential"
+##
+##~ field = fields.forCloud
+##~ field.set :type => "string", :description => "The cloud that the credential is for"
+##~ field.allowableValues = {:valueType => "LIST", :values => @clouds}
+##
+##~ field = fields.awsAccessKeyId
+##~ field.set :type => "string", :description => "The EC2 access key id"
+##
+##~ field = fields.openstackUsername
+##~ field.set :type => "string", :description => "The OpenStack username"
+##
+##~ field = fields.openstackTenant
+##~ field.set :type => "string", :description => "The OpenStack tenant"
+##
+##~ field = fields.openstackEndpoint
+##~ field.set :type => "string", :description => "The OpenStack endpoint"
+##
+##~ field = fields.link
+##~ field.set :type => "string", :description => "The link of the credential"
+##
+## * Model Credentials
+##
+##~ model = @credential.models.Credentials
+##~ model.id = "Credentials"
+##~ fields = model.properties
+##
+##~ field = fields.all
+##~ field.set :type => "List", :description => "The information of the credentials", :items => {:$ref => "Credential"}
+##
 class CredentialsController < RestfulController
 
   ####
   ##~ api = @credential.apis.add
-  ##~ api.path = "/api/credentials"
+  ##~ api.path = "/credentials"
   ##~ api.description = "Show a list of credentials"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "GET", :nickname => "get_list_of_credentials", :deprecated => false, :responseClass => "string"
+  ##~ op.set :httpMethod => "GET", :nickname => "getCredentials", :deprecated => false, :responseClass => "Credentials"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err if err[:code] != 400}
@@ -42,10 +89,10 @@ class CredentialsController < RestfulController
 
   ####
   ##~ api = @credential.apis.add
-  ##~ api.path = "/api/credentials"
+  ##~ api.path = "/credentials"
   ##~ api.description = "Create a new credential"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "POST", :nickname => "create_credential", :deprecated => false, :responseClass => "string"
+  ##~ op.set :httpMethod => "POST", :nickname => "createCredential", :deprecated => false, :responseClass => "Credential"
   ##~ op.summary = api.description
   ##~ op.notes = "The created credential will be used to authenticate user against the cloud when deploying a topology. User need to provide a name for the created credential and indicate which cloud this credential belongs to. Depending on different cloud provider, user need to fill the corresponse parameter(s) to define the credential"
   ##
@@ -124,10 +171,10 @@ class CredentialsController < RestfulController
 
   ####
   ##~ api = @credential.apis.add
-  ##~ api.set :path => "/api/credentials/{id}"
+  ##~ api.set :path => "/credentials/{id}"
   ##~ api.description = "Get the credential definition with id"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "GET", :nickname => "get_credential_by_id", :deprecated => false, :responseClass => "string"
+  ##~ op.set :httpMethod => "GET", :nickname => "getCredentialById", :deprecated => false, :responseClass => "Credential"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -135,7 +182,7 @@ class CredentialsController < RestfulController
   ##  * declaring parameters
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"
+  ##~ param.set :name => "id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"
   ##~ param.description = "The unique id of credential"
   ##
   def show
@@ -145,10 +192,10 @@ class CredentialsController < RestfulController
 
   ####
   ##~ api = @credential.apis.add
-  ##~ api.set :path => "/api/credentials/{id}"
+  ##~ api.set :path => "/credentials/{id}"
   ##~ api.description = "Delete the credential definition by id"
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "DELETE", :nickname => "delete_credential_by_id", :deprecated => false, :responseClass => "string"
+  ##~ op.set :httpMethod => "DELETE", :nickname => "deleteCredentialById", :deprecated => false, :responseClass => "Credentials"
   ##~ op.summary = api.description
   ##
   ##~ errors.each{|err| op.errorResponses.add err}
@@ -156,7 +203,7 @@ class CredentialsController < RestfulController
   ##  * declaring parameters
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"
+  ##~ param.set :name => "id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"
   ##~ param.description = "The unique id of credential"
   ##
   def destroy
@@ -173,10 +220,10 @@ class CredentialsController < RestfulController
 
   ####
   ##~ api = @credential.apis.add
-  ##~ api.set :path => "/api/credentials/{id}"
+  ##~ api.set :path => "/credentials/{id}"
   ##~ api.description = "Modify the credential."
   ##~ op = api.operations.add   
-  ##~ op.set :httpMethod => "PUT", :nickname => "modify_topology_by_id", :deprecated => false, :responseClass => "string"
+  ##~ op.set :httpMethod => "PUT", :nickname => "modifyCredentialById", :deprecated => false, :responseClass => "Credential"
   ##~ op.summary = api.description
   ##~ op.notes = "Two operation available: 'rename' and 'redefine'. Operation 'redefine' can be used to change the attribute/key/password of existing credential."
   ##
@@ -185,7 +232,7 @@ class CredentialsController < RestfulController
   ##  * declaring parameters
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "id", :dataType => "integer", :allowMultiple => false, :required => true, :paramType => "path"
+  ##~ param.set :name => "id", :dataType => "int", :allowMultiple => false, :required => true, :paramType => "path"
   ##~ param.description = "The unique id of credential"
   ##  
   ##~ param = op.parameters.add

@@ -26,10 +26,6 @@ class ApiController < RestfulController
   # @example_response
   # TODO
   def index
-    @supporting_services = get_resources_readable_by_me(SupportingService.all)
-    @topologies = get_resources_readable_by_me(Topology.all)
-    @uploaded_files = get_resources_readable_by_me(UploadedFile.all)
-    @credentials = get_resources_readable_by_me(Credential.all)
     render :formats => "json"
   end
 end

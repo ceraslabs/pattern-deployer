@@ -32,4 +32,9 @@ module TopologiesHelper
       raise XmlValidationError.new(:message => err_msg)
     end
   end
+
+  def get_topology_pattern(xml, topology)
+    parse_xml("<root>" + xml + "</root>").find_first("//topology[@id='#{topology.topology_id}']").to_s
+  end
+
 end

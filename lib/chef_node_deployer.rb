@@ -255,7 +255,8 @@ class ChefNodeDeployer < BaseDeployer
 
   def get_db_root_pwd
     #TODO handle other db
-    if chef_node = get_chef_node
+    chef_node = get_chef_node
+    if  chef_node && chef_node.has_key?("mysql") && chef_node["mysql"].has_key?("server_root_password")
       chef_node["mysql"]["server_root_password"]
     end
   end
