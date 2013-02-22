@@ -91,33 +91,39 @@ class RestfulController < ApplicationController
   protected
 
   def render_app_error(exception)
-    render :formats => "xml", :template => "restful/app_errors", :status => exception.http_error_code, :locals => { :exception => exception }
+    @exception = exception
+    render :formats => "json", :template => "restful/error", :status => exception.http_error_code
   end
 
   def render_internal_error(exception)
-    render :formats => "xml", :template => "restful/internal_errors", :status => 500, :locals => { :exception => exception }
+    @exception = InternalServerError.new(:message => exception.message, :inner_exception => exception)
+    @exception.set_backtrace(exception.backtrace)
+    render :formats => "json", :template => "restful/error", :status => 500
   end
 
   def render_validation_error_when_record_invalid(invalid_record)
     err_msg = invalid_record.record.errors.full_messages.join(";")
-    render :formats => "xml",
-           :template => "restful/app_errors",
-           :status => 400,
-           :locals => { :exception => ParametersValidationError.new(:message => err_msg, :inner_exception => invalid_record) }
+    @exception = ParametersValidationError.new(:message => err_msg, :inner_exception => invalid_record)
+    @exception.set_backtrace(invalid_record.backtrace)
+    render :formats => "json",
+           :template => "restful/error",
+           :status => 400
   end
 
   def render_validation_error_when_record_not_found(exception)
-    render :formats => "xml",
-           :template => "restful/app_errors",
-           :status => 400,
-           :locals => { :exception => ParametersValidationError.new(:message => exception, :inner_exception => exception) }
+    @exception = ParametersValidationError.new(:message => exception.message, :inner_exception => exception)
+    @exception.set_backtrace(exception.backtrace)
+    render :formats => "json",
+           :template => "restful/error",
+           :status => 400
   end
 
   def render_access_denied(exception)
-    render :formats => "xml",
-           :template => "restful/app_errors",
-           :status => 403,
-           :locals => { :exception => AccessDeniedError.new(:message => exception.message, :inner_exception => exception) }
+    @exception = AccessDeniedError.new(:message => exception.message, :inner_exception => exception)
+    @exception.set_backtrace(exception.backtrace)
+    render :formats => "json",
+           :template => "restful/error",
+           :status => 403
   end
 
   def remove_undefined_params
