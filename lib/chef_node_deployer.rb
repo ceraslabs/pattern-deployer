@@ -266,12 +266,10 @@ class ChefNodeDeployer < BaseDeployer
     return if self.has_key?(key)
 
     if get_cloud == Rails.application.config.openstack && key == :floating_ip
-      self[:public_ip] = value
-    elsif get_cloud != Rails.application.config.openstack && key == :public_ip
-      self[:public_ip] = value
-    else
-      self[key] = value
+      key = :public_ip
     end
+
+    self[key] = value
     self.save
 
     begin
