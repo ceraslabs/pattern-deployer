@@ -107,7 +107,7 @@ class SubCommand
     end
 
     db_config[@env] ||= Hash.new
-    db_config[@env]["adapter"] = @cli.config[:database_adapter]
+    db_config[@env]["adapter"] = "mysql2"
     db_config[@env]["username"] = @cli.config[:database_username]
     db_config[@env]["password"] = @cli.config[:database_password]
     db_config[@env]["host"] = @cli.config[:database_host]
@@ -316,19 +316,6 @@ class ProductionCommand < SubCommand
 
   def run_bundle_install
     execute_and_exit_on_fail("bundle install --path=vendor/bundle", :as_user => @cli.config[:as_user])
-
-    # This is a walkaround for issue(http://tickets.opscode.com/browse/CHEF-3721)
-    execute_and_exit_on_fail("gem install moneta --no-rdoc --no-ri --verbose -v \"0.6.0\" -i vendor/bundle/ruby/1.8", :as_user => @cli.config[:as_user])
-    execute_and_exit_on_fail("gem uninstall moneta -v \">= 0.7.0\" -i vendor/bundle/ruby/1.8 -I", :as_user => @cli.config[:as_user])
-
-    content = nil
-    gemlock_file = "Gemfile.lock"
-    File.open(gemlock_file, "r") do |fin|
-      content = fin.read
-    end
-    write_to_file(gemlock_file) do |fout|
-      fout.write(content.gsub(/moneta \(0\.7\.\d+\)/, "moneta (0.6.0)"))
-    end
   end
 
   def setup_db
@@ -347,7 +334,7 @@ class ProductionCommand < SubCommand
     puts
     puts "* To start the application, please type following:"
     puts "cd #{FileUtils.pwd}"
-    puts "sudo bundle exec passenger start -p 80 -e production -d --user=#{@cli.config[:as_user] || ENV['USER']}"
+    puts "sudo bundle exec passenger start -p 80 -e production -d --user=#{@cli.config[:as_user]}"
     puts
     puts "* To stop the application:"
     puts "cd #{FileUtils.pwd}"
@@ -372,17 +359,6 @@ class DevelopCommand < SubCommand
 
   def run_bundle_install
     execute_and_exit_on_fail("bundle install --system")
-
-    # This is a walkaround for issue(http://tickets.opscode.com/browse/CHEF-3721)
-    execute_and_exit_on_fail("gem install moneta --no-rdoc --no-ri --verbose -v \"0.6.0\"")
-    execute_and_exit_on_fail("gem uninstall moneta -v \">= 0.7.0\" -I")
-    content = nil
-    File.open("Gemfile.lock", "r") do |fin|
-      content = fin.read
-    end
-    write_to_file("Gemfile.lock") do |fout|
-      fout.write(content.gsub(/moneta \(0\.7\.\d+\)/, "moneta (0.6.0)"))
-    end
   end
 
   def setup_db
@@ -449,12 +425,6 @@ class SetupCLI
     :description  => "Use defaults value for all questions(do not prompt)",
     :boolean      => true
 
-  option :database_adapter,
-    :short        => "-a NAME",
-    :long         => "--db-adapter NAME",
-    :description  => "The database adapter to use",
-    :default      => "mysql2"
-
   option :database_username,
     :short        => "-u USER",
     :long         => "--db-user USER",
@@ -505,7 +475,8 @@ class SetupCLI
 
   option :as_user,
     :long         => "--as-user USER",
-    :description  => "Setup the app for USER"
+    :description  => "Setup the app for USER",
+    :default      => ENV['USER']
 
 
   def run(args)
@@ -530,7 +501,7 @@ class SetupCLI
 
   def ask_user_for_config
     unless config[:use_defaults]
-      config[:database_adapter]    = ask_question("Please enter the database's adapter: ", :default => config[:database_adapter])
+      config[:as_user]             = ask_question("Please enter the owner of the installed application: ", :default => config[:as_user])
       config[:database_username]   = ask_question("Please enter the username to login the database: ", :default => config[:database_username])
       config[:database_password]   = ask_question("Please enter the password of the database's user: ", :default => config[:database_password])
       config[:database_host]       = ask_question("Please enter the host of the database: ", :default => config[:database_host])
