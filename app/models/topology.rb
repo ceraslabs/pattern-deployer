@@ -118,7 +118,7 @@ class Topology < ActiveRecord::Base
     success, @msg = deployer.undeploy(topology_xml, services, resources)
     DeployersManager.delete_deployer(self.topology_id)
 
-    self.set_state(State::DEPLOYING)
+    self.set_state(State::UNDEPLOY)
   end
 
   def get_state
