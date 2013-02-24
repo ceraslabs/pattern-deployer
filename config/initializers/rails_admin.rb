@@ -46,7 +46,7 @@ RailsAdmin.config do |config|
   # config.excluded_models = ['Container', 'Credential', 'Ec2Credential', 'IdentityFile', 'Inheritance', 'Node', 'OpenstackCredential', 'Service', 'ServiceToNodeRef', 'SqlScriptFile', 'SupportingService', 'Template', 'Topology', 'UploadedFile', 'User', 'WarFile']
 
   # Include specific models (exclude the others):
-  config.included_models = ['Container', 'Credential', 'Ec2Credential', 'IdentityFile', 'Inheritance', 'Node', 'OpenstackCredential', 'Service', 'ServiceToNodeRef', 'SqlScriptFile', 'SupportingService', 'Template', 'Topology', 'UploadedFile', 'User', 'WarFile']
+  config.included_models = ['Container', 'Credential', 'Ec2Credential', 'IdentityFile', 'TemplateInheritance', 'Node', 'OpenstackCredential', 'Service', 'ServiceToNodeRef', 'SqlScriptFile', 'SupportingService', 'Template', 'Topology', 'UploadedFile', 'User', 'WarFile']
 
   # Label methods for model instances:
   # config.label_methods << :description # Default is [:name, :title]
