@@ -210,6 +210,7 @@ class BaseCommandBuilder
     command += "-i #{identity_file} " if identity_file
     command += "-P #{password} " if password
     command += "-p #{port} " if port
+    command += "--no-host-key-verify "
 
     command += "-r '"
     if @services.size > 0
@@ -317,7 +318,6 @@ class BootstrapCommandBuilder < BaseCommandBuilder
   def build_create_command
     command = "knife bootstrap "
     command += "#{@server_ip} "
-    command += "--no-host-key-verify "
     command += "--sudo "
     command += super()
     command
