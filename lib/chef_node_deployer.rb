@@ -429,13 +429,11 @@ class ChefNodeDeployer < BaseDeployer
     if chef_node
       self["public_ip"] ||= chef_node.get_server_ip
       self["private_ip"] ||= chef_node.get_private_ip
-      self["deploy_state"] = get_deploy_state
     end
   end
 
   def on_update_finish
     load_output
-    self["update_state"] = get_update_state
   end
 
   def load_output

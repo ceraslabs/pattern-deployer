@@ -122,7 +122,11 @@ class Topology < ActiveRecord::Base
   end
 
   def get_state
-    self.set_state(State::UNDEPLOY) if deploy_timeout?
+    if deploy_timeout?
+      self.set_state(State::UNDEPLOY)
+      #debug
+      puts "[#{Time.now}] deployment of topology #{self.topology_id} is timeout"
+    end
 
     if self.state == State::DEPLOYING
       deploy_state = get_deployer.get_deploy_state
@@ -212,6 +216,17 @@ class Topology < ActiveRecord::Base
   def set_state(state)
     return if self.state == state
     raise "Cannot set state, the record is dirty: #{self.changes}" if self.changes.size > 0
+
+    #debug
+    if self.state == State::DEPLOYING && state == State::UNDEPLOY
+      begin
+        raise "Unexpected reverting to undeployed state"
+      rescue Exception => ex
+        puts "[#{Time.now}] #{ex.message}"
+        puts ex.backtrace.join("\n")
+      end
+    end
+
     self.state = state
     self.unlock{self.save!}
   end

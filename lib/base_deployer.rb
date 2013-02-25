@@ -31,9 +31,6 @@ class BaseDeployer
     @parent = parent_deployer if parent_deployer
     @children = Array.new
     @databag = DatabagsManager.instance.get_or_create_databag(get_id)
-
-    set_deploy_state(State::UNDEPLOY) if get_deploy_state == State::DEPLOYING
-    set_update_state(State::UNDEPLOY) if get_update_state == State::DEPLOYING
   end
 
   def get_id
@@ -251,6 +248,16 @@ class BaseDeployer
 
   def set_state_by_type(type_of_state, state)
     if self[type_of_state] != state
+      #debug
+      if self[type_of_state] == State::DEPLOYING && state == State::UNDEPLOY
+        begin
+          raise "Unexpected reverting #{type_of_state} to undeployed"
+        rescue Exception => ex
+          puts "[#{Time.now}] #{ex.message}"
+          puts ex.backtrace.join("\n")
+        end
+      end
+
       self[type_of_state] = state
       self.save
     end
