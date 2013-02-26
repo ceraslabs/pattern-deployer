@@ -174,7 +174,7 @@ class TopologyWrapper
   end
 
   def get_chef_server_refs
-    in_element = "server"
+    in_element = "chef_server"
     type       = "chef_client_server"
     get_node_refs(in_element, type)
   end

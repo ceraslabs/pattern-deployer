@@ -50,7 +50,7 @@
       <xs:field xpath="@node"/>
     </xs:keyref>
     <xs:keyref name="database_node" refer="my_node">
-      <xs:selector xpath=".//database"/>
+      <xs:selector xpath=".//database_connection"/>
       <xs:field xpath="@node"/>
     </xs:keyref>
     <xs:keyref name="chef_server_node" refer="my_node">
@@ -105,7 +105,7 @@
       <xs:element ref="port_redirection"/>
       <xs:element ref="database_connection"/>
       <xs:group ref="database_elements"/>
-      <xs:element ref="server"/>
+      <xs:element ref="chef_server"/>
     </xs:choice>
   </xs:group>
   <xs:element name="service">
@@ -247,7 +247,7 @@
       <xs:attribute name="node" type="xs:string" use="required"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="server">
+  <xs:element name="chef_server">
     <xs:complexType>
       <xs:attribute name="node" type="xs:string" use="required"/>
     </xs:complexType>
