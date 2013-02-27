@@ -32,9 +32,10 @@ SETUP_ERROR = 10
 module ShellUtils
   def execute_and_exit_on_fail(command, options={})
     command = "su #{options[:as_user]} -c '#{command}'" if options[:as_user] && options[:as_user] != ENV['USER']
-    output = `#{command}`.strip
+    output = `#{command} 2>&1`.strip
     unless $?.success?
       puts "ERROR: failed to execute command #{command}"
+      puts "OUTPUT: #{output}"
       exit SETUP_ERROR
     end
     output
