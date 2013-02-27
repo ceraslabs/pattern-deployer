@@ -68,28 +68,44 @@ class SubCommand
 
   def run
     # install bundler
+    puts "Installing Bundler..."
     install_bundler
+    puts "Bundler is installed"
 
     # run "bundle install" to install depending gems
+    puts "Installing depending Gems..."
     run_bundle_install
+    puts "Depending Gems are installed"
 
     # setup the database for this app to use
+    puts "Setting up the database"
     setup_db
+    puts "Database is setup"
 
     # clean up previuos assets in case of any
+    puts "Cleaning up previous compiled assets"
     clean_assets
+    puts "Assets are cleaned up"
 
     # precompile assets
+    puts "Pre-compiling assets"
     precompile_assets if self.respond_to?(:precompile_assets)
+    puts "Assets are pre-compiled"
 
     # generate secret token
+    puts "Generating a secret token"
     generate_secret_token
+    puts "Secret token is generated"
 
     # setup Chef for this app to use
+    puts "Setting up Chef"
     setup_chef
+    puts "Chef is setup"
 
     # genereate API documentations
+    puts "Generating API docs"
     generate_docs
+    puts "API docs are generated"
 
     # print instruction to start the app
     print_success_msg if self.respond_to?(:print_success_msg)
