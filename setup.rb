@@ -31,11 +31,15 @@ SETUP_ERROR = 10
 
 module ShellUtils
   def execute_and_exit_on_fail(command, options={})
+    tmp_file = "/tmp/pd_error.txt"
     command = "su #{options[:as_user]} -c '#{command}'" if options[:as_user] && options[:as_user] != ENV['USER']
-    output = `#{command} 2>&1`.strip
+    output = `#{command} 2>#{tmp_file}`.strip
     unless $?.success?
       puts "ERROR: failed to execute command #{command}"
-      puts "OUTPUT: #{output}"
+      puts "STDOUT:"
+      puts output
+      puts "STDERR:"
+      puts `cat #{tmp_file}`
       exit SETUP_ERROR
     end
     output
