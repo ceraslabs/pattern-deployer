@@ -109,7 +109,7 @@ class Topology < ActiveRecord::Base
 
   def undeploy(topology_xml, services, resources)
     my_state = get_state
-    if my_state == State::UNDEPLOY || my_state == State::DEPLOYING
+    if my_state == State::UNDEPLOY
       err_msg = "The topology '#{self.topology_id}' is not deployed before"
       raise DeploymentError.new(:message => err_msg)
     end
