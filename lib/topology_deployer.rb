@@ -88,6 +88,7 @@ class TopologyDeployer < BaseDeployer
       @name = name
       @state = WAITING
       @deployer = node_deployer
+      @topology_deployer = topology_deployer
       topology_deployer << node_deployer
     end
 
@@ -231,10 +232,11 @@ class TopologyDeployer < BaseDeployer
       target_types = [:container_node, :chef_server]
 
       vertice = Array.new
-      self.get_edges.each do |edge|
-        next unless target_types.include?(edge.get_type)
-        next if self.get_id == edge.get_destination.get_id
-        vertice << edge.get_destination
+      @topology_deployer.all_vertice.each do |vertex|
+        next if vertex == self || vertice.include?(vertex)
+        vertex.each_edge do |edge|
+          vertice << vertex if target_types.include?(edge.get_type) && edge.get_destination == self
+        end
       end
       vertice
     end
@@ -371,7 +373,7 @@ class TopologyDeployer < BaseDeployer
 
   def deploy
     @worker_thread = Thread.new do
-      deploy_helper(:action => :deploy, :new_vertice => @vertice.values)
+      deploy_helper(:action => :deploy, :new_vertice => all_vertice)
     end
   end
 
@@ -453,6 +455,10 @@ class TopologyDeployer < BaseDeployer
 
     self.set_update_state(new_state) if old_state != new_state
     new_state
+  end
+
+  def all_vertice
+    @vertice.values
   end
 
 
