@@ -150,7 +150,8 @@ class SubCommand
   end
 
   def create_chef_config_file
-    config_file = [File.expand_path("~"), ".chef", "knife.rb"].join("/")
+    user_home = execute_and_exit_on_fail("echo ~", :as_user => @cli.config[:as_user])
+    config_file = [user_home, ".chef", "knife.rb"].join("/")
     write_to_file(config_file) do |fout|
       fout.puts <<-EOH
 log_level               :info
