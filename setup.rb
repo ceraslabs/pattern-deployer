@@ -181,6 +181,8 @@ client_key              '#{@cli.config[:chef_client_key]}'
 validation_client_name  'chef-validator'
 validation_key          '#{@cli.config[:chef_validation_key]}'
 chef_server_url         '#{@cli.config[:chef_server_url]}'
+cache_type              'BasicFile'
+cache_options( :path => '#{user_home}/.chef/checksums' )
 EOH
     end
 
