@@ -78,32 +78,32 @@ class SubCommand
     puts "Depending Gems are installed"
 
     # setup the database for this app to use
-    puts "Setting up the database"
+    puts "Setting up the database..."
     setup_db
     puts "Database is setup"
 
     # clean up previuos assets in case of any
-    puts "Cleaning up previous compiled assets"
+    puts "Cleaning up previous compiled assets..."
     clean_assets
     puts "Assets are cleaned up"
 
     # precompile assets
-    puts "Pre-compiling assets"
+    puts "Pre-compiling assets..."
     precompile_assets if self.respond_to?(:precompile_assets)
     puts "Assets are pre-compiled"
 
     # generate secret token
-    puts "Generating a secret token"
+    puts "Generating a secret token..."
     generate_secret_token
     puts "Secret token is generated"
 
     # setup Chef for this app to use
-    puts "Setting up Chef"
+    puts "Setting up Chef..."
     setup_chef
     puts "Chef is setup"
 
     # genereate API documentations
-    puts "Generating API docs"
+    puts "Generating API docs..."
     generate_docs
     puts "API docs are generated"
 
@@ -188,6 +188,7 @@ EOH
 
     # link knife.rb
     file_link = "chef-repo/.chef/knife.rb"
+    FileUtils.rm_f(file_link)
     FileUtils.ln(config_file, file_link)
     FileUtils.chown(@cli.config[:as_user], nil, file_link)
 
