@@ -149,6 +149,7 @@ class MainDeployer < BaseDeployer
 
   def initialize(id)
     @id = id
+    DatabagsManager.instance.reload
     super()
   end
 

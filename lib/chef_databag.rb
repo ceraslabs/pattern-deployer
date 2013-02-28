@@ -88,17 +88,17 @@ end
 
 class DatabagsManager
 
-  def initialize
-    # get a list of databags
-    #@list_of_databags = Array.new
-    #`knife data bag list`.split("\n").each do |databag|
-    #  @list_of_databags << databag.strip
-    #end
+  def sync_cache
+    @list_of_databags = Chef::DataBag.list.keys
+  end
 
+  alias :reload :sync_cache
+
+  def initialize
     Chef::Config.from_file(Rails.configuration.chef_config_file)
     Shef::Extensions.extend_context_object(self)
 
-    @list_of_databags = Chef::DataBag.list.keys
+    sync_cache
     @cache = Hash.new
   end
 
@@ -177,4 +177,5 @@ class DatabagsManager
 
 
   private_class_method :new
+
 end
