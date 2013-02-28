@@ -192,7 +192,8 @@ class ChefNodeDeployer < BaseDeployer
         sleep 1
       else
         err_msg = "Failed to deploy chef node '#{@node_name}' with command: #{chef_command.get_command}\n"
-        err_msg += "Please check the output of the command in log file '#{chef_command.get_log_file}'"
+        err_msg += "Output of the command:\n"
+        err_msg += `cat #{chef_command.get_log_file}`
         raise err_msg
       end
     end
