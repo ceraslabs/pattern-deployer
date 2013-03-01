@@ -60,14 +60,19 @@ class DatabagWrapper
     databag.name(@name)
     databag.destroy
     @data = nil
-    @manager.deregister_databag(self)
+    @manager.deregister_databag(self.get_name)
   end
 
   def save
-    databag_item = nil
-    if @manager.databag_exist?(@name)
+    if @manager.databag_and_item_exist?(@name)
       databag_item = data_bag_item(@name, @name)
     else
+      if @manager.databag_exist?(@name)
+        databag = Chef::DataBag.new
+        databag.name(@name)
+        databag.destroy
+      end
+
       databag = Chef::DataBag.new
       databag.name(@name)
       databag.save
@@ -78,12 +83,13 @@ class DatabagWrapper
     databag_item.raw_data = @data
     databag_item.save
 
-    @manager.register_databag(self)
+    @manager.register_databag(self.get_name)
   end
 
   def get_server_ip
     databag["server_ip"]
   end
+
 end
 
 class DatabagsManager
@@ -112,6 +118,10 @@ class DatabagsManager
     @list_of_databags.any? do |databag|
       databag == name
     end
+  end
+
+  def databag_and_item_exist?(name)
+    databag_exist?(name) && search(name.to_sym, "id:#{name}").first
   end
 
   def get_or_create_databag(name)
@@ -145,12 +155,12 @@ class DatabagsManager
     databag.reset_data(data)
   end
 
-  def register_databag(databag)
-    @list_of_databags << databag.get_name unless @list_of_databags.include?(databag.get_name)
+  def register_databag(name)
+    @list_of_databags << name unless @list_of_databags.include?(name)
   end
 
-  def deregister_databag(databag)
-    @list_of_databags.delete(databag.get_name)
+  def deregister_databag(name)
+    @list_of_databags.delete(name)
   end
 
   def get_databag(name)
