@@ -84,8 +84,17 @@ class BaseDeployer
 
     @worker_thread.kill if @worker_thread
     @worker_thread = nil
-    @databag.delete if @databag
-    @databag = nil
+
+    begin
+      @databag.delete if @databag
+    rescue Exception => ex
+      puts "Unexpected exception when deleting databag"
+      puts "[#{Time.now}] #{ex.class.name}: #{ex.message}"
+      puts "Trace:"
+      puts ex.backtrace.join("\n")
+    ensure
+      @databag = nil
+    end
 
     success = self.class.summarize_successes(successes)
     msg = self.class.summarize_errors(msgs)
