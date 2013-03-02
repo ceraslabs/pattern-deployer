@@ -122,12 +122,6 @@ class Topology < ActiveRecord::Base
   end
 
   def get_state
-    if deploy_timeout?
-      self.set_state(State::UNDEPLOY)
-      #debug
-      puts "[#{Time.now}] deployment of topology #{self.topology_id} is timeout"
-    end
-
     if self.state == State::DEPLOYING
       deploy_state = get_deployer.get_deploy_state
       update_state = get_deployer.get_update_state
@@ -207,10 +201,6 @@ class Topology < ActiveRecord::Base
       msg = "Topology #{topology_id} cannot be destroyed. Please make sure it is not deployed or deploying"
       raise ParametersValidationError.new(:message => msg)
     end
-  end
-
-  def deploy_timeout?
-    self.state == State::DEPLOYING && Time.now - self.updated_at > Rails.application.config.chef_max_deploy_time
   end
 
   def set_state(state)
