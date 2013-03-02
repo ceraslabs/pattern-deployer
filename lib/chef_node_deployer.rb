@@ -339,6 +339,7 @@ class ChefNodeDeployer < BaseDeployer
 
   def load_key_pair
     return unless @node_info.has_key?("key_pair_id")
+    raise "Unexpected missing of resources" unless @resources
 
     key_pair_id = @node_info["key_pair_id"].strip
     identity_file = @resources.find_identity_file(key_pair_id)
@@ -350,6 +351,7 @@ class ChefNodeDeployer < BaseDeployer
   end
 
   def load_credential
+    raise "Unexpected missing of resources" unless @resources
     if !self.has_key?("credential_id")
       if get_cloud == Rails.application.config.ec2
         credential = @resources.find_my_ec2_credential

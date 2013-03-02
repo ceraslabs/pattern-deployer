@@ -163,7 +163,9 @@ class MainDeployer < BaseDeployer
   end
 
   def prepare_deploy(topology_xml, supporting_services, resources)
-    initialize_deployers(topology_xml, supporting_services, resources)
+    initialize_or_update_deployers(topology_xml,
+                        :supporting_services => supporting_services,
+                        :resources => resources)
     generic_prepare
 
     super()
@@ -199,7 +201,9 @@ class MainDeployer < BaseDeployer
   end
 
   def prepare_scale(topology_xml, supporting_services, resources, nodes, diff)
-    initialize_deployers_if_not_before(topology_xml, supporting_services, resources)
+    initialize_or_update_deployers(topology_xml,
+                        :supporting_services => supporting_services,
+                        :resources => resources)
     generic_prepare
     prepare_update_deployment
 
@@ -224,7 +228,9 @@ class MainDeployer < BaseDeployer
   end
 
   def undeploy(topology_xml, supporting_services, resources)
-    initialize_deployers_if_not_before(topology_xml, supporting_services, resources)
+    initialize_or_update_deployers(topology_xml,
+                        :supporting_services => supporting_services,
+                        :resources => resources)
     generic_prepare
 
     @my_openvpn_service.undeploy unless @my_openvpn_service.empty?
@@ -234,12 +240,9 @@ class MainDeployer < BaseDeployer
   end
 
   def get_nodes_deployers(topology_xml)
-    initialize_deployers_if_not_before(topology_xml, Array.new, Array.new) unless Rails.env.production? #TODO This is a temp walk-around. Need to re-work the deployers initialization logic.
-    if @topology_deployer
-      return @topology_deployer.get_children
-    else
-      return Array.new
-    end
+    initialize_or_update_deployers(topology_xml)
+    raise "Unexpected missing of topology deployer" unless @topology_deployer
+    return @topology_deployer.get_children
   end
 
 
@@ -265,29 +268,27 @@ class MainDeployer < BaseDeployer
     @topology_deployer.load_certificates(@my_openvpn_service.get_services.first)
   end
 
-  def initialize_deployers_if_not_before(topology_xml, services_deployers, resources)
-    forced = false
-    initialize_deployers(topology_xml, services_deployers, resources, forced)
-  end
-
-  def initialize_deployers(topology_xml, services_deployers, resources, forced = true)
+  def initialize_or_update_deployers(topology_xml, options={})
     topology = TopologyWrapper.new(topology_xml, Rails.application.config.schema_file)
-    @children.clear if forced
+    resources = options[:resources]
+    services_deployers = options[:supporting_services]
 
-    if forced || @topology_deployer.nil?
+    if @topology_deployer.nil?
       @topology_deployer = TopologyDeployer.new(topology, resources)
       self << @topology_deployer
     else
       @topology_deployer.set_topology(topology)
-      @topology_deployer.set_resources(resources)
+      @topology_deployer.set_resources(resources) if resources
     end
 
-    if forced || @my_openvpn_service.nil?
+    #TODO update @my_openvpn_service if it exists
+    if @my_openvpn_service.nil?
       services_to_acquire = ["openvpn"]
       @my_openvpn_service = create_my_services_deployer("openvpn", services_deployers, services_to_acquire, topology)
     end
 
-    if forced || @my_services.nil?
+    #TODO update @my_services if it exists
+    if @my_services.nil?
       services_to_acquire = ["host_protection", "dns"]
       @my_services = create_my_services_deployer("my_services", services_deployers, services_to_acquire, topology)
       self << @my_services unless @my_services.empty?
