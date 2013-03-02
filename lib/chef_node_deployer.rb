@@ -143,14 +143,12 @@ class ChefNodeDeployer < BaseDeployer
     generic_prepare
 
     success, msg = delete_instance
-    #ChefClientsManager.instance.delete(@node_name)
-    #ChefNodesManager.instance.delete(@node_name)
+
+    super()
     @short_name = nil
     @node_info = nil
     @services = nil
     @resources = nil
-
-    super()
 
     return success, msg
   end

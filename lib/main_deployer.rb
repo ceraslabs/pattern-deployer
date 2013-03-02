@@ -64,11 +64,11 @@ class MainDeployer < BaseDeployer
     end
 
     def undeploy
+      super()
       @deployer = nil
       @service_name = nil
       @topology = nil
       @output = nil
-      super()
     end
 
     def update_deployment

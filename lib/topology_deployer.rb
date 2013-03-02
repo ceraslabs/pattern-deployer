@@ -416,10 +416,10 @@ class TopologyDeployer < BaseDeployer
   end
 
   def undeploy
+    super()
     @topology = nil
     @resources = nil
     @vertice = nil
-    super()
   end
 
   def wait(timeout)
