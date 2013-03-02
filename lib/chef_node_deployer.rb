@@ -295,11 +295,12 @@ class ChefNodeDeployer < BaseDeployer
   def get_instance_id
     cloud = get_cloud
     if cloud == Rails.application.config.ec2
-      instance_id = get_ec2_instance_id
+      return get_ec2_instance_id
     elsif cloud == Rails.application.config.openstack
-      instance_id = get_openstack_instance_id
+      return get_openstack_instance_id
     elsif cloud == Rails.application.config.notcloud
       # don't need to do anything
+      return nil
     else
       raise "unexpected cloud #{cloud}"
     end
@@ -309,15 +310,22 @@ class ChefNodeDeployer < BaseDeployer
     chef_node = get_chef_node
     if chef_node && chef_node.has_key?("ec2") && chef_node["ec2"].has_key?("instance_id")
       return chef_node["ec2"]["instance_id"].strip
+    elsif self.has_key?("instance_id")
+      return self["instance_id"].strip
     else
+      puts "Unexpected missing of EC2 instance id"
       return nil
     end
   end
 
   def get_openstack_instance_id
-    if self.has_key?("instance_id")
+    chef_node = get_chef_node
+    if chef_node && chef_node.has_key?("openstack") && chef_node["openstack"].has_key?("instance_id")
+      return chef_node["openstack"]["instance_id"].strip
+    elsif self.has_key?("instance_id")
       return self["instance_id"].strip
     else
+      puts "Unexpected missing of OpenStack instance id"
       return nil
     end
   end
