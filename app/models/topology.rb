@@ -100,9 +100,29 @@ class Topology < ActiveRecord::Base
   end
 
   def scale(topology_xml, services, resources, nodes, diff)
+    my_state = get_state
+    if my_state != State::DEPLOY_SUCCESS
+      err_msg = "The status of topology '#{self.topology_id}' is not '#{State::DEPLOY_SUCCESS}'"
+      raise DeploymentError.new(:message => err_msg)
+    end
+
     deployer = get_deployer
     deployer.prepare_scale(topology_xml, services, resources, nodes, diff)
     deployer.scale
+
+    self.set_state(State::DEPLOYING)
+  end
+
+  def repair(topology_xml, services, resources)
+    my_state = get_state
+    if my_state != State::DEPLOY_FAIL
+      err_msg = "The status of topology '#{self.topology_id}' is not '#{State::DEPLOY_FAIL}', nothing to repair"
+      raise DeploymentError.new(:message => err_msg)
+    end
+
+    deployer = get_deployer
+    deployer.prepare_repair(topology_xml, services, resources)
+    deployer.repair
 
     self.set_state(State::DEPLOYING)
   end

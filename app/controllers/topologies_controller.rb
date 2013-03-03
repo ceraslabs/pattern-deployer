@@ -285,6 +285,7 @@ class TopologiesController < RestfulController
     UPDATE_DESC = "update_description"
     DEPLOY = "deploy"
     UNDEPLOY = "undeploy"
+    REPAIR = "repair"
   end
 
 
@@ -308,7 +309,7 @@ class TopologiesController < RestfulController
   ##~ param = op.parameters.add
   ##~ param.set :name => "operation", :dataType => "string", :allowMultiple => false, :required => true, :paramType => "query"
   ##~ param.description = "The operation which the topology is going to be executed with. 'deploy' is to deploy the topology to cloud. 'undeploy' is to undeploy the already deployed topology."
-  ##~ param.allowableValues = {:valueType => "LIST", :values => ["rename", "update_description", "deploy", "undeploy"]}
+  ##~ param.allowableValues = {:valueType => "LIST", :values => ["rename", "update_description", "deploy", "undeploy", "repair"]}
   ##
   ##~ param = op.parameters.add
   ##~ param.set :name => "name", :dataType => "string", :allowMultiple => false, :required => false, :paramType => "query"
@@ -330,7 +331,7 @@ class TopologiesController < RestfulController
       raise ParametersValidationError.new(:message => "Parameter description is missing") unless params[:description]
       @topology.description = params[:description]
       @topology.save!
-    when TopologyOp::DEPLOY, TopologyOp::UNDEPLOY
+    when TopologyOp::DEPLOY, TopologyOp::UNDEPLOY, TopologyOp::REPAIR
       resources = get_resources
       services = SupportingService.get_all_services
       topology_xml = get_pattern(@topology)
@@ -339,6 +340,8 @@ class TopologiesController < RestfulController
         @topology.deploy(topology_xml, services, resources)
       elsif operation == TopologyOp::UNDEPLOY
         @topology.undeploy(topology_xml, services, resources)
+      elsif operation == TopologyOp::REPAIR
+        @topology.repair(topology_xml, services, resources)
       end
     else
       err_msg = "Invalid operation. Supported operations are #{get_operations(TopologyOp).join(',')}"

@@ -197,18 +197,18 @@ class BaseDeployer
 
   def self.summarize_states(states)
     is_undeploy = true
+    is_deploying = false
     is_success = true
-    is_failed = false
     states.each do |state|
       is_undeploy = false if state != State::UNDEPLOY
+      is_deploying = true if state == State::DEPLOYING
       is_success = false if state != State::DEPLOY_SUCCESS
-      is_failed = true if state == State::DEPLOY_FAIL
     end
 
     return State::UNDEPLOY if is_undeploy
+    return State::DEPLOYING if is_deploying
     return State::DEPLOY_SUCCESS if is_success
-    return State::DEPLOY_FAIL if is_failed
-    return State::DEPLOYING
+    return State::DEPLOY_FAIL
   end
 
   def self.summarize_errors(msgs)
@@ -257,16 +257,6 @@ class BaseDeployer
 
   def set_state_by_type(type_of_state, state)
     if self[type_of_state] != state
-      #debug
-      if self[type_of_state] == State::DEPLOYING && state == State::UNDEPLOY
-        begin
-          raise "Unexpected reverting #{type_of_state} to undeployed"
-        rescue Exception => ex
-          puts "[#{Time.now}] #{ex.message}"
-          puts ex.backtrace.join("\n")
-        end
-      end
-
       self[type_of_state] = state
       self.save
     end

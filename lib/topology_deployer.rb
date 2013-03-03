@@ -81,7 +81,6 @@ class TopologyDeployer < BaseDeployer
     RUNNING     = 2 if not defined?(RUNNING)
     FINISHED    = 3 if not defined?(FINISHED)
     FAILED      = 4 if not defined?(FAILED)
-    NOT_STARTED = 5 if not defined?(NOT_STARTED)
 
     def initialize(name, node_deployer, topology_deployer)
       @edges = Array.new
@@ -195,7 +194,8 @@ class TopologyDeployer < BaseDeployer
     end
 
     def can_update?
-      @deployer.get_deploy_state == State::DEPLOY_SUCCESS && @state == WAITING
+      @state == WAITING && (@deployer.get_deploy_state == State::DEPLOY_SUCCESS ||
+                            @deployer.get_deploy_state == State::DEPLOY_FAIL)
     end
 
     def update
@@ -213,6 +213,7 @@ class TopologyDeployer < BaseDeployer
 
     def on_depending_vertex_failed
       @state = FAILED
+      @deployer.set_deploy_state(State::UNDEPLOY)
     end
 
     def notify_adjacent_vertice(key, value, connect_type = nil)
@@ -380,8 +381,8 @@ class TopologyDeployer < BaseDeployer
   def prepare_scale(nodes, diff)
     load_topology_info
 
-    @new_vertice.clear if @new_vertice
-    @dirty_vertice.clear if @dirty_vertice
+    @new_vertice = Hash.new
+    @dirty_vertice = Hash.new
     if diff > 0
       @new_vertice = create_more_vertices(@topology, @resources, nodes, diff)
       @new_vertice.each_value{|vertex| vertex.prepare_deploy}
@@ -396,7 +397,7 @@ class TopologyDeployer < BaseDeployer
     end
 
     # save everything above
-    (@new_vertice ||= Hash.new).each_value{|vertex| vertex.save}
+    @new_vertice.each_value{|vertex| vertex.save}
     @dirty_vertice.each_value{|vertex| vertex.save}
 
     prepare_update_deployment
@@ -404,6 +405,39 @@ class TopologyDeployer < BaseDeployer
   end
 
   def scale
+    @worker_thread.kill if @worker_thread
+    @worker_thread = Thread.new do
+      deploy_helper(:action => :update_deployment,
+                    :new_vertice => @new_vertice.values,
+                    :dirty_vertice => @dirty_vertice.values)
+    end
+  end
+
+  def prepare_repair
+    load_topology_info
+    prepare_cookbook
+
+    @new_vertice = Hash.new
+    @dirty_vertice = Hash.new
+    @vertice.each do |vertex_name, vertex|
+      deployer = vertex.get_deployer
+      if deployer.get_deploy_state == State::UNDEPLOY
+        @new_vertice[vertex_name] = vertex
+      end
+
+      if deployer.get_update_state == State::DEPLOY_FAIL ||
+         (deployer.get_update_state == State::UNDEPLOY && deployer.get_deploy_state == State::DEPLOY_FAIL)
+        @dirty_vertice[vertex_name] = vertex
+      end
+    end
+
+    prepare_update_deployment
+    @new_vertice.each_value{|vertex| vertex.prepare_deploy}
+    @dirty_vertice.each_value{|vertex| vertex.prepare_update_deployment}
+  end
+
+  def repair
+    @worker_thread.kill if @worker_thread
     @worker_thread = Thread.new do
       deploy_helper(:action => :update_deployment,
                     :new_vertice => @new_vertice.values,
@@ -468,11 +502,11 @@ class TopologyDeployer < BaseDeployer
     action = options[:action] || :deploy
 
     if action == :deploy
-      new_vertice = options[:new_vertice]
+      new_vertice = options[:new_vertice] || Hash.new
       dirty_vertice = Array.new
     elsif action == :update_deployment
-      new_vertice = options[:new_vertice]
-      dirty_vertice = options[:dirty_vertice]
+      new_vertice = options[:new_vertice] || Hash.new
+      dirty_vertice = options[:dirty_vertice] || Hash.new
     else
       raise "Unexpected action #{action}"
     end

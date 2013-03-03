@@ -212,9 +212,37 @@ class MainDeployer < BaseDeployer
 
   def scale
     # start a new thread to do the deployment
+    @worker_thread.kill if @worker_thread
     @worker_thread = Thread.new do
       begin
         @topology_deployer.scale
+        raise "Deployment timeout" unless wait
+        raise get_update_error if get_update_state == State::DEPLOY_FAIL
+        on_update_success
+      rescue Exception => ex
+        on_update_failed(ex.message)
+        #debug
+        puts ex.message
+        puts ex.backtrace[0..10].join("\n")
+      end
+    end
+  end
+
+  def prepare_repair(topology_xml, supporting_services, resources)
+    initialize_or_update_deployers(topology_xml,
+                        :supporting_services => supporting_services,
+                        :resources => resources)
+    generic_prepare
+    prepare_update_deployment
+
+    @topology_deployer.prepare_repair
+  end
+
+  def repair
+    @worker_thread.kill if @worker_thread
+    @worker_thread = Thread.new do
+      begin
+        @topology_deployer.repair
         raise "Deployment timeout" unless wait
         raise get_update_error if get_update_state == State::DEPLOY_FAIL
         on_update_success
