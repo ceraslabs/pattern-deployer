@@ -80,7 +80,7 @@ class BaseDeployer
       successes << success
       msgs << msg
     end
-    @children = nil
+    @children.clear
 
     @worker_thread.kill if @worker_thread
     @worker_thread = nil
@@ -105,6 +105,21 @@ class BaseDeployer
     @children.all? do |child|
       child.wait(timeout)
     end
+  end
+
+  def kill(options={})
+    kill_worker = true unless options[:kill_worker] == false
+
+    @children.each{ |child| child.kill }
+    if kill_worker && @worker_thread && !@worker_thread.join(30)
+      @worker_thread.kill
+    end
+
+    states = @children.map{ |child| child.get_deploy_state }
+    self.set_deploy_state(self.class.summarize_states(states))
+
+    states = @children.map{ |child| child.get_update_state }
+    self.set_update_state(self.class.summarize_states(states))
   end
 
   def get_state
@@ -261,21 +276,6 @@ class BaseDeployer
       self.save
     end
   end
-
-  #def get_real_time_deploy_state
-  #  get_real_time_state_by_type("deploy_state")
-  #end
-
-  #def get_real_time_update_state
-  #  get_real_time_state_by_type("update_state")
-  #end
-
-  #def get_real_time_state_by_type(type_of_state)
-  #  states = @children.map do |child|
-  #    child.get_state_by_type(type_of_state)
-  #  end
-  #  return self.class.summarize_states(states)
-  #end
 
   def get_error_by_type(error_type)
     if error_type == "deploy_error"

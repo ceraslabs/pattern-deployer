@@ -157,7 +157,7 @@ class TopologyDeployer < BaseDeployer
     end
 
     def deploy_success?
-      @deployer.get_state == State::DEPLOY_SUCCESS
+      @deployer.get_deploy_state == State::DEPLOY_SUCCESS
     end
 
     def on_success
@@ -165,7 +165,7 @@ class TopologyDeployer < BaseDeployer
     end
 
     def deploy_failed?
-      @deployer.get_state == State::DEPLOY_FAIL
+      @deployer.get_deploy_state == State::DEPLOY_FAIL
     end
 
     def on_failed
@@ -405,7 +405,6 @@ class TopologyDeployer < BaseDeployer
   end
 
   def scale
-    @worker_thread.kill if @worker_thread
     @worker_thread = Thread.new do
       deploy_helper(:action => :update_deployment,
                     :new_vertice => @new_vertice.values,
@@ -437,7 +436,6 @@ class TopologyDeployer < BaseDeployer
   end
 
   def repair
-    @worker_thread.kill if @worker_thread
     @worker_thread = Thread.new do
       deploy_helper(:action => :update_deployment,
                     :new_vertice => @new_vertice.values,
@@ -457,13 +455,8 @@ class TopologyDeployer < BaseDeployer
   end
 
   def wait(timeout)
-    @worker_thread.join(timeout)
-
-    if deploy_finished?
-      return true
-    else
-      return false
-    end
+    @worker_thread.join
+    return (get_deploy_state != State::DEPLOYING && get_update_state != State::DEPLOYING)
   end
 
   def on_data(key, value, vertex_name)
@@ -478,8 +471,8 @@ class TopologyDeployer < BaseDeployer
   end
 
   def get_update_state
-    states = (@new_vertice || Hash.new).map{|vertex| vertex.get_deploy_state}
-    states += (@dirty_vertice || Hash.new).map{|vertex| vertex.get_update_state}
+    states = (@new_vertice.values || Array.new).map{|vertex| vertex.get_deploy_state}
+    states += (@dirty_vertice.values || Array.new).map{|vertex| vertex.get_update_state}
     if states.empty?
       return State::UNDEPLOY
     end
@@ -511,8 +504,9 @@ class TopologyDeployer < BaseDeployer
       raise "Unexpected action #{action}"
     end
 
-    num_of_iters = Rails.application.config.chef_max_deploy_time / 10
-    for i in 1 .. num_of_iters
+    start_time = Time.now
+    timeout = Rails.application.config.chef_max_deploy_time
+    while Time.now - start_time < timeout
       new_vertice.each do |vertex|
         vertex.on_success if vertex.deploy_success?
         vertex.on_failed if vertex.deploy_failed?
@@ -844,12 +838,4 @@ class TopologyDeployer < BaseDeployer
     cookbook.save
   end
 
-  def deploy_finished?
-    state = get_state
-    return (state == State::DEPLOY_SUCCESS || state == State::DEPLOY_FAIL)
-  end
-
-  def deploy_success?
-    get_state == State::DEPLOY_SUCCESS
-  end
 end

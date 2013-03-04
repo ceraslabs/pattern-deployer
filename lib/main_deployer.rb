@@ -188,7 +188,11 @@ class MainDeployer < BaseDeployer
         super()
 
         # wait for deployment finish and do error checking
-        raise "Deployment timeout" unless wait
+        unless wait
+          kill(:kill_worker => false)
+          raise "Deployment timeout"
+        end
+
         raise get_err_msg if get_state == State::DEPLOY_FAIL
         on_deploy_success
       rescue Exception => ex
@@ -212,7 +216,6 @@ class MainDeployer < BaseDeployer
 
   def scale
     # start a new thread to do the deployment
-    @worker_thread.kill if @worker_thread
     @worker_thread = Thread.new do
       begin
         @topology_deployer.scale
@@ -239,7 +242,6 @@ class MainDeployer < BaseDeployer
   end
 
   def repair
-    @worker_thread.kill if @worker_thread
     @worker_thread = Thread.new do
       begin
         @topology_deployer.repair

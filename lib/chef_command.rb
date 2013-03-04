@@ -108,13 +108,13 @@ class ChefCommand
   end
 
   def execute_and_cpature_output
-    IO.popen("script #{@log_file} -c '#{@command}' -e") do |output|
-      #output.each { |s| print s } if print_output
-      capture_data(output)
+    status = Open4::popen4("script #{@log_file} -c '#{@command}' -e") do |pid, stdin, stdout, stderr|
+      stdin.close
+      @pid = pid
+      capture_data(stdout)
     end
 
-    #TODO this is not prefect due to race condition 
-    return $?.success?
+    return status.success?
   end
 
   def execute_and_retry_on_fail(initial_wait = 60, timeout = 300)
@@ -134,6 +134,22 @@ class ChefCommand
     end
 
     success
+  end
+
+  def stop
+    return if @pid.nil?
+
+    begin
+      Process.kill("INT", @pid)
+    rescue Errno::EPERM
+      puts "No permission to query #{@pid}!";
+    rescue Errno::ESRCH
+      puts "#{@pid} is NOT running.";
+    rescue
+      puts "Unable to kill #{@pid} : #{$!}"
+    ensure
+      @pid = nil
+    end
   end
 
   def capture_data(output)

@@ -92,11 +92,11 @@ class ChefNodeDeployer < BaseDeployer
     #puts "[#{Time.now}] Start deploy_node #{@node_name}"
 
     @node_info["server_ip"] = get_server_ip if get_server_ip
-    chef_command = ChefCommand.new(CommandType::DEPLOY, @node_info, :services => @services)
-    chef_command.add_observer(self)
-    chef_command.execute
+    @chef_command = ChefCommand.new(CommandType::DEPLOY, @node_info, :services => @services)
+    @chef_command.add_observer(self)
+    @chef_command.execute
 
-    assert_success!(chef_command)
+    assert_success!(@chef_command)
 
     #debug
     #puts "[#{Time.now}] deploy_node finished #{@node_name}"
@@ -129,11 +129,11 @@ class ChefNodeDeployer < BaseDeployer
     #debug
     #puts "[#{Time.now}] Start update_node #{@node_name}"
 
-    chef_command = ChefCommand.new(CommandType::UPDATE, @node_info, :services => @services)
-    chef_command.add_observer(self)
-    chef_command.execute
+    @chef_command = ChefCommand.new(CommandType::UPDATE, @node_info, :services => @services)
+    @chef_command.add_observer(self)
+    @chef_command.execute
 
-    assert_success!(chef_command)
+    assert_success!(@chef_command)
 
     #debug
     #puts "[#{Time.now}] update_node finished #{@node_name}"
@@ -169,12 +169,21 @@ class ChefNodeDeployer < BaseDeployer
     @node_name
   end
 
-  def wait(timeout = 600)
+  def wait(timeout = Rails.configuration.chef_max_deploy_time)
     if @worker_thread
       @worker_thread.join(timeout)
     else
       true
     end
+  end
+
+  def kill(options={})
+    @chef_command.stop if @chef_command
+    if @worker_thread && !@worker_thread.join(10)
+      @worker_thread.kill
+    end
+    self.set_deploy_state(State::DEPLOY_FAIL) if self.get_deploy_state == State::DEPLOYING
+    self.set_update_state(State::DEPLOY_FAIL) if self.get_update_state == State::DEPLOYING
   end
 
   def assert_success!(chef_command, timeout = 60)
