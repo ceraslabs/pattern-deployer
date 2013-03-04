@@ -87,7 +87,7 @@ class Topology < ActiveRecord::Base
     if my_state == State::DEPLOY_SUCCESS
       err_msg = "The topology '#{self.topology_id}' have already been deployed"
       raise DeploymentError.new(:message => err_msg)
-    elsif my_state== State::DEPLOYING
+    elsif my_state == State::DEPLOYING
       err_msg = "The topology '#{self.topology_id}' is being deployed by another process"
       raise DeploymentError.new(:message => err_msg)
     end
@@ -142,7 +142,7 @@ class Topology < ActiveRecord::Base
   end
 
   def get_state
-    if self.state == State::DEPLOYING
+    if self.state != State::UNDEPLOY
       deploy_state = get_deployer.get_deploy_state
       update_state = get_deployer.get_update_state
       if update_state == State::UNDEPLOY
@@ -226,17 +226,6 @@ class Topology < ActiveRecord::Base
   def set_state(state)
     return if self.state == state
     raise "Cannot set state, the record is dirty: #{self.changes}" if self.changes.size > 0
-
-    #debug
-    if self.state == State::DEPLOYING && state == State::UNDEPLOY
-      begin
-        raise "Unexpected reverting to undeployed state"
-      rescue Exception => ex
-        puts "[#{Time.now}] #{ex.message}"
-        puts ex.backtrace.join("\n")
-      end
-    end
-
     self.state = state
     self.unlock{self.save!}
   end
