@@ -331,6 +331,36 @@ class BaseDeployer
     end
   end
 
+  def children_deploy_state
+    children_state_by_type("deploy_state")
+  end
+
+  def children_update_state
+    children_state_by_type("update_state")
+  end
+
+  def children_state_by_type(type_of_state)
+    states = @children.map do |child|
+      child.get_state_by_type(type_of_state)
+    end
+    self.class.summarize_states(states)
+  end
+
+  def children_deploy_error
+    children_state_by_type("deploy_error")
+  end
+
+  def children_update_error
+    children_state_by_type("update_error")
+  end
+
+  def children_state_by_type(type_of_error)
+    errors = @children.map do |child|
+      child.get_error_by_type(type_of_error)
+    end
+    self.class.summarize_errors(errors)
+  end
+
   def on_deploy_success
     set_deploy_state(State::DEPLOY_SUCCESS)
   end

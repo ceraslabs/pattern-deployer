@@ -171,7 +171,7 @@ class MainDeployer < BaseDeployer
 
         # wait for deployment finish and do error checking
         raise "Deployment timeout" unless wait
-        raise get_err_msg if get_deploy_state == State::DEPLOY_FAIL
+        raise children_deploy_error if children_deploy_state == State::DEPLOY_FAIL
         on_deploy_success
       rescue Exception => ex
         on_deploy_failed(ex.message)
@@ -203,7 +203,7 @@ class MainDeployer < BaseDeployer
       begin
         @topology_deployer.scale
         raise "Deployment timeout" unless wait
-        raise get_update_error if get_update_state == State::DEPLOY_FAIL
+        raise children_update_error if children_update_state == State::DEPLOY_FAIL
         on_update_success
       rescue Exception => ex
         on_update_failed(ex.message)
@@ -234,7 +234,7 @@ class MainDeployer < BaseDeployer
       begin
         @topology_deployer.repair
         raise "Deployment timeout" unless wait
-        raise get_update_error if get_update_state == State::DEPLOY_FAIL
+        raise children_update_error if children_update_state == State::DEPLOY_FAIL
         on_update_success
       rescue Exception => ex
         on_update_failed(ex.message)
