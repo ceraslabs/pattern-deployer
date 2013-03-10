@@ -180,7 +180,7 @@ class Topology < ActiveRecord::Base
   def get_error
     deployer = get_deployer
     if deployer && get_state == State::DEPLOY_FAIL
-      return deployer.get_deploy_state == State::DEPLOY_FAIL ? deployer.get_deploy_error : deployer.get_update_error
+      return deployer.get_update_state == State::DEPLOY_FAIL ? deployer.get_update_error : deployer.get_deploy_error
     else
       return nil
     end

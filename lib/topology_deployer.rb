@@ -556,9 +556,9 @@ class TopologyDeployer < BaseDeployer
       # exit if all the nodes finished
       if deployment_finished
         if action == :deploy
-          deployment_failed ? on_deploy_failed(get_deploy_error) : on_deploy_success
+          deployment_failed ? on_deploy_failed(get_children_error) : on_deploy_success
         elsif action == :update_deployment
-          deployment_failed ? on_update_failed(get_update_error) : on_update_success
+          deployment_failed ? on_update_failed(get_children_error) : on_update_success
         else
           raise "Unexpected action #{action}"
         end
