@@ -74,7 +74,7 @@ class BaseDeployer
   end
 
   def get_children
-    @children
+    @children || Hash.new
   end
 
   def get_child_by_name(name)
