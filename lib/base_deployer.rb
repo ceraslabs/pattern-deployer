@@ -347,14 +347,14 @@ class BaseDeployer
   end
 
   def children_deploy_error
-    children_state_by_type("deploy_error")
+    children_error_by_type("deploy_error")
   end
 
   def children_update_error
-    children_state_by_type("update_error")
+    children_error_by_type("update_error")
   end
 
-  def children_state_by_type(type_of_error)
+  def children_error_by_type(type_of_error)
     errors = @children.map do |child|
       child.get_error_by_type(type_of_error)
     end
