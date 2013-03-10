@@ -331,32 +331,16 @@ class BaseDeployer
     end
   end
 
-  def children_deploy_state
-    children_state_by_type("deploy_state")
-  end
-
-  def children_update_state
-    children_state_by_type("update_state")
-  end
-
-  def children_state_by_type(type_of_state)
+  def get_children_state
     states = @children.map do |child|
-      child.get_state_by_type(type_of_state)
+      child.get_update_state == State::UNDEPLOY ? child.get_deploy_state : child.get_update_state
     end
     self.class.summarize_states(states)
   end
 
-  def children_deploy_error
-    children_error_by_type("deploy_error")
-  end
-
-  def children_update_error
-    children_error_by_type("update_error")
-  end
-
-  def children_error_by_type(type_of_error)
+  def get_children_error
     errors = @children.map do |child|
-      child.get_error_by_type(type_of_error)
+      child.get_update_error == "" ? child.get_deploy_error : child.get_update_error
     end
     self.class.summarize_errors(errors)
   end
