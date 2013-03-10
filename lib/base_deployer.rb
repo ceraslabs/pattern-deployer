@@ -345,6 +345,18 @@ class BaseDeployer
     self.class.summarize_errors(errors)
   end
 
+  def undeploy?
+    get_deploy_state == State::UNDEPLOY
+  end
+
+  def deploy_failed?
+    get_update_state == State::UNDEPLOY && get_deploy_state == State::DEPLOY_FAIL
+  end
+
+  def update_failed?
+    get_update_state == State::DEPLOY_FAIL
+  end
+
   def on_deploy_success
     set_deploy_state(State::DEPLOY_SUCCESS)
   end

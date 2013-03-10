@@ -401,12 +401,12 @@ class TopologyDeployer < BaseDeployer
     @dirty_vertice = Hash.new
     @vertice.each do |vertex_name, vertex|
       deployer = vertex.get_deployer
-      if deployer.get_deploy_state == State::UNDEPLOY
+      if deployer.undeploy? || (deployer.deploy_failed? && !deployer.server_created?)
+        deployer.reset
         @new_vertice[vertex_name] = vertex
       end
 
-      if deployer.get_update_state == State::DEPLOY_FAIL ||
-         (deployer.get_update_state == State::UNDEPLOY && deployer.get_deploy_state == State::DEPLOY_FAIL)
+      if (deployer.deploy_failed? && deployer.server_created?) || deployer.update_failed?
         @dirty_vertice[vertex_name] = vertex
       end
     end
@@ -468,7 +468,7 @@ class TopologyDeployer < BaseDeployer
 
   def wait(timeout)
     @worker_thread.join(timeout)
-    deploy_finished?
+    deploy_or_update_finished?
   end
 
   def on_data(key, value, vertex_name)
@@ -871,7 +871,7 @@ class TopologyDeployer < BaseDeployer
     get_children.each{ |child| child.save }
   end
 
-  def deploy_finished?
+  def deploy_or_update_finished?
     state = (get_update_state == State::UNDEPLOY ? get_deploy_state : get_update_state)
     return (state == State::DEPLOY_SUCCESS || state == State::DEPLOY_FAIL)
   end

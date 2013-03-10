@@ -41,11 +41,13 @@ class ChefNodeDeployer < BaseDeployer
     set_fields(node_info, services, resources)
   end
 
-  def reset(node_info, services, resources)
-    super()
+  def reset(node_info = nil, services = nil, resources = nil)
     ChefNodesManager.instance.delete(node_id)
     ChefClientsManager.instance.delete(node_id)
 
+    return if node_info.nil? && services.nil? && resources.nil?
+
+    super()
     set_fields(node_info, services, resources)
   end
 
@@ -269,6 +271,10 @@ class ChefNodeDeployer < BaseDeployer
     end
 
     root_pwd
+  end
+
+  def server_created?
+    attributes.has_key?("public_ip")
   end
 
   # This method is called to update the databag whenever interesting data print is print to console
