@@ -135,10 +135,20 @@ class Topology < ActiveRecord::Base
     end
 
     deployer = get_deployer
-    success, @msg = deployer.undeploy(topology_xml, services, resources)
-    DeployersManager.delete_deployer(self.topology_id)
+    begin
+      success, @msg = deployer.undeploy(topology_xml, services, resources)
+    rescue Exception => ex
+      @msg ||= ""
+      @msg += "[#{Time.now}] #{ex.class.name}: #{ex.message}"
+      @msg += "Trace:\n"
+      @msg += ex.backtrace.join("\n")
 
-    self.set_state(State::UNDEPLOY)
+      #debug
+      puts @msg
+    ensure
+      DeployersManager.delete_deployer(self.topology_id)
+      self.set_state(State::UNDEPLOY)
+    end
   end
 
   def get_state
@@ -161,7 +171,7 @@ class Topology < ActiveRecord::Base
 
   def get_deployed_nodes(topology_xml)
     if get_state != State::UNDEPLOY
-      return get_deployer.get_nodes_deployers(topology_xml)
+      return get_deployer.list_nodes(topology_xml)
     else
       return Array.new
     end

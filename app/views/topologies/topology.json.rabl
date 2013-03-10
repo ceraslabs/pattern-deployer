@@ -13,28 +13,25 @@ child topology => :deployment do
   node :message do
     topology.get_msg
   end
-  child(topology.get_deployed_nodes(topology_pattern) => :servers) do
-    attribute :get_pretty_name => :name
-    attribute :get_server_ip => :serverIp
-    attribute :get_services => :services
-    node(:status) do |node|
-      node.get_update_state == State::UNDEPLOY ? node.get_deploy_state : node.get_update_state
-    end
+  nodes = topology.get_deployed_nodes(topology_pattern)
+  child(nodes => :servers) do
+    attributes :name, :services, :status
+    attribute :server_ip => :serverIp
   end
-  applications = topology.get_deployed_nodes(topology_pattern).select{ |node| node.application_server? }
+  applications = nodes.select{ |node| node.is_app_server }
   child(applications => :applications) do
-    node(:name){ |node| node.get_app_name }
-    node(:url){ |node| node.get_app_url }
-    node(:inServer){ |node| node.get_pretty_name }
+    attribute :app_name => :name
+    attribute :app_url => :url
+    attribute :name => :inServer
   end
-  databases = topology.get_deployed_nodes(topology_pattern).select{ |node| node.database_server? }
+  databases = nodes.select{ |node| node.is_db_server }
   child(databases => :databases) do
-    node(:system){ |node| node.get_db_system }
-    node(:host){ |node| node.get_server_ip }
-    node(:user){ |node| node.get_db_user }
-    node(:password){ |node| node.get_db_pwd }
-    node(:rootPassword){ |node| node.get_db_root_pwd }
-    node(:inServer){ |node| node.get_pretty_name }
+    attribute :db_system => :system
+    attribute :server_ip => :host
+    attribute :db_user => :user
+    attribute :db_pwd => :password
+    attribute :db_root_pwd => :rootPassword
+    attribute :name => :inServer
   end
 end
 node :pattern do

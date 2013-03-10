@@ -29,30 +29,13 @@ class DatabagWrapper
     return @name
   end
 
-  def [](key)
-    key = key.to_s if key.class == Symbol
-    return @data[key]
+  def get_data
+    @data
   end
 
-  def []=(key, value)
-    key = key.to_s if key.class == Symbol
-    @data[key] = value
-  end
-
-  def has_key?(key)
-    key = key.to_s if key.class == Symbol
-    return @data.has_key?(key)
-  end
-
-  def delete_key(key)
-    key = key.to_s if key.class == Symbol
-    @data.delete(key)
-  end
-
-  def reset_data(data = Hash.new)
+  def set_data(data)
     @data = data
     @data["id"] = @name
-    save
   end
 
   def delete
@@ -86,26 +69,27 @@ class DatabagWrapper
     @manager.register_databag(self.get_name)
   end
 
-  def get_server_ip
-    databag["server_ip"]
+  def reload
+    @data = data_bag_item(@name, @name).raw_data
   end
 
 end
 
 class DatabagsManager
 
-  def sync_cache
+  def sync_list
     @list_of_databags = Chef::DataBag.list.keys
+    @cache.each_key do |name|
+      @cache.delete(name) unless @list_of_databags.include?(name)
+    end
   end
-
-  alias :reload :sync_cache
 
   def initialize
     Chef::Config.from_file(Rails.configuration.chef_config_file)
     Shef::Extensions.extend_context_object(self)
 
-    sync_cache
     @cache = Hash.new
+    sync_list
   end
 
   @@instance = new
@@ -176,13 +160,8 @@ class DatabagsManager
     return @cache[name]
   end
 
-  def get_server_ip(name)
-    databag = get_databag(name)
-    if databag
-      return databag.get_server_ip
-    else
-      return nil
-    end
+  def reload
+    sync_list
   end
 
 

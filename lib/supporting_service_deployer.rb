@@ -23,21 +23,17 @@ require "my_errors"
 class SupportingServiceDeployer < BaseDeployer
 
   def initialize(service_name)
-    @service_name = service_name
-    super()
+    my_id = [self.class.get_id_prefix, "service", service_name].join("_")
+    super(my_id)
 
+    @service_name = service_name
     if service_deployed?
       recover
     end
   end
 
   def get_id
-    self.class.get_id(@service_name)
-  end
-
-  def self.get_id(service_name)
-    prefix = super()
-    [prefix, "service", service_name].join("_")
+    deployer_id
   end
 
   def get_service_name
@@ -79,7 +75,7 @@ class SupportingServiceDeployer < BaseDeployer
   end
 
   def request_service(customer)
-    if get_state != State::DEPLOY_SUCCESS
+    if get_deploy_state != State::DEPLOY_SUCCESS
       err_msg = "Supporting service '#{@service_name}' is not enabled. Please enable it before deploy"
       raise DeploymentError.new(:message => err_msg)
     end
@@ -88,7 +84,7 @@ class SupportingServiceDeployer < BaseDeployer
   end
 
   def service_deployed?
-    if get_state == State::DEPLOY_SUCCESS || get_state == State::DEPLOY_FAIL
+    if get_deploy_state == State::DEPLOY_SUCCESS || get_deploy_state == State::DEPLOY_FAIL
       return true
     else
       return false
@@ -203,11 +199,11 @@ class DnsDeployer < SupportingServiceDeployer
   def serve(customer)
     #TODO this just need to be done once, optimize it
     dns_deployer = get_child_deployer("dns")
-    dns_deployer.set_services(["update_dns"])
+    dns_deployer.services = ["update_dns"]
     dns_deployer.save
 
     blues_deployer = get_child_deployer("blues")
-    blues_deployer.set_services(["update_blues"])
+    blues_deployer.services = ["update_blues"]
     blues_deployer["dns_node"] = dns_deployer.get_id
     blues_deployer.save
 
@@ -268,7 +264,7 @@ class OssecServerDeployer < SupportingServiceDeployer
 
   def serve(customer)
     deployer = @children.first
-    deployer.set_services(["ossec_server"])
+    deployer.services = ["ossec_server"]
     deployer["hids_clients"] = customer.get_topology.get_hids_clients
     deployer.save
 
@@ -301,7 +297,7 @@ class CertAuthDeployer < SupportingServiceDeployer
 
   def serve(customer)
     deployer = @children.first
-    deployer.set_services(["ca"])
+    deployer.services = ["ca"]
     deployer["openvpn_client_server_pairs"] = customer.get_topology.get_openvpn_client_server_refs
     deployer.save
 

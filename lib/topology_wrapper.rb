@@ -18,9 +18,9 @@ require "xml"
 require "my_errors"
 
 class TopologyWrapper
-  def initialize(topology_xml, schema_file)
+  def initialize(topology_xml)
     @doc = XML::Document.string(topology_xml)
-    validate_xml(@doc, schema_file)
+    validate_xml(@doc, Rails.application.config.schema_file)
   end
 
   def validate_xml(doc, schema_file)

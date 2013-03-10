@@ -27,27 +27,62 @@ end
 
 class BaseDeployer
 
-  def initialize(parent_deployer = nil)
+  def self.deployer_attr_accessor(*my_accessors)
+    my_accessors.each do |name|
+      name = name.to_s
+
+      define_method(name) do
+        attributes[name]
+      end
+
+      define_method("#{name}=") do |value|
+        value.nil? ? attributes.delete(name) : attributes[name] = value
+      end
+    end
+  end
+
+
+  attr_accessor :deployer_id, :attributes, :topology_id
+
+  deployer_attr_accessor :deploy_state, :deploy_error, :update_state, :update_error
+
+  def initialize(deployer_id, topology_id = nil, parent_deployer = nil)
+    self.deployer_id = deployer_id
+    self.topology_id = topology_id
+    self.attributes = Hash.new
+
     @parent = parent_deployer if parent_deployer
     @children = Array.new
-    @databag = DatabagsManager.instance.get_or_create_databag(get_id)
+    @databag_manager = DatabagsManager.instance
+  end
+
+  def reload
+    get_databag.reload
+    self.attributes = get_databag.get_data
+  end
+
+  def reset
+    self.attributes.clear
   end
 
   def get_id
     raise "No implementation of method get_id: this method should be overwritten by class #{self.class}"
   end
 
-  def self.get_id
-    "NestedQEMU"
+  def self.get_id_prefix
+    "PatternDeployer"
   end
 
   def get_children
     @children
   end
 
+  def get_child_by_name(name)
+    @children.find{ |child| child.get_name == name }
+  end
+
   def prepare_deploy
-    @databag.reset_data
-    set_state(State::DEPLOYING)
+    self.deploy_state = State::DEPLOYING
 
     @children.each do |child|
       child.prepare_deploy
@@ -55,14 +90,13 @@ class BaseDeployer
   end
 
   def deploy
-    DeployersManager.add_deployer(get_id, self)
     @children.each do |child|
       child.deploy
     end
   end
 
   def prepare_update_deployment
-    set_update_state(State::DEPLOYING)
+    self.update_state = State::DEPLOYING
   end
 
   def update_deployment
@@ -86,14 +120,12 @@ class BaseDeployer
     @worker_thread = nil
 
     begin
-      @databag.delete if @databag
+      get_databag.delete if get_databag
     rescue Exception => ex
       puts "Unexpected exception when deleting databag"
       puts "[#{Time.now}] #{ex.class.name}: #{ex.message}"
       puts "Trace:"
       puts ex.backtrace.join("\n")
-    ensure
-      @databag = nil
     end
 
     success = self.class.summarize_successes(successes)
@@ -106,12 +138,6 @@ class BaseDeployer
       child.wait(timeout)
     end
   end
-
-  def get_state
-    get_deploy_state
-  end
-
-  alias :get_deployment_status :get_state
 
   def set_state(state)
     set_deploy_state(state)
@@ -146,7 +172,7 @@ class BaseDeployer
   end
 
   def set_deploy_error(msg)
-    self["deploy_error"] = msg
+    self.deploy_error = msg
     self.save
   end
 
@@ -155,8 +181,13 @@ class BaseDeployer
   end
 
   def set_update_error(msg)
-    self["update_error"] = msg
+    self.update_error = msg
     self.save
+  end
+
+  def ==(deployer)
+    raise "Unexpected type of deployer: #{deployer.class.name}" unless deployer.kind_of?(self.class)
+    return self.get_id == deployer.get_id
   end
 
   def <<(child_deployer)
@@ -172,23 +203,26 @@ class BaseDeployer
   end
 
   def has_key?(key)
-    @databag.has_key?(key)
+    attributes.has_key?(key.to_s)
   end
 
   def [](key)
-    @databag[key]
+    attributes[key.to_s]
   end
 
   def []=(key, value)
-    @databag[key] = value if value
+    attributes[key.to_s] = value if value
   end
 
   def delete_key(key)
-    @databag.delete_key(key)
+    attributes.delete(key.to_s)
   end
 
   def save
-    @databag.save
+    raise "Cannot save" unless self.primary_deployer?
+
+    get_databag.set_data(attributes)
+    get_databag.save
   end
 
   def self.summarize_successes(successes)
@@ -238,44 +272,48 @@ class BaseDeployer
 
   protected
 
-  def get_state_by_type(type_of_state)
-    unless self.has_key?(type_of_state)
-      return State::UNDEPLOY
-    end
+  def lock_topology(options={})
+    raise "Unexpected missing of block" unless block_given?
 
-    if self[type_of_state] == State::DEPLOYING && !@children.empty?
-      old_state = self[type_of_state]
-      children_states = @children.map do |child|
-        child.get_state_by_type(type_of_state)
+    FileUtils.mkdir_p(File.dirname(lock_file))
+    File.open(lock_file, "w") do |file|
+      file.flock(File::LOCK_EX)
+      unless options[:read_only]
+        File.open(pid_file, "w"){ |file| file.write(Process.pid) }
       end
-      new_state = self.class.summarize_states(children_states)
-      set_state_by_type(type_of_state, new_state) if new_state != old_state
-    end
 
-    self[type_of_state]
+      yield
+    end
+  end
+
+  def primary_deployer?
+    File.open(pid_file, "r") do |file|
+      file.read == Process.pid.to_s
+    end
+  end
+
+  def lock_file
+    Rails.root.join("tmp", "deployers", "#{topology_id}.lock") if topology_id
+  end
+
+  def pid_file
+    Rails.root.join("tmp", "deployers", "#{topology_id}.pid") if topology_id
+  end
+
+  def get_databag
+    @databag_manager.get_or_create_databag(deployer_id)
+  end
+
+  def get_state_by_type(type_of_state)
+    attributes[type_of_state] || State::UNDEPLOY
   end
 
   def set_state_by_type(type_of_state, state)
-    if self[type_of_state] != state
-      self[type_of_state] = state
-      self.save
+    if attributes[type_of_state] != state
+      attributes[type_of_state] = state
+      save
     end
   end
-
-  #def get_real_time_deploy_state
-  #  get_real_time_state_by_type("deploy_state")
-  #end
-
-  #def get_real_time_update_state
-  #  get_real_time_state_by_type("update_state")
-  #end
-
-  #def get_real_time_state_by_type(type_of_state)
-  #  states = @children.map do |child|
-  #    child.get_state_by_type(type_of_state)
-  #  end
-  #  return self.class.summarize_states(states)
-  #end
 
   def get_error_by_type(error_type)
     if error_type == "deploy_error"
@@ -283,23 +321,14 @@ class BaseDeployer
     elsif error_type == "update_error"
       type_of_state = "update_state"
     else
-      self["deploy_error"] = "unexpected error_type #{error_type}"
-      self.save
+      raise "unexpected error_type #{error_type}"
     end
 
     if get_state_by_type(type_of_state) != State::DEPLOY_FAIL
       return ""
+	else
+      return attributes[error_type] || ""
     end
-
-    if !self.has_key?(error_type) && !@children.empty?
-      errors = @children.map do |child|
-        child.get_deploy_error
-      end
-      msg = self.class.summarize_errors(errors)
-      self[error_type] = msg
-      self.save
-    end
-    return self[error_type] || ""
   end
 
   def on_deploy_success

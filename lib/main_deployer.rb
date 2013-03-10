@@ -30,20 +30,17 @@ class MainDeployer < BaseDeployer
   # If the deployment of a topology needs supporting service, it will consume supporting service through this class
   class MySupportingServiceDeployer < BaseDeployer
     def initialize(service_deployer, topology)
+      id = [self.class.get_id_prefix, "topology", topology.get_topology_id, "service", service_deployer.get_service_name].join("_")
+      super(id, topology.get_topology_id)
+
       @deployer = service_deployer
       @service_name = service_deployer.get_service_name
       @topology = topology
-      super()
       @output = Queue.new
     end
 
     def get_id
-      self.class.get_id(get_topology_id, @service_name)
-    end
-
-    def self.get_id(topology_id, service_name)
-      prefix = super()
-      [prefix, "topology", topology_id, "service", service_name].join("_")
+      deployer_id
     end
 
     def get_service_name
@@ -98,36 +95,20 @@ class MainDeployer < BaseDeployer
     def on_service_finish(state, msg)
       @output << [state, msg]
     end
-
-    # TODO maybe move outside
-    #def get_openvpn_pairs
-    #  pairs = Array.new
-    #  @topology.get_openvpn_client_server_pairs.each do |ref|
-    #    pair = Hash.new
-    #    pair["client"] = ref["from"]
-    #    pair["server"] = ref["to"]
-    #    pairs << pair
-    #  end
-
-    #  pairs
-    #end
-  end
+  end #class MySupportingServiceDeployer
 
 
   class MySupportingServicesDeployer < BaseDeployer
     def initialize(name, topology_id)
+      my_id = [self.class.get_id_prefix, "topology", topology_id, "services", name].join("_")
+      super(my_id, topology_id)
+
       @name = name
       @topology_id = topology_id
-      super()
     end
 
     def get_id
-      self.class.get_id(@topology_id, @name)
-    end
-
-    def self.get_id(topology_id, deployer_name)
-      prefix = super()
-      [prefix, "topology", topology_id, "services", deployer_name].join("_")
+      deployer_id
     end
 
     def deploy
@@ -145,30 +126,31 @@ class MainDeployer < BaseDeployer
     def get_services
       @children
     end
-  end
+  end #class MySupportingServicesDeployer
 
-  def initialize(id)
-    @id = id
-    DatabagsManager.instance.reload
-    super()
+
+  def initialize(topology_id)
+    my_id = [self.class.get_id_prefix, "main", topology_id].join("_")
+    super(my_id, topology_id)
   end
 
   def get_id
-    self.class.get_id(@id)
-  end
-
-  def self.get_id(id)
-    prefix = super()
-    [prefix, "main", id].join("_")
+    deployer_id
   end
 
   def prepare_deploy(topology_xml, supporting_services, resources)
-    initialize_or_update_deployers(topology_xml,
-                        :supporting_services => supporting_services,
-                        :resources => resources)
-    generic_prepare
+    lock_topology do
+      self.reset
+      self.deploy_state = State::DEPLOYING
 
-    super()
+      topology = TopologyWrapper.new(topology_xml)
+      initialize_deployers(topology, :supporting_services => supporting_services)
+
+      @my_services.prepare_deploy unless @my_services.empty?
+      @topology_deployer.prepare_deploy(topology, resources)
+
+      self.save
+    end
   end
 
   def deploy
@@ -189,7 +171,7 @@ class MainDeployer < BaseDeployer
 
         # wait for deployment finish and do error checking
         raise "Deployment timeout" unless wait
-        raise get_err_msg if get_state == State::DEPLOY_FAIL
+        raise get_err_msg if get_deploy_state == State::DEPLOY_FAIL
         on_deploy_success
       rescue Exception => ex
         on_deploy_failed(ex.message)
@@ -201,13 +183,17 @@ class MainDeployer < BaseDeployer
   end
 
   def prepare_scale(topology_xml, supporting_services, resources, nodes, diff)
-    initialize_or_update_deployers(topology_xml,
-                        :supporting_services => supporting_services,
-                        :resources => resources)
-    generic_prepare
-    prepare_update_deployment
+    lock_topology do
+      self.reload
 
-    @topology_deployer.prepare_scale(nodes, diff)
+      topology = TopologyWrapper.new(topology_xml)
+      initialize_deployers(topology, :supporting_services => supporting_services)
+
+      prepare_update_deployment
+      @topology_deployer.prepare_scale(topology, resources, nodes, diff)
+
+      self.save
+    end
   end
 
   def scale
@@ -229,13 +215,17 @@ class MainDeployer < BaseDeployer
   end
 
   def prepare_repair(topology_xml, supporting_services, resources)
-    initialize_or_update_deployers(topology_xml,
-                        :supporting_services => supporting_services,
-                        :resources => resources)
-    generic_prepare
-    prepare_update_deployment
+    lock_topology do
+      self.reload
 
-    @topology_deployer.prepare_repair
+      topology = TopologyWrapper.new(topology_xml)
+      initialize_deployers(topology, :supporting_services => supporting_services)
+
+      prepare_update_deployment
+      @topology_deployer.prepare_repair(topology, resources)
+
+      self.save
+    end
   end
 
   def repair
@@ -256,29 +246,48 @@ class MainDeployer < BaseDeployer
   end
 
   def undeploy(topology_xml, supporting_services, resources)
-    initialize_or_update_deployers(topology_xml,
-                        :supporting_services => supporting_services,
-                        :resources => resources)
-    generic_prepare
+    lock_topology do
+      self.reload
 
-    @my_openvpn_service.undeploy unless @my_openvpn_service.empty?
-    @my_openvpn_service = nil
+      topology = TopologyWrapper.new(topology_xml)
+      initialize_deployers(topology, :supporting_services => supporting_services)
 
-    super()
+      @my_openvpn_service.undeploy unless @my_openvpn_service.empty?
+      @my_openvpn_service = nil
+
+      @my_services.undeploy unless @my_services.empty?
+      @my_services = nil
+
+      @topology_deployer.undeploy(topology, resources)
+      @topology_deployer = nil
+
+      self.save
+    end
   end
 
-  def get_nodes_deployers(topology_xml)
-    initialize_or_update_deployers(topology_xml)
-    raise "Unexpected missing of topology deployer" unless @topology_deployer
-    return @topology_deployer.get_children
+  def list_nodes(topology_xml)
+    lock_topology(:read_only => true) do
+      self.reload unless self.primary_deployer?
+
+      if get_deploy_state != State::UNDEPLOY
+        topology = TopologyWrapper.new(topology_xml)
+        initialize_deployers(topology)
+        raise "Unexpected missing of topology deployer" unless @topology_deployer
+        return @topology_deployer.list_nodes(topology)
+      else
+        return Array.new
+      end
+    end
   end
 
 
   protected
 
-  def generic_prepare
+  def reload
+    super()
     ChefNodesManager.instance.reload
     ChefClientsManager.instance.reload
+    DatabagsManager.instance.reload
   end
 
   def prepare_openvpn_credential
@@ -290,23 +299,19 @@ class MainDeployer < BaseDeployer
       raise "Timeout for acquiring openvpn service" 
     end
 
-    success = @my_openvpn_service.get_state == State::DEPLOY_SUCCESS
+    success = @my_openvpn_service.get_deploy_state == State::DEPLOY_SUCCESS
     raise @my_openvpn_service.get_err_msg unless success
 
     @topology_deployer.load_certificates(@my_openvpn_service.get_services.first)
   end
 
-  def initialize_or_update_deployers(topology_xml, options={})
-    topology = TopologyWrapper.new(topology_xml, Rails.application.config.schema_file)
+  def initialize_deployers(topology, options={})
     resources = options[:resources]
     services_deployers = options[:supporting_services]
 
     if @topology_deployer.nil?
-      @topology_deployer = TopologyDeployer.new(topology, resources)
+      @topology_deployer = TopologyDeployer.new(topology.get_topology_id)
       self << @topology_deployer
-    else
-      @topology_deployer.set_topology(topology)
-      @topology_deployer.set_resources(resources) if resources
     end
 
     #TODO update @my_openvpn_service if it exists

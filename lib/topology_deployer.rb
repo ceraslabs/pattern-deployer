@@ -17,6 +17,7 @@
 require "base_deployer"
 require "chef_node_deployer"
 require "chef_cookbook"
+require "ostruct"
 require "topology_wrapper"
 
 
@@ -74,7 +75,7 @@ class TopologyDeployer < BaseDeployer
     def validate_type!(type)
       raise "Unexpected type of edge #{type}" unless @@valid_types.include?(type)
     end
-  end
+  end #class Edge
 
   class Vertex
     WAITING     = 1 if not defined?(WAITING)
@@ -88,7 +89,6 @@ class TopologyDeployer < BaseDeployer
       @state = WAITING
       @deployer = node_deployer
       @topology_deployer = topology_deployer
-      topology_deployer << node_deployer
     end
 
     def get_name
@@ -157,7 +157,7 @@ class TopologyDeployer < BaseDeployer
     end
 
     def deploy_success?
-      @deployer.get_state == State::DEPLOY_SUCCESS
+      @deployer.get_deploy_state == State::DEPLOY_SUCCESS
     end
 
     def on_success
@@ -165,7 +165,7 @@ class TopologyDeployer < BaseDeployer
     end
 
     def deploy_failed?
-      @deployer.get_state == State::DEPLOY_FAIL
+      @deployer.get_deploy_state == State::DEPLOY_FAIL
     end
 
     def on_failed
@@ -182,7 +182,7 @@ class TopologyDeployer < BaseDeployer
 
     def can_start?
       if @state == WAITING
-        return get_depending_vertice.all?{|parent| parent.get_state == FINISHED}
+        return get_depending_vertice.all?{|parent| parent.get_deploy_state == FINISHED}
       else
         return false
       end
@@ -205,7 +205,7 @@ class TopologyDeployer < BaseDeployer
 
     def depending_vertex_failed?
       if @state == WAITING
-        return get_depending_vertice.any?{|parent| parent.get_state == FAILED}
+        return get_depending_vertice.any?{|parent| parent.get_deploy_state == FAILED}
       else
         return false
       end
@@ -268,33 +268,34 @@ class TopologyDeployer < BaseDeployer
         super(sym, *args, &block)
       end
     end
+  end #class Vertex
 
+
+  attr_accessor :topology, :resources
+
+  def initialize(topology_id)
+    my_id = [self.class.get_id_prefix, "topology", topology_id].join("_")
+    super(my_id, topology_id)
   end
 
-
-  def initialize(topology, resources, options = {})
-    @topology = topology
-    @resources = resources
+  def reload(topology, resources = nil)
     super()
-
-    @vertice = create_vertice(topology, resources)
+    self.topology = topology
+    self.resources = resources if resources
   end
 
-  def create_vertice(topology, resources)
-    # load all nodes from XML to the graph
-    vertice = Hash.new
-    topology.get_nodes.each do |node_id|
-      node_info = topology.get_node_info(node_id)
-      services = topology.get_services(node_id)
+  def reset(topology, resources = nil)
+    super()
+    self.topology = topology
+    self.resources = resources if resources
+  end
 
-      topology.get_all_copies(node_id).each do |extended_node_id|
-        node_deployer = ChefNodeDeployer.new(extended_node_id, node_info.clone, services, resources, self)
-        vertex = Vertex.new(extended_node_id, node_deployer, self)
-        vertice[extended_node_id] = vertex
-      end
-    end
+  def get_id
+    deployer_id
+  end
 
-    vertice
+  def get_topology_id
+    topology.get_topology_id
   end
 
   def load_certificates(certificates)
@@ -305,39 +306,11 @@ class TopologyDeployer < BaseDeployer
       vertex["server_cert"] = server_cert if server_cert
 
       vertex["client_certs"] = certificates["client_certs"].select do |cert|
-        cert["from"] == vertex_id 
+        cert["from"] == vertex_id
       end
 
       vertex.save
     end
-  end
-
-  def get_id
-    self.class.get_id(get_topology_id)
-  end
-
-  def self.get_id(topology_id)
-    prefix = super()
-    [prefix, "topology", topology_id].join("_")
-  end
-
-  def get_topology
-    @topology
-  end
-
-  def set_topology(topology)
-    @topology = topology
-  end
-
-  def set_resources(resources)
-    @resources = resources
-    @vertice.each_value do |vertex|
-      vertex.set_resources(resources)
-    end
-  end
-
-  def get_topology_id
-    @topology.get_topology_id
   end
 
   def deployable?
@@ -365,11 +338,15 @@ class TopologyDeployer < BaseDeployer
     return has_circle
   end
 
-  def prepare_deploy
-    super()
+  def prepare_deploy(topology, resources)
+    self.reset(topology, resources)
+    initialize_deployment_graph(:reset_children => true)
 
+    super()
     load_topology_info
     prepare_cookbook
+
+    save_all
   end
 
   def deploy
@@ -378,30 +355,31 @@ class TopologyDeployer < BaseDeployer
     end
   end
 
-  def prepare_scale(nodes, diff)
+  def prepare_scale(topology, resources, nodes, diff)
+    self.reload(topology, resources)
+    initialize_deployment_graph
     load_topology_info
 
     @new_vertice = Hash.new
     @dirty_vertice = Hash.new
     if diff > 0
-      @new_vertice = create_more_vertices(@topology, @resources, nodes, diff)
+      @new_vertice = create_more_vertices(topology, resources, nodes, diff)
       @new_vertice.each_value{|vertex| vertex.prepare_deploy}
       @dirty_vertice = setup_vertice(@new_vertice, nodes)
       @vertice.merge!(@new_vertice)
     elsif diff < 0
-      vertice_to_delete = get_vertice_to_delete(@topology, nodes, -diff)
+      vertice_to_delete = get_vertice_to_delete(topology, nodes, -diff)
       @dirty_vertice = delete_vertice(vertice_to_delete, nodes)
       vertice_to_delete.each_value{|vertex| vertex.undeploy}
     else
       raise "Unexpected diff"
     end
 
-    # save everything above
-    @new_vertice.each_value{|vertex| vertex.save}
-    @dirty_vertice.each_value{|vertex| vertex.save}
-
     prepare_update_deployment
     @dirty_vertice.each_value{|vertex| vertex.prepare_update_deployment}
+
+    # save everything above
+    save_all
   end
 
   def scale
@@ -413,9 +391,11 @@ class TopologyDeployer < BaseDeployer
     end
   end
 
-  def prepare_repair
+  def prepare_repair(topology, resources)
+    self.reload(topology, resources)
+
+    initialize_deployment_graph
     load_topology_info
-    prepare_cookbook
 
     @new_vertice = Hash.new
     @dirty_vertice = Hash.new
@@ -434,6 +414,9 @@ class TopologyDeployer < BaseDeployer
     prepare_update_deployment
     @new_vertice.each_value{|vertex| vertex.prepare_deploy}
     @dirty_vertice.each_value{|vertex| vertex.prepare_update_deployment}
+
+    # save everything above
+    save_all
   end
 
   def repair
@@ -449,21 +432,43 @@ class TopologyDeployer < BaseDeployer
     raise "NOT IMPLEMENT"
   end
 
-  def undeploy
+  def undeploy(topology, resources)
+    self.reload(topology, resources)
+
     super()
-    @topology = nil
-    @resources = nil
+    self.topology = nil
+    self.resources = nil
     @vertice = nil
+
+    save_all
+  end
+
+  def list_nodes(topology)
+    self.primary_deployer? ? self.reload(topology) : self.topology = topology
+
+    initialize_child_deployers(:reload_children => !self.primary_deployer?)
+
+    get_children.map do |child|
+      node = OpenStruct.new
+      node.name          = child.get_pretty_name
+      node.server_ip     = child.get_server_ip
+      node.services      = child.services
+      node.status        = child.get_update_state == State::UNDEPLOY ? child.get_deploy_state : child.get_update_state
+      node.is_app_server = child.application_server?
+      node.app_name      = child.get_app_name
+      node.app_url       = child.get_app_url
+      node.is_db_server  = child.database_server?
+      node.db_system     = child.get_db_system
+      node.db_user       = child.get_db_user
+      node.db_pwd        = child.get_db_pwd
+      node.db_root_pwd   = child.get_db_root_pwd
+      node
+    end
   end
 
   def wait(timeout)
     @worker_thread.join(timeout)
-
-    if deploy_finished?
-      return true
-    else
-      return false
-    end
+    deploy_finished?
   end
 
   def on_data(key, value, vertex_name)
@@ -477,26 +482,44 @@ class TopologyDeployer < BaseDeployer
     end
   end
 
-  def get_update_state
-    states = (@new_vertice || Hash.new).map{|vertex| vertex.get_deploy_state}
-    states += (@dirty_vertice || Hash.new).map{|vertex| vertex.get_update_state}
-    if states.empty?
-      return State::UNDEPLOY
-    end
-
-    old_state = self["update_state"] || State::UNDEPLOY
-    new_state = self.class.summarize_states(states)
-
-    self.set_update_state(new_state) if old_state != new_state
-    new_state
-  end
-
   def all_vertice
     @vertice.values
   end
 
 
   protected
+
+  def initialize_deployment_graph(options={})
+    initialize_child_deployers(options)
+    @vertice = Hash.new
+    get_children.map do |child|
+      @vertice[child.get_name] = Vertex.new(child.get_name, child, self)
+    end
+  end
+
+  def initialize_child_deployers(options={})
+    reload_children = options.has_key?(:reload_children) ? options[:reload_children] : true
+
+    child_deployers = Array.new
+    topology.get_nodes.each do |node_id|
+      node_info = topology.get_node_info(node_id)
+      services = topology.get_services(node_id)
+
+      topology.get_all_copies(node_id).each do |deployer_name|
+        child = get_child_by_name(deployer_name)
+        child = ChefNodeDeployer.new(deployer_name, self) if child.nil?
+        if options[:reset_children]
+          child.reset(node_info.clone, services, resources)
+        elsif reload_children
+          child.reload(node_info.clone, services, resources)
+        end
+
+        child_deployers << child
+      end
+    end
+
+    @children = child_deployers
+  end
 
   def deploy_helper(options)
     action = options[:action] || :deploy
@@ -582,9 +605,10 @@ class TopologyDeployer < BaseDeployer
       num_of_copies = topology.get_num_of_copies(node_id)
       (num_of_copies + 1 .. num_of_copies + how_many).each do |rank|
         extended_node_id = [node_id, rank].join("_")
-        node_deployer = ChefNodeDeployer.new(extended_node_id, node_info.clone, services, resources, self)
-        vertex = Vertex.new(extended_node_id, node_deployer, self)
-        new_vertice[extended_node_id] = vertex
+        node_deployer = ChefNodeDeployer.new(extended_node_id, self)
+        node_deployer.reset(node_info.clone, services, resources)
+        self << node_deployer
+        new_vertice[extended_node_id] = Vertex.new(extended_node_id, node_deployer, self)
       end
     end
 
@@ -712,21 +736,18 @@ class TopologyDeployer < BaseDeployer
     set_port_redirs
     set_web_server_info
     set_database_info
-
-    # save everything above
-    @vertice.each_value{|vertex| vertex.save}
   end
 
   def establish_connection
     # load nested instance, outer instance dependencies
-    @topology.get_nested_node_refs.each do |ref|
+    topology.get_nested_node_refs.each do |ref|
       nested_instance = @vertice[ref['from']]
       container = @vertice[ref['to']]
       container.connect(nested_instance, :container_node)
     end
 
     # load openvpn client-server relationships
-    @topology.get_openvpn_client_server_refs.each do |ref|
+    topology.get_openvpn_client_server_refs.each do |ref|
       openvpn_client = @vertice[ref['from']]
       openvpn_server = @vertice[ref['to']]
       openvpn_server.connect(openvpn_client, :vpn_clients)
@@ -735,7 +756,7 @@ class TopologyDeployer < BaseDeployer
     end
 
     # load snort pair
-    @topology.get_snort_pairs.each do |pair|
+    topology.get_snort_pairs.each do |pair|
       snort = @vertice[pair['snort_node']]
       snort_pair1 = @vertice[pair['pair1']]
       snort_pair2 = @vertice[pair['pair2']]
@@ -749,28 +770,28 @@ class TopologyDeployer < BaseDeployer
 
     # The vpn connectivity of nested instance should be the same as its container.
     # Therefore, we need to sync the vpn connection
-    @topology.get_nested_node_refs.each do |ref|
+    topology.get_nested_node_refs.each do |ref|
       nested_instance = @vertice[ref['from']]
       container = @vertice[ref['to']]
       sync_vpn_connection(nested_instance, container)
     end
 
     #load appserver-database relationships
-    @topology.get_webserver_database_refs.each do |ref|
+    topology.get_webserver_database_refs.each do |ref|
       web_server = @vertice[ref['from']]
       database = @vertice[ref['to']]
       database.connect(web_server, :database_node)
     end
 
     #load balancer-member relationships
-    @topology.get_load_balancer_memeber_refs.each do |ref|
+    topology.get_load_balancer_memeber_refs.each do |ref|
       balancer = @vertice[ref['from']]
       member = @vertice[ref['to']]
       member.connect(balancer, :balancer_members)
     end
 
     #load chef_client-chef_server relationships
-    @topology.get_chef_server_refs.each do |ref|
+    topology.get_chef_server_refs.each do |ref|
       chef_client = @vertice[ref['from']]
       chef_server = @vertice[ref['to']]
       chef_server.connect(chef_client, :chef_server)
@@ -792,7 +813,7 @@ class TopologyDeployer < BaseDeployer
 
   def set_vpnips
     # load vpnips into databag
-    @topology.get_vpnips.each do |vertex_id, vpnip|
+    topology.get_vpnips.each do |vertex_id, vpnip|
       vertex = @vertice[vertex_id]
       vertex[:vpn_server_ip] = vpnip
       on_data(:vpn_server_ip, vpnip, vertex_id)
@@ -801,21 +822,21 @@ class TopologyDeployer < BaseDeployer
 
   def set_port_redirs
     # load port redirections into databag
-    @topology.get_port_redirs.each do |vertex_id, redir|
+    topology.get_port_redirs.each do |vertex_id, redir|
       target = @vertice[vertex_id]
       target["port_redir"] = redir
     end
   end
 
   def set_web_server_info
-    @topology.get_war_files.each do |vertex_id, file|
+    topology.get_war_files.each do |vertex_id, file|
       vertex = @vertice[vertex_id]
       vertex[FileType::WAR_FILE] = file #TODO support multiple war files
     end
   end
 
   def set_database_info
-    @topology.get_databases.each do |vertex_id, database_info|
+    topology.get_databases.each do |vertex_id, database_info|
       vertex = @vertice[vertex_id]
       vertex["database"] = database_info
       if database_info.has_key?("script")
@@ -832,7 +853,7 @@ class TopologyDeployer < BaseDeployer
         next unless vertex.has_key?(file_type)
 
         file_name = vertex[file_type]["name"]
-        file = @resources.get_file(file_name, file_type)
+        file = resources.get_file(file_name, file_type)
         if file.nil? || !File.exists?(file.get_file_path)
           err_msg = "The file #{file_name} does not exist. Please upload that file before deploy"
           raise DeploymentError.new(:message => err_msg)
@@ -844,12 +865,15 @@ class TopologyDeployer < BaseDeployer
     cookbook.save
   end
 
+
+  def save_all
+    self.save
+    get_children.each{ |child| child.save }
+  end
+
   def deploy_finished?
-    state = get_state
+    state = (get_update_state == State::UNDEPLOY ? get_deploy_state : get_update_state)
     return (state == State::DEPLOY_SUCCESS || state == State::DEPLOY_FAIL)
   end
 
-  def deploy_success?
-    get_state == State::DEPLOY_SUCCESS
-  end
 end

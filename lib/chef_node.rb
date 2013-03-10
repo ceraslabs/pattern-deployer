@@ -74,10 +74,12 @@ class ChefNodeWrapper
     msg
   end
 
-  #def reload
-  #  chef_node = nodes.search("name:#{@node_name}").first
-  #  @node = chef_node if chef_node
-  #end
+  def reload
+    Chef::Config.from_file(Rails.configuration.chef_config_file)
+    Shef::Extensions.extend_context_object(self)
+    @node = nodes.search("name:#{@node_name}").first
+    raise "Cannot reload node #{@node_name}, since the node doesn't exist" if @node.nil?
+  end
 
   def delete
     #chef_node = nodes.search("name:#{@node_name}").first
@@ -89,17 +91,21 @@ end
 
 class ChefNodesManager
 
+  def load_nodes_list
+    @list_of_nodes = Chef::Node.list.keys
+    @cache.each_key do |name|
+      @cache.delete(name) unless @list_of_nodes.include?(name)
+    end
+  end
+
   def initialize
     Chef::Config.from_file(Rails.configuration.chef_config_file)
     Shef::Extensions.extend_context_object(self)
 
-    @list_of_nodes = load_nodes_list
     @cache = Hash.new
+    load_nodes_list
   end
 
-  def load_nodes_list
-    Chef::Node.list.keys
-  end
 
   @@instance = new
 
@@ -122,7 +128,6 @@ class ChefNodesManager
 
       chef_node_wrapper = ChefNodeWrapper.new(node_name, chef_node)
       chef_node_wrapper = WeakRef.new(chef_node_wrapper)
-      #Shef::Extensions.extend_context_object(chef_node_wrapper)
       @cache[node_name] = chef_node_wrapper
     end
 
@@ -157,7 +162,7 @@ class ChefNodesManager
   #end
 
   def reload
-    @list_of_nodes = load_nodes_list
+    load_nodes_list
   end
 
   private_class_method :new
