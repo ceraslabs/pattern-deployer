@@ -24,7 +24,7 @@ sudo gem install net-ssh-gateway -v 1.1.0 --no-rdoc --no-ri
 sudo gem install net-ssh-multi -v 1.1 --no-rdoc --no-ri
 
 # install Chef 10
-sudo gem install chef --no-rdoc --no-ri --verbose -v "~>10.18.2"
+sudo gem install chef --no-rdoc --no-ri --verbose -v "~>10.18"
 
 # create solo.rb
 cat >/tmp/solo.rb <<EOL
