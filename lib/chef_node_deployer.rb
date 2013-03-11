@@ -111,11 +111,11 @@ class ChefNodeDeployer < BaseDeployer
       save
     end
 
-    chef_command = ChefCommand.new(CommandType::DEPLOY, node_info, :services => services)
-    chef_command.add_observer(self)
-    chef_command.execute
+    @chef_command = ChefCommand.new(CommandType::DEPLOY, node_info, :services => services)
+    @chef_command.add_observer(self)
+    @chef_command.execute
 
-    assert_success!(chef_command)
+    assert_success!(@chef_command)
 
     #debug
     #puts "[#{Time.now}] deploy_node finished #{@node_name}"
@@ -152,11 +152,11 @@ class ChefNodeDeployer < BaseDeployer
     #debug
     #puts "[#{Time.now}] Start update_node #{@node_name}"
 
-    chef_command = ChefCommand.new(CommandType::UPDATE, node_info, :services => services)
-    chef_command.add_observer(self)
-    chef_command.execute
+    @chef_command = ChefCommand.new(CommandType::UPDATE, node_info, :services => services)
+    @chef_command.add_observer(self)
+    @chef_command.execute
 
-    assert_success!(chef_command)
+    assert_success!(@chef_command)
 
     #debug
     #puts "[#{Time.now}] update_node finished #{@node_name}"
@@ -165,9 +165,10 @@ class ChefNodeDeployer < BaseDeployer
   def undeploy
     generic_prepare
 
+    @chef_command.stop if @chef_command
     success, msg = delete_instance
-
     super
+
     self.short_name = nil
     self.services = nil
     self.resources = nil
@@ -175,12 +176,22 @@ class ChefNodeDeployer < BaseDeployer
     return success, msg
   end
 
-  def wait(timeout = 600)
+  def wait(timeout)
     if @worker_thread
       @worker_thread.join(timeout)
     else
       true
     end
+  end
+
+  def kill(options={})
+    @chef_command.stop if @chef_command
+    timeout = 10
+    if @worker_thread && !@worker_thread.join(timeout)
+      @worker_thread.kill
+    end
+    set_deploy_state(State::DEPLOY_FAIL) if self.deploy_state == State::DEPLOYING
+    set_update_state(State::DEPLOY_FAIL) if self.update_state == State::DEPLOYING
   end
 
   def assert_success!(chef_command, timeout = 60)

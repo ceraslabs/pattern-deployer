@@ -139,6 +139,24 @@ class BaseDeployer
     end
   end
 
+  def kill(options={})
+    @children.each{ |child| child.kill }
+
+    kill_worker = true unless options[:kill_worker] == false
+    timeout = 60
+    if kill_worker && @worker_thread && !@worker_thread.join(timeout)
+      @worker_thread.kill
+    end
+
+    if self.update_state == State::DEPLOYING
+      set_update_state(get_children_state)
+    elsif self.deploy_state == State::DEPLOYING
+      set_deploy_state(get_children_state)
+    else
+      raise "Nothing is deploying"
+    end
+  end
+
   def set_state(state)
     set_deploy_state(state)
   end
@@ -326,7 +344,7 @@ class BaseDeployer
 
     if get_state_by_type(type_of_state) != State::DEPLOY_FAIL
       return ""
-	else
+    else
       return attributes[error_type] || ""
     end
   end

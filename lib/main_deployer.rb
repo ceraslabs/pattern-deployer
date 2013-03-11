@@ -170,7 +170,11 @@ class MainDeployer < BaseDeployer
         super()
 
         # wait for deployment finish and do error checking
-        raise "Deployment timeout" unless wait
+        unless wait
+          kill(:kill_worker => false)
+          raise "Deployment timeout"
+        end
+
         raise get_children_error if get_children_state == State::DEPLOY_FAIL
         on_deploy_success
       rescue Exception => ex
@@ -202,7 +206,10 @@ class MainDeployer < BaseDeployer
     @worker_thread = Thread.new do
       begin
         @topology_deployer.scale
-        raise "Deployment timeout" unless wait
+        unless wait
+          kill(:kill_worker => false)
+          raise "Deployment timeout"
+        end
         raise get_children_error if get_children_state == State::DEPLOY_FAIL
         on_update_success
       rescue Exception => ex
@@ -233,7 +240,10 @@ class MainDeployer < BaseDeployer
     @worker_thread = Thread.new do
       begin
         @topology_deployer.repair
-        raise "Deployment timeout" unless wait
+        unless wait
+          kill(:kill_worker => false)
+          raise "Deployment timeout"
+        end
         raise get_children_error if get_children_state == State::DEPLOY_FAIL
         on_update_success
       rescue Exception => ex

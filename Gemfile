@@ -65,3 +65,5 @@ gem "customized-chef-repo", :git => "git://github.com/ceraslabs/chef-repo.git"
 gem "passenger"
 
 gem 'rabl'
+
+gem 'open4'
