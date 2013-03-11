@@ -124,6 +124,9 @@ class ChefNodeDeployer < BaseDeployer
   def prepare_update_deployment
     super()
     generic_prepare
+
+    chef_node = get_chef_node
+    chef_node.start_deployment if chef_node
   end
 
   def update_deployment
@@ -195,31 +198,23 @@ class ChefNodeDeployer < BaseDeployer
   end
 
   def assert_success!(chef_command, timeout = 60)
-    is_success = false
-    for i in 1..timeout
-      chef_node = get_chef_node
-      if chef_node && chef_node.has_key?("is_success")
-        is_success = chef_node["is_success"]
-        break
-      end
-
-      if i != timeout
-        sleep 1
-      else
-        err_msg = "Failed to deploy chef node '#{node_id}' with command: #{chef_command.get_command}\n"
-        err_msg += "Output of the command:\n"
-        err_msg += `cat #{chef_command.get_log_file}`
-        raise err_msg
-      end
+    unless chef_command.finished?
+      raise "Chef command haven't been executed or it is not finished"
     end
 
-    unless is_success
-      msg = "Failed to execute command: #{chef_command.get_command}, deployment of node '#{get_id}' failed"
+    chef_node = nil
+    for i in 1..timeout
       chef_node = get_chef_node
-      if chef_node
-        inner_msg = chef_node.get_err_msg
-      end
+      break if chef_node && chef_node.deployment_show_up?
 
+      sleep 1
+    end
+
+    if (chef_command.failed? ||
+        (chef_node && !chef_node.deployment_show_up?) ||
+        (chef_node && chef_node.deployment_failed?))
+      msg = chef_command.get_err_msg
+      inner_msg = chef_node.get_err_msg if chef_node
       raise DeploymentError.new(:message => msg, :inner_message => inner_msg)
     end
   end

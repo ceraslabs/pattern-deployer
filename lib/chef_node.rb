@@ -41,6 +41,29 @@ class ChefNodeWrapper
     @node.has_key?(key)
   end
 
+  def delete_key(key)
+    @node.delete(key)
+  end
+
+  def save
+    @node.save
+  end
+
+  def start_deployment
+    %w{ is_success is_failed exception formatted_exception backtrace }.each do |key|
+      self.delete_key(key) if self.has_key?(key)
+    end
+    self.save
+  end
+
+  def deployment_show_up?
+    self.has_key?("is_success")
+  end
+
+  def deployment_failed?
+    self.has_key?("is_failed") && self["is_failed"]
+  end
+
   def get_server_ip
     if self.has_key?("ec2")
       return self["ec2"]["public_ipv4"]  
@@ -87,6 +110,7 @@ class ChefNodeWrapper
     @node.destroy
     @node = nil
   end
+
 end
 
 class ChefNodesManager

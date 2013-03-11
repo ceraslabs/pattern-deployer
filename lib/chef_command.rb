@@ -95,16 +95,17 @@ class ChefCommand
     #debug
     puts "[#{Time.now}] About to execute command: #{@command}"
 
+    @success = nil
     if @node_info.has_key?("cloud") && (@node_info["cloud"].downcase == Rails.application.config.ec2 || @node_info["cloud"].downcase == Rails.application.config.openstack)
-      success = execute_and_cpature_output
+      @success = execute_and_cpature_output
     else
-      success = execute_and_retry_on_fail
+      @success = execute_and_retry_on_fail
     end
 
     #debug
     puts "[#{Time.now}] Command finished for deploying #{@node_name}"
 
-    success
+    @success
   end
 
   def execute_and_cpature_output
@@ -150,6 +151,27 @@ class ChefCommand
     ensure
       @pid = nil
     end
+  end
+
+  def success?
+    @success == true
+  end
+
+  def failed?
+    @success == false
+  end
+
+  def finished?
+    !@success.nil?
+  end
+
+  def get_err_msg
+    return "" if self.success?
+
+    err_msg = "Failed to deploy chef node '#{@node_name}' with command: #{self.get_command}\n"
+    err_msg += "Output of the command:\n"
+    err_msg += `cat #{self.get_log_file}`
+    err_msg
   end
 
   def capture_data(output)
