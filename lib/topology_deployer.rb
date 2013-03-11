@@ -434,6 +434,7 @@ class TopologyDeployer < BaseDeployer
 
   def undeploy(topology, resources)
     self.reload(topology, resources)
+    initialize_child_deployers
 
     super()
     self.topology = nil
