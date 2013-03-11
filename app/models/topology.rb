@@ -153,15 +153,7 @@ class Topology < ActiveRecord::Base
 
   def get_state
     if self.state == State::DEPLOYING
-      deploy_state = get_deployer.get_deploy_state
-      update_state = get_deployer.get_update_state
-      if update_state == State::UNDEPLOY
-        new_state = deploy_state
-      else
-        new_state = update_state
-      end
-
-      self.set_state(new_state)
+      self.set_state(get_deployer.get_state)
     end
 
     self.state

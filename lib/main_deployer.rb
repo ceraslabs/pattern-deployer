@@ -290,6 +290,13 @@ class MainDeployer < BaseDeployer
     end
   end
 
+  def get_state
+    lock_topology(:read_only => true) do
+      self.reload unless self.primary_deployer?
+      self.get_update_state == State::UNDEPLOY ? self.get_deploy_state : self.get_update_state
+    end
+  end
+
 
   protected
 
