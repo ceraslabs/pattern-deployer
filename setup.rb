@@ -115,7 +115,7 @@ class SubCommand
   protected
 
   def install_bundler
-    execute_and_exit_on_fail("gem install bundle --no-ri --no-rdoc")
+    execute_and_exit_on_fail("gem install bundler --no-ri --no-rdoc")
   end
 
   def create_or_update_db_config_file
