@@ -205,7 +205,7 @@ class TopologyDeployer < BaseDeployer
 
     def depending_vertex_failed?
       if @state == WAITING
-        return get_depending_vertice.any?{|parent| parent.get_deploy_state == FAILED}
+        return get_depending_vertice.any?{|parent| parent.get_deploy_state == State::DEPLOY_FAIL}
       else
         return false
       end
