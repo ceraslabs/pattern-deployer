@@ -339,7 +339,8 @@ class TopologyWrapper
   def get_nodes_with_services(services)
     nodes = Array.new
     @doc.find("//node").each do |node_element|
-      node_services = get_services(node_element["id"])
+      node_id = node_element["id"]
+      node_services = get_services(node_id)
       if (node_services & services).length > 0
         nodes |= get_all_copies(node_id)
       end
