@@ -210,9 +210,9 @@ class ChefNodeDeployer < BaseDeployer
       sleep 1
     end
 
-    if (chef_command.failed? ||
-        (chef_node && !chef_node.deployment_show_up?) ||
-        (chef_node && chef_node.deployment_failed?))
+    if (chef_command.failed? || chef_node.nil? ||
+        !chef_node.deployment_show_up? ||
+        chef_node.deployment_failed?)
       msg = chef_command.get_err_msg
       inner_msg = chef_node.get_err_msg if chef_node
       raise DeploymentError.new(:message => msg, :inner_message => inner_msg)
