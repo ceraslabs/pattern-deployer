@@ -166,11 +166,14 @@ class ChefCommand
   end
 
   def get_err_msg
-    return "" if self.success?
+    return "" unless self.finished?
 
     err_msg = "Failed to deploy chef node '#{@node_name}' with command: #{self.get_command}\n"
-    err_msg += "Output of the command:\n"
-    err_msg += `cat #{self.get_log_file}`
+    if File.exists?(self.get_log_file)
+      err_msg += "Output of the command:\n"
+      err_msg += `cat #{self.get_log_file}`
+    end
+
     err_msg
   end
 
