@@ -49,7 +49,7 @@ class TopologyDeployer < BaseDeployer
     end
 
     def notify(key, value)
-      @to[@from.get_id][key] = value
+      @to[@from.get_id][key.to_s] = value
       @to.save
     end
 
@@ -182,7 +182,7 @@ class TopologyDeployer < BaseDeployer
 
     def can_start?
       if @state == WAITING
-        return get_depending_vertice.all?{|parent| parent.get_deploy_state == FINISHED}
+        return get_depending_vertice.all?{|parent| parent.get_deploy_state == State::DEPLOY_SUCCESS}
       else
         return false
       end
@@ -205,7 +205,7 @@ class TopologyDeployer < BaseDeployer
 
     def depending_vertex_failed?
       if @state == WAITING
-        return get_depending_vertice.any?{|parent| parent.get_deploy_state == FAILED}
+        return get_depending_vertice.any?{|parent| parent.get_deploy_state == State::DEPLOY_FAIL}
       else
         return false
       end
