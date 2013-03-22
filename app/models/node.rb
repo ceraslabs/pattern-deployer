@@ -29,7 +29,7 @@ class Node < ActiveRecord::Base
   belongs_to :owner, :class_name => "User", :foreign_key => "user_id", :inverse_of => :nodes
   belongs_to :topology
 
-  attr_accessible :attrs, :node_id, :templates, :services, :nested_nodes, :container_node, :parent, :owner, :id, :topology
+  attr_accessible :attrs, :node_id, :templates, :services, :nested_nodes, :container_node, :parent, :owner, :id, :topology, :nested_nodes_info
 
   validates :node_id, :presence => true
   validates_presence_of :parent, :owner
@@ -37,6 +37,7 @@ class Node < ActiveRecord::Base
   validate :node_mutable
 
   serialize :attrs, Hash
+  serialize :nested_nodes_info, Array
 
   after_initialize :set_default_values
   after_create :set_topology
@@ -142,6 +143,9 @@ class Node < ActiveRecord::Base
         end
 
         self.container_node = container_node
+        element.each_element do |child_element|
+          self.nested_nodes_info << child_element.to_s
+        end
       elsif element.name == "service"
         service = self.services.find_by_service_id!(element["name"])
         service.update_service_connections(element)
@@ -169,6 +173,7 @@ class Node < ActiveRecord::Base
 
   def set_default_values
     self.attrs ||= Hash.new
+    self.nested_nodes_info ||= Array.new
   end
 
   def set_topology

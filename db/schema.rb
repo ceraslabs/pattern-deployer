@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20121217000916) do
+ActiveRecord::Schema.define(:version => 20130321231544) do
 
   create_table "containers", :force => true do |t|
     t.string   "container_id"
@@ -46,6 +46,7 @@ ActiveRecord::Schema.define(:version => 20121217000916) do
     t.integer  "container_node_id"
     t.integer  "user_id",           :null => false
     t.integer  "topology_id"
+    t.text     "nested_nodes_info"
   end
 
   add_index "nodes", ["node_id"], :name => "index_nodes_on_node_id"

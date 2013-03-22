@@ -5,7 +5,13 @@ xml.node("id" => node.node_id) do
 
   xml << render("services/services", :services => node.services).gsub(/^/, "  ") if node.services.size > 0
 
-  xml.nest_within(:node => node.container_node.node_id) if node.container_node
+  if node.container_node
+    xml.nest_within(:node => node.container_node.node_id) do
+      node.nested_nodes_info.each do |info|
+        xml << info.gsub(/^/, "  ")
+      end
+    end
+  end
 
   node.attrs.each do |key, value|
     xml.tag!(key, value)
