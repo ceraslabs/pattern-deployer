@@ -304,24 +304,25 @@ class TopologyWrapper
     services
   end
 
-  def get_port_redirs
-    redirs = Hash.new
-    get_nodes.each do |node_id|
-      node_redirs = Array.new
-      get_service_elements(node_id).each do |service_element|
-        service_element.find("port_redirection").each do |redir|
-          node_redirs << redir["protocol"] + ":" + redir["from"] + "::" + redir["to"]
-        end
-      end
-      
-      next if node_redirs.empty?
+  def get_nested_node_info(node_id_with_suffix)
+    node_id = get_node_id(node_id_with_suffix)
+    nest_within_element = get_elements(node_id).find do |node_element|
+      node_element.name == "nest_within"
+    end
 
-      node_redirs << "tcp:5555::22" 
-      get_all_copies(node_id).each do |node_copy|
-        redirs[node_copy] = node_redirs
+    return if nest_within_element.nil?
+
+    info = Hash.new
+    info["host"] = node_id_with_suffix
+    nest_within_element.each_element do |child_element|
+      if child_element.name == "open_port"
+        info["port_redirs"] ||= Array.new
+        info["port_redirs"] << { "from" => child_element["redir_from"], "to" => child_element.content}
+      else
+        info[child_element.name] = child_element.content
       end
     end
-    return redirs
+    info
   end
 
   def get_snort_pairs
@@ -384,6 +385,10 @@ class TopologyWrapper
       all_copies << "#{node_id}_#{i}"
     end
     return all_copies
+  end
+
+  def get_node_id(node_copy)
+    node_copy.sub(/_\d+$/, "")
   end
 
   #def add_node(node_element, container_id)

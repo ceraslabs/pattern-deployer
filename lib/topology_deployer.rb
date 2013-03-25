@@ -736,7 +736,7 @@ class TopologyDeployer < BaseDeployer
   def load_topology_info
     establish_connection
     set_vpnips
-    set_port_redirs
+    set_nested_nodes_info
     set_web_server_info
     set_database_info
   end
@@ -776,7 +776,7 @@ class TopologyDeployer < BaseDeployer
     topology.get_nested_node_refs.each do |ref|
       nested_instance = @vertice[ref['from']]
       container = @vertice[ref['to']]
-      sync_vpn_connection(nested_instance, container)
+      #sync_vpn_connection(nested_instance, container)
     end
 
     #load appserver-database relationships
@@ -823,11 +823,17 @@ class TopologyDeployer < BaseDeployer
     end
   end
 
-  def set_port_redirs
-    # load port redirections into databag
-    topology.get_port_redirs.each do |vertex_id, redir|
-      target = @vertice[vertex_id]
-      target["port_redir"] = redir
+  def set_nested_nodes_info
+    topology.get_nested_node_refs.each do |ref|
+      nested_node_info = topology.get_nested_node_info(ref['from'])
+
+      nested_node = @vertice[ref['from']]
+      nested_node["nested_node_info"] ||= Hash.new
+      nested_node["nested_node_info"].merge!(nested_node_info)
+
+      container = @vertice[ref['to']]
+      container["nested_instances"] ||= Array.new
+      container["nested_instances"] << nested_node_info
     end
   end
 

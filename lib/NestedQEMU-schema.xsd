@@ -102,7 +102,6 @@
       <xs:element ref="openvpn_server"/>
       <xs:group ref ="snort_pair_group"/>
       <xs:element ref="member"/>
-      <xs:element ref="port_redirection"/>
       <xs:element ref="database_connection"/>
       <xs:group ref="database_elements"/>
       <xs:element ref="chef_server"/>
@@ -154,13 +153,6 @@
       <xs:element ref="password"/>
     </xs:choice>
   </xs:group>
-  <xs:element name="port_redirection">
-    <xs:complexType>
-      <xs:attribute name="protocol" type="xs:string" use="required"/>
-      <xs:attribute name="from" type="xs:string" use="required"/>
-      <xs:attribute name="to" type="xs:string" use="required"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="cloud" type="xs:string"/>
   <xs:element name="security_groups" type="xs:string"/>
   <xs:element name="image_id" type="xs:string"/>
@@ -229,7 +221,28 @@
   <xs:element name="script" type="xs:string"/>
   <xs:element name="nest_within">
     <xs:complexType>
+      <xs:choice>
+        <xs:group ref="nest_within_child_element" maxOccurs="unbounded"/>
+      </xs:choice>
       <xs:attribute name="node" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:group name="nest_within_child_element">
+    <xs:choice>
+      <xs:element name="image_file" type="xs:string"/>
+      <xs:element name="image_url" type="xs:string"/>
+      <xs:element name="image_format" type="xs:string"/>
+      <xs:element name="memory" type="xs:string"/>
+      <xs:element ref="open_port"/>
+    </xs:choice>
+  </xs:group>
+  <xs:element name="open_port">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:integer">
+          <xs:attribute name="redir_from" type="xs:integer" use="required"/>
+        </xs:extension>
+      </xs:simpleContent>
     </xs:complexType>
   </xs:element>
   <xs:element name="member">

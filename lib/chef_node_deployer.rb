@@ -224,7 +224,14 @@ class ChefNodeDeployer < BaseDeployer
   end
 
   def get_server_ip
-    attributes["public_ip"]
+    if attributes.has_key?("container_node")
+      container_node = attributes["container_node"].first
+      return attributes[container_node]["public_ip"]
+    elsif attributes.has_key?("public_ip")
+      return attributes["public_ip"]
+    else
+      return nil
+    end
   end
 
   def application_server?
@@ -244,7 +251,15 @@ class ChefNodeDeployer < BaseDeployer
   end
 
   def get_app_url
-    "http://" + get_server_ip + "/" + get_app_name if get_server_ip && get_app_name
+    return if get_server_ip.nil? || get_app_name.nil?
+
+    port = "80"
+    if attributes.has_key?("nested_node_info")
+      port_redir = attributes["nested_node_info"]["port_redirs"].find{ |r| r["to"] == port }
+      port = port_redir["from"] if port_redir
+    end
+
+    "http://#{get_server_ip}:#{port}/#{get_app_name}"
   end
 
   def get_db_system

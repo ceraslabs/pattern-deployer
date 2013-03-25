@@ -118,7 +118,7 @@ class ChefCommand
     return status.success?
   end
 
-  def execute_and_retry_on_fail(initial_wait = 60, timeout = 300)
+  def execute_and_retry_on_fail(initial_wait = 60, timeout = 600)
     # The nested instance takes at least 1 min to boot, so sleep 1 min
     sleep initial_wait
 
@@ -130,7 +130,7 @@ class ChefCommand
 
       break if success
 
-      sleep 2
+      sleep 10
       now = Time.now
     end
 
