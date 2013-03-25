@@ -85,9 +85,9 @@ class ChefNodeWrapper
   end
 
   def get_err_msg
-    if self.has_key?("formatted_exception")
+    if self["formatted_exception"]
       msg = self["formatted_exception"]
-      if self.has_key?("backtrace")
+      if self["backtrace"]
         msg += "\nTrace: "
         msg += self["backtrace"][0..10].join("\n")
         msg += "\n............"
