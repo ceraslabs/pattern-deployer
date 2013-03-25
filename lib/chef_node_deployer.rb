@@ -226,7 +226,9 @@ class ChefNodeDeployer < BaseDeployer
   def get_server_ip
     if attributes.has_key?("container_node")
       container_node = attributes["container_node"].first
-      return attributes[container_node]["public_ip"]
+      public_ip = attributes[container_node]["public_ip"]
+      on_data(:public_ip, public_ip)
+      return public_ip
     elsif attributes.has_key?("public_ip")
       return attributes["public_ip"]
     else

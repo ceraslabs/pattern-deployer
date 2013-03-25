@@ -126,7 +126,7 @@ class ChefCommand
     start = Time.now
     now = Time.now
     until (now - start) > timeout
-      success = system("script #{@log_file} -c '#{@command}' -e")
+      success = system("script #{@log_file} -c '#{@command}' -e 1>/dev/null 2>&1")
 
       break if success
 
