@@ -205,7 +205,10 @@ class ChefNodeDeployer < BaseDeployer
     chef_node = nil
     for i in 1..timeout
       chef_node = get_chef_node
-      break if chef_node && chef_node.deployment_show_up?
+      if chef_node
+        chef_node.reload
+        break if chef_node.deployment_show_up?
+      end
 
       sleep 1
     end
