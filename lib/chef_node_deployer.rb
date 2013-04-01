@@ -125,6 +125,16 @@ class ChefNodeDeployer < BaseDeployer
     super()
     generic_prepare
 
+    if attributes.has_key?("migration")
+      if self.get_id == attributes["migration"]["source"]
+        self.services << "migrate_from"
+      elsif self.get_id == attributes["migration"]["destination"]
+        self.services << "migrate_to"
+      else
+        raise "Unexpected migration node #{self.get_id}"
+      end
+    end
+
     chef_node = get_chef_node
     chef_node.start_deployment if chef_node
   end
@@ -205,7 +215,10 @@ class ChefNodeDeployer < BaseDeployer
     chef_node = nil
     for i in 1..timeout
       chef_node = get_chef_node
-      break if chef_node && chef_node.deployment_show_up?
+      if chef_node
+        chef_node.reload
+        break if chef_node.deployment_show_up?
+      end
 
       sleep 1
     end
@@ -224,12 +237,16 @@ class ChefNodeDeployer < BaseDeployer
   end
 
   def get_server_ip
-    if attributes.has_key?("container_node")
+    if attributes.has_key?("container_node") && !attributes.has_key?("public_ip")
       container_node = attributes["container_node"].first
       public_ip = attributes[container_node]["public_ip"]
-      on_data(:public_ip, public_ip)
-      return public_ip
-    elsif attributes.has_key?("public_ip")
+      if public_ip
+        attributes["public_ip"] = public_ip
+        on_data(:public_ip, public_ip)
+      end
+    end
+
+    if attributes.has_key?("public_ip")
       return attributes["public_ip"]
     else
       return nil
@@ -302,14 +319,14 @@ class ChefNodeDeployer < BaseDeployer
 
   # This method is called to update the databag whenever interesting data print is print to console
   def on_data(key, value)
-    return if self.has_key?(key)
-
     if get_cloud == Rails.application.config.openstack && key == :floating_ip
       key = :public_ip
     end
 
-    self[key] = value
-    self.save
+    if self[key] != value
+      self[key] = value
+      self.save
+    end
 
     begin
       @parent.on_data(key, value, get_name) if @parent.class == TopologyDeployer
@@ -431,6 +448,7 @@ class ChefNodeDeployer < BaseDeployer
   def on_deploy_success
     super()
     on_deploy_finish
+    self.delete_key("migration") if self.has_key?("migration")
     save
   end
 

@@ -113,6 +113,19 @@ class Topology < ActiveRecord::Base
     self.set_state(State::DEPLOYING)
   end
 
+  def migrate(topology_xml, services, resources, node_to_migrate, source, destination)
+    my_state = get_state
+    if my_state == State::UNDEPLOY
+      err_msg = "The topology '#{self.topology_id}' is not deployed"
+      raise DeploymentError.new(:message => err_msg)
+    end
+
+    deployer = get_deployer
+    deployer.migrate(topology_xml, services, resources, node_to_migrate, source, destination)
+
+    self.set_state(State::DEPLOYING)
+  end
+
   def repair(topology_xml, services, resources)
     my_state = get_state
     if my_state != State::DEPLOY_FAIL

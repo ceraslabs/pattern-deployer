@@ -168,6 +168,12 @@ class Node < ActiveRecord::Base
     end
   end
 
+  def unlock
+    get_topology.unlock do
+      yield
+    end
+  end
+
 
   protected
 

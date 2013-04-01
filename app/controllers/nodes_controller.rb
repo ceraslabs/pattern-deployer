@@ -302,6 +302,7 @@ class NodesController < RestfulController
     REMOVE_TEMPLATE = "remove_template"
     SET_ATTR = "set_attribute"
     REMOVE_ATTR = "remove_attribute"
+    MIGRATE = "migrate"
   end
 
 
@@ -332,7 +333,7 @@ class NodesController < RestfulController
   ##
   ##~ param = {:name => "operation", :dataType => "string", :allowMultiple => false, :required => true, :paramType => "query"}
   ##~ param[:description] = "The operatoin to execute"
-  ##~ param[:allowableValues] = {:valueType => "LIST", :values => ["rename", "add_template", "remove_template", "set_attribute", "remove_attribute"]}
+  ##~ param[:allowableValues] = {:valueType => "LIST", :values => ["rename", "add_template", "remove_template", "set_attribute", "remove_attribute", "migrate"]}
   ##~ params << param
   ##
   ##~ param = {:name => "name", :dataType => "string", :allowMultiple => false, :required => false, :paramType => "query"}
@@ -350,6 +351,10 @@ class NodesController < RestfulController
   ##
   ##~ param = {:name => "attribute_value", :dataType => "string", :allowMultiple => false, :required => false, :paramType => "query"}
   ##~ param[:description] = "The value of the attribute to be set. Use in 'set_attribute'"
+  ##~ params << param
+  ##
+  ##~ param = {:name => "destination", :dataType => "string", :allowMultiple => false, :required => false, :paramType => "query"}
+  ##~ param[:description] = "The destination node to migrate to. Use in 'migrate'"
   ##~ params << param
   ##
   ##~ params.each{|p| op.parameters.add p}
@@ -399,6 +404,29 @@ class NodesController < RestfulController
     when NodeOp::REMOVE_ATTR
       raise ParametersValidationError.new(:message => "Cannot find attribute's key to remove") unless params[:attribute_key]
       @node.remove_attr(params[:attribute_key])
+    when NodeOp::MIGRATE
+      raise ParametersValidationError.new(:message => "Destination of migration is missing") unless params[:destination]
+
+      dest_node = Node.where(:topology_id => @topology.id, :node_id => params[:destination]).first
+      if dest_node.nil?
+        raise ParametersValidationError.new(:message => "The specified destination node doesn't exist")
+      end
+      if @node.container_node.id == dest_node.id
+        raise ParametersValidationError.new(:message => "The node is already at the destination. Nothing to migrate")
+      end
+
+      resources = get_resources
+      services = SupportingService.get_all_services
+      self.formats = [:xml]
+      topology_xml = render_to_string(:partial => "topologies/topology", :locals => {:topology => @topology})
+
+      node_to_migrate = @node.node_id
+      source = @node.container_node.node_id
+      destination = dest_node.node_id
+      @topology.migrate(topology_xml, services, resources, node_to_migrate, source, destination)
+
+      @node.container_node = dest_node
+      @node.unlock{@node.save!}
     else
       err_msg = "Invalid operation. Supported operations are #{get_operations(NodeOp).join(',')}"
       raise ParametersValidationError.new(:message => err_msg)

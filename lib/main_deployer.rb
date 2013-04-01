@@ -21,6 +21,7 @@ require "chef_node"
 require "my_errors"
 require "supporting_service_deployer"
 require "topology_deployer"
+require "migration_deployer"
 
 
 class MainDeployer < BaseDeployer
@@ -290,6 +291,30 @@ class MainDeployer < BaseDeployer
     end
   end
 
+  def migrate(topology_xml, supporting_services, resources, node_to_migrate, source, destination)
+    lock_topology(:read_only => true) do
+      self.reload
+
+      topology = TopologyWrapper.new(topology_xml)
+      initialize_deployers(topology, :supporting_services => supporting_services)
+
+      domain = "#{node_to_migrate}_1"
+      source_deployer = @topology_deployer.get_node_deployer(source, topology, resources)
+      dest_deployer = @topology_deployer.get_node_deployer(destination, topology, resources)
+      @migrations_deployer.schedule_migration(domain, source_deployer, dest_deployer)
+
+      prepare_update_deployment
+      self.save
+    end
+  end
+
+  def on_migration_finish
+    @topology_deployer.reload_update_state
+    @topology_deployer.reload_update_error
+    self.reload_update_state
+    self.reload_update_error
+  end
+
   def get_state
     lock_topology(:read_only => true) do
       self.reload unless self.primary_deployer?
@@ -323,12 +348,15 @@ class MainDeployer < BaseDeployer
   end
 
   def initialize_deployers(topology, options={})
-    resources = options[:resources]
     services_deployers = options[:supporting_services]
 
     if @topology_deployer.nil?
       @topology_deployer = TopologyDeployer.new(topology.get_topology_id)
       self << @topology_deployer
+    end
+
+    if @migrations_deployer.nil?
+      @migrations_deployer = MigrationsDeployer.new(topology.get_topology_id, self)
     end
 
     #TODO update @my_openvpn_service if it exists

@@ -74,7 +74,7 @@ class BaseDeployer
   end
 
   def get_children
-    @children || Hash.new
+    @children ||= Hash.new
   end
 
   def get_child_by_name(name)
@@ -177,6 +177,10 @@ class BaseDeployer
     set_state_by_type("update_state", state)
   end
 
+  def reload_update_state
+    set_update_state(get_children_state)
+  end
+
   def get_err_msg
     get_deploy_error
   end
@@ -201,6 +205,10 @@ class BaseDeployer
   def set_update_error(msg)
     self.update_error = msg
     self.save
+  end
+
+  def reload_update_error
+    set_update_error(get_children_error)
   end
 
   def ==(deployer)
@@ -237,7 +245,8 @@ class BaseDeployer
   end
 
   def save
-    raise "Cannot save" unless self.primary_deployer?
+    # AERIE version run in signal process, so no need to check primary or not
+    #raise "Cannot save" unless self.primary_deployer?
 
     get_databag.set_data(attributes)
     get_databag.save

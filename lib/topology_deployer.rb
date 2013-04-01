@@ -49,6 +49,8 @@ class TopologyDeployer < BaseDeployer
     end
 
     def notify(key, value)
+      return if @to[@from.get_id][key.to_s] == value
+
       @to[@from.get_id][key.to_s] = value
       @to.save
     end
@@ -467,6 +469,13 @@ class TopologyDeployer < BaseDeployer
     end
   end
 
+  def get_node_deployer(node_name, topology, resources)
+    self.topology, self.resources = topology, resources
+    initialize_child_deployers
+
+    get_child_by_name("#{node_name}_1")
+  end
+
   def wait(timeout)
     @worker_thread.join
   end
@@ -479,6 +488,9 @@ class TopologyDeployer < BaseDeployer
       vertex.on_vpn_client_ip(value[:vpn_server], value[:vpnip])
     elsif key == :vpn_server_ip
       vertex.notify_adjacent_vertice(:vpnip, value, :vpn_connected_nodes)
+    else
+      #nothing
+      #puts "No action require for key #{key}, value #{value}, vertex_name #{vertex_name}"
     end
   end
 
@@ -825,15 +837,12 @@ class TopologyDeployer < BaseDeployer
 
   def set_nested_nodes_info
     topology.get_nested_node_refs.each do |ref|
-      nested_node_info = topology.get_nested_node_info(ref['from'])
-
       nested_node = @vertice[ref['from']]
-      nested_node["nested_node_info"] ||= Hash.new
-      nested_node["nested_node_info"].merge!(nested_node_info)
+      nested_node["nested_node_info"] = topology.get_nested_node_info(ref['from'])
 
-      container = @vertice[ref['to']]
-      container["nested_instances"] ||= Array.new
-      container["nested_instances"] << nested_node_info
+      container_node = @vertice[ref['to']]
+      container_node["nested_nodes_infos"] ||= Array.new
+      container_node["nested_nodes_infos"] << topology.get_nested_node_info(ref['from'])
     end
   end
 
@@ -873,7 +882,6 @@ class TopologyDeployer < BaseDeployer
 
     cookbook.save
   end
-
 
   def save_all
     self.save

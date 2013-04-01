@@ -476,6 +476,7 @@
                 "valueType": "LIST",
                 "values": [
                   "add_template",
+                  "migrate",
                   "remove_attribute",
                   "remove_template",
                   "rename",
@@ -531,6 +532,14 @@
               "dataType": "string",
               "description": "The value of the attribute to be set. Use in 'set_attribute'",
               "name": "attribute_value",
+              "paramType": "query",
+              "required": false
+            },
+            {
+              "allowMultiple": false,
+              "dataType": "string",
+              "description": "The destination node to migrate to. Use in 'migrate'",
+              "name": "destination",
               "paramType": "query",
               "required": false
             }
@@ -598,6 +607,7 @@
                 "valueType": "LIST",
                 "values": [
                   "add_template",
+                  "migrate",
                   "remove_attribute",
                   "remove_template",
                   "rename",
@@ -653,6 +663,14 @@
               "dataType": "string",
               "description": "The value of the attribute to be set. Use in 'set_attribute'",
               "name": "attribute_value",
+              "paramType": "query",
+              "required": false
+            },
+            {
+              "allowMultiple": false,
+              "dataType": "string",
+              "description": "The destination node to migrate to. Use in 'migrate'",
+              "name": "destination",
               "paramType": "query",
               "required": false
             }
