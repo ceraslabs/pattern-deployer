@@ -194,6 +194,8 @@ class BaseDeployer
   end
 
   def set_deploy_error(msg)
+    return if msg.blank?
+
     self.deploy_error = msg
     self.save
   end
@@ -388,7 +390,7 @@ class BaseDeployer
     set_deploy_state(State::DEPLOY_SUCCESS)
   end
 
-  def on_deploy_failed(err_msg)
+  def on_deploy_failed(err_msg = nil)
     set_deploy_state(State::DEPLOY_FAIL)
     set_deploy_error(err_msg)
   end

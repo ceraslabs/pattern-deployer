@@ -166,6 +166,7 @@ class MigrationsDeployer < BaseDeployer
       while true
         state = try_deploy_and_get_state
         if state == State::DEPLOY_SUCCESS || state == State::DEPLOY_FAIL
+          state == State::DEPLOY_SUCCESS ? on_deploy_success : on_deploy_failed
           @parent.on_migration_finish
           break
         end

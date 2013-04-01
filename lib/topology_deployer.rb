@@ -470,7 +470,7 @@ class TopologyDeployer < BaseDeployer
   end
 
   def get_node_deployer(node_name, topology, resources)
-    self.topology, self.resources = topology, resources
+    self.reload(topology, resources)
     initialize_child_deployers
 
     get_child_by_name("#{node_name}_1")
