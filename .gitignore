@@ -24,3 +24,4 @@ pickle-email-*.html
 /public/api-docs.json
 /public/assets/
 /vendor/cache
+/db/data.yml
