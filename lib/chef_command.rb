@@ -109,13 +109,11 @@ class ChefCommand
   end
 
   def execute_and_cpature_output
-    status = Open4::popen4("script #{@log_file} -c '#{@command}' -e") do |pid, stdin, stdout, stderr|
-      stdin.close
-      @pid = pid
-      capture_data(stdout)
+    IO.popen("script #{@log_file} -c '#{@command}' -e") do |output|
+      capture_data(output)
     end
 
-    return status.success?
+    return $?.success?
   end
 
   def execute_and_retry_on_fail(initial_wait = 60, timeout = 300)
