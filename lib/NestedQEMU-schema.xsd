@@ -57,6 +57,10 @@
       <xs:selector xpath=".//chef_server"/>
       <xs:field xpath="@node"/>
     </xs:keyref>
+    <xs:keyref name="monitor_client_node" refer="my_node">
+      <xs:selector xpath=".//monitor"/>
+      <xs:field xpath="@node"/>
+    </xs:keyref>
     
     <!-- vpnip must be unique -->
     <xs:unique name="unique_vpnip">
@@ -106,6 +110,7 @@
       <xs:element ref="database_connection"/>
       <xs:group ref="database_elements"/>
       <xs:element ref="chef_server"/>
+      <xs:element ref="monitor"/>
     </xs:choice>
   </xs:group>
   <xs:element name="service">
@@ -131,6 +136,8 @@
             <xs:enumeration value="server_installation"/>
             <xs:enumeration value="standalone_installation"/>
             <xs:enumeration value="client_installation"/>
+            <xs:enumeration value="monitor"/>
+            <xs:enumeration value="monitoring_server"/>
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
@@ -266,6 +273,11 @@
     </xs:complexType>
   </xs:element>
   <xs:element name="snort_pair_second">
+    <xs:complexType>
+      <xs:attribute name="node" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="monitor">
     <xs:complexType>
       <xs:attribute name="node" type="xs:string" use="required"/>
     </xs:complexType>

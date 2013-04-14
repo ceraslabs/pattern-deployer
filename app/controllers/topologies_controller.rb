@@ -89,6 +89,18 @@ require "resources_manager"
 ##~ field = fields.inServer
 ##~ field.set :type => "string", :description => "The name of the server which host the database server"
 ##
+## * Model Monitor
+##
+##~ model = @topology.models.Monitor
+##~ model.id = "Monitor"
+##~ fields = model.properties
+##
+##~ field = fields.url
+##~ field.set :type => "string", :description => "The url of the monitoring server"
+##
+##~ field = fields.inServer
+##~ field.set :type => "string", :description => "The name of the server which host the monitoring server"
+##
 ## * Model Deployment
 ##
 ##~ model = @topology.models.Deployment
@@ -116,6 +128,9 @@ require "resources_manager"
 ##
 ##~ field = fields.databases
 ##~ field.set :type => "List", :description => "The list of databases that being deployed", :items => {:$ref => "Database"}
+##
+##~ field = fields.monitors
+##~ field.set :type => "List", :description => "The list of monitoring server that being deployed", :items => {:$ref => "Monitor"}
 ##
 ## * Model Topology
 ##

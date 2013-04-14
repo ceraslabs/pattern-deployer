@@ -33,6 +33,11 @@ child topology => :deployment do
     attribute :db_root_pwd => :rootPassword
     attribute :name => :inServer
   end
+  monitoring_servers = nodes.select{ |node| node.is_monitoring_server }
+  child(monitoring_servers => :monitoring_servers) do
+    attribute :monitoring_server_url => :url
+    attribute :name => :inServer
+  end
 end
 node :pattern do
   topology_pattern

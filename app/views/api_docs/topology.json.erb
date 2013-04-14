@@ -333,6 +333,13 @@
           "description": "The message of the deployment",
           "type": "string"
         },
+        "monitors": {
+          "description": "The list of monitoring server that being deployed",
+          "items": {
+            "$ref": "Monitor"
+          },
+          "type": "List"
+        },
         "servers": {
           "description": "The list of nodes that being deployed",
           "items": {
@@ -351,6 +358,19 @@
             ]
           },
           "description": "The status of the deployment of topology",
+          "type": "string"
+        }
+      }
+    },
+    "Monitor": {
+      "id": "Monitor",
+      "properties": {
+        "inServer": {
+          "description": "The name of the server which host the monitoring server",
+          "type": "string"
+        },
+        "url": {
+          "description": "The url of the monitoring server",
           "type": "string"
         }
       }
