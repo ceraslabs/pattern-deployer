@@ -311,6 +311,14 @@ class ChefNodeDeployer < BaseDeployer
     root_pwd
   end
 
+  def monitoring_server?
+    services.include?("monitoring_server")
+  end
+
+  def monitoring_server_url
+    "http://" + get_server_ip + "/ganglia" if get_server_ip
+  end
+
   def server_created?
     attributes.has_key?("public_ip")
   end
