@@ -286,7 +286,7 @@ class BaseDeployer
     msg = "On deploying '#{deployer.get_id}':"
     msg += "\nError: #{exception.message}"
     msg += "\nTrace: "
-    msg += exception.backtrace[0..10].join("\n")
+    msg += exception.backtrace[0..20].join("\n")
     msg += "\n............"
     if exception.class == DeploymentError
       inner_msg = exception.get_inner_message

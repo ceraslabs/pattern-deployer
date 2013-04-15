@@ -123,7 +123,7 @@ module PatternDeployer
     config.chef_max_deploy_time = 3600
 
     # The timeout for waiting ip address of another deploying instance
-    config.chef_wait_ip_timeout = 300
+    config.chef_wait_ip_timeout = 600
 
     # The timeout for waiting the virtual ip address of another deploying instance
     config.chef_wait_vpnip_timeout = 600

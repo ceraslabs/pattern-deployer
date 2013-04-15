@@ -20,33 +20,37 @@ require "chef_node_deployer"
 
 class MigrationDeployer < BaseDeployer
 
-  def initialize(domain, source_deployer, dest_deployer, parent)
-    my_id = self.class.get_migration_id(domain, source_deployer, dest_deployer)
+  def initialize(domain_deployer, source_deployer, dest_deployer, parent)
+    my_id = self.class.get_migration_id(domain_deployer, source_deployer, dest_deployer)
     super(my_id, source_deployer.topology_id, parent)
   end
 
-  def self.get_migration_id(domain, source_deployer, dest_deployer)
+  def self.get_migration_id(domain_deployer, source_deployer, dest_deployer)
     topology_id = source_deployer.topology_id
-    [self.get_id_prefix, "topology", topology_id, "migration", domain, source_deployer.get_name, dest_deployer.get_name].join("_")
+    [self.get_id_prefix, "topology", topology_id, "migration", domain_deployer.get_name, source_deployer.get_name, dest_deployer.get_name].join("_")
   end
 
   def get_id
     deployer_id
   end
 
-  def prepare_deploy(domain, source_deployer, dest_deployer)
+  def prepare_deploy(domain_deployer, source_deployer, dest_deployer, lb_deployer)
     migration_info = {
       "id" => self.get_id,
       "source" => source_deployer.get_id,
       "destination" => dest_deployer.get_id,
-      "domain" => domain
+      "domain" => domain_deployer.get_name,
+      "load_balancer" => lb_deployer ? lb_deployer.get_id: nil,
+      "application_port" => domain_deployer["application_port"] || "80"
     }
     source_deployer["migration"] = migration_info
     dest_deployer["migration"] = migration_info
+    lb_deployer["migration"] = migration_info if lb_deployer
 
     get_children.clear
-    get_children << source_deployer
+    get_children << lb_deployer if lb_deployer
     get_children << dest_deployer
+    get_children << source_deployer
 
     self.deploy_state = State::DEPLOYING
 
@@ -61,18 +65,16 @@ class MigrationDeployer < BaseDeployer
 
     @worker_thread = Thread.new do
       begin
-        dest_deployer = get_children.last
-        deploy_node(dest_deployer)
-
-        source_deployer = get_children.first
-        deploy_node(source_deployer)
+        get_children.each do |child_node|
+          deploy_node(child_node)
+        end
 
         on_deploy_success
       rescue Exception => ex
         on_deploy_failed(ex.message)
         #debug
         puts ex.message
-        puts ex.backtrace[0..10].join("\n")
+        puts ex.backtrace[0..20].join("\n")
       end
     end
   end
@@ -151,9 +153,9 @@ class MigrationsDeployer < BaseDeployer
     super(my_id, topology_id, parent)
   end
 
-  def schedule_migration(domain, source_deployer, dest_deployer)
-    migration = get_or_create_migration(domain, source_deployer, dest_deployer)
-    migration.prepare_deploy(domain, source_deployer, dest_deployer)
+  def schedule_migration(domain_deployer, source_deployer, dest_deployer, lb_deployer)
+    migration = get_or_create_migration(domain_deployer, source_deployer, dest_deployer)
+    migration.prepare_deploy(domain_deployer, source_deployer, dest_deployer, lb_deployer)
     add_migration(migration)
     if get_deploy_state != State::DEPLOYING
       set_deploy_state(State::DEPLOYING)
@@ -213,11 +215,11 @@ class MigrationsDeployer < BaseDeployer
     return State::DEPLOY_FAIL
   end
 
-  def get_or_create_migration(domain, source_deployer, dest_deployer)
-    migration_id = MigrationDeployer.get_migration_id(domain, source_deployer, dest_deployer)
+  def get_or_create_migration(domain_deployer, source_deployer, dest_deployer)
+    migration_id = MigrationDeployer.get_migration_id(domain_deployer, source_deployer, dest_deployer)
     migration = get_children.find{ |c| c.get_id == migration_id }
     if migration.nil?
-      migration = MigrationDeployer.new(domain, source_deployer, dest_deployer, self)
+      migration = MigrationDeployer.new(domain_deployer, source_deployer, dest_deployer, self)
     end
     migration
   end

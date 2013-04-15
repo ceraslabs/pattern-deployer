@@ -182,6 +182,9 @@ class ChefCommand
     instance_id_prefix = @instance_id_prefix
 
     output.each do |line|
+      #debug
+      #puts line
+
       # capture public ip from stardard output
       if line.index(public_ip_prefix)
         public_ip = line.split(":")[1].strip

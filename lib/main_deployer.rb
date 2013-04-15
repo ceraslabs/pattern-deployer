@@ -182,7 +182,7 @@ class MainDeployer < BaseDeployer
         on_deploy_failed(ex.message)
         #debug
         puts ex.message
-        puts ex.backtrace[0..10].join("\n")
+        puts ex.backtrace[0..20].join("\n")
       end
     end
   end
@@ -217,7 +217,7 @@ class MainDeployer < BaseDeployer
         on_update_failed(ex.message)
         #debug
         puts ex.message
-        puts ex.backtrace[0..10].join("\n")
+        puts ex.backtrace[0..20].join("\n")
       end
     end
   end
@@ -251,7 +251,7 @@ class MainDeployer < BaseDeployer
         on_update_failed(ex.message)
         #debug
         puts ex.message
-        puts ex.backtrace[0..10].join("\n")
+        puts ex.backtrace[0..20].join("\n")
       end
     end
   end
@@ -298,10 +298,11 @@ class MainDeployer < BaseDeployer
       topology = TopologyWrapper.new(topology_xml)
       initialize_deployers(topology, :supporting_services => supporting_services)
 
-      domain = "#{node_to_migrate}_1"
+      domain_deployer = @topology_deployer.get_node_deployer(node_to_migrate, topology, resources)
       source_deployer = @topology_deployer.get_node_deployer(source, topology, resources)
       dest_deployer = @topology_deployer.get_node_deployer(destination, topology, resources)
-      @migrations_deployer.schedule_migration(domain, source_deployer, dest_deployer)
+      lb_deployer = @topology_deployer.get_load_balancer_deployer(node_to_migrate, topology, resources)
+      @migrations_deployer.schedule_migration(domain_deployer, source_deployer, dest_deployer, lb_deployer)
 
       prepare_update_deployment
       self.save

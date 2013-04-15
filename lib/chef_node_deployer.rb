@@ -130,6 +130,8 @@ class ChefNodeDeployer < BaseDeployer
         self.services << "migrate_from"
       elsif self.get_id == attributes["migration"]["destination"]
         self.services << "migrate_to"
+      elsif self.get_id == attributes["migration"]["load_balancer"]
+        self.services << "on_member_migrate"
       else
         raise "Unexpected migration node #{self.get_id}"
       end
@@ -270,15 +272,11 @@ class ChefNodeDeployer < BaseDeployer
   end
 
   def get_app_url
-    return if get_server_ip.nil? || get_app_name.nil?
-
-    port = "80"
-    if attributes.has_key?("nested_node_info")
-      port_redir = attributes["nested_node_info"]["port_redirs"].find{ |r| r["to"] == port }
-      port = port_redir["from"] if port_redir
+    if get_server_ip.nil? || get_app_name.nil?
+      return nil
+    else
+      return "http://#{get_server_ip}:#{get_app_port}/#{get_app_name}"
     end
-
-    "http://#{get_server_ip}:#{port}/#{get_app_name}"
   end
 
   def get_db_system
@@ -499,6 +497,15 @@ class ChefNodeDeployer < BaseDeployer
     else
       return cloud
     end
+  end
+
+  def get_app_port
+    port = "80"
+    if attributes.has_key?("nested_node_info")
+      port_redir = attributes["nested_node_info"]["port_redirs"].find{ |r| r["to"] == port }
+      port = port_redir["from"] if port_redir
+    end
+    port
   end
 
 end

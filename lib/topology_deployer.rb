@@ -476,6 +476,17 @@ class TopologyDeployer < BaseDeployer
     get_child_by_name("#{node_name}_1")
   end
 
+  def get_load_balancer_deployer(node_name, topology, resources)
+    self.reload(topology, resources)
+    initialize_deployment_graph
+    load_topology_info
+
+    member_vertex = @vertice["#{node_name}_1"]
+    all_vertice.find do |vertex|
+      member_vertex.connected?(vertex, :balancer_members)
+    end
+  end
+
   def wait(timeout)
     @worker_thread.join
   end
@@ -587,7 +598,7 @@ class TopologyDeployer < BaseDeployer
   rescue Exception => ex
     #debug
     puts ex.message
-    puts ex.backtrace[0..10].join("\n")
+    puts ex.backtrace[0..20].join("\n")
   end
 
   def try_deploy(vertice, options={})
@@ -850,6 +861,7 @@ class TopologyDeployer < BaseDeployer
     topology.get_war_files.each do |vertex_id, file|
       vertex = @vertice[vertex_id]
       vertex[FileType::WAR_FILE] = file #TODO support multiple war files
+      vertex["application_port"] = vertex.get_app_port
     end
   end
 
