@@ -159,6 +159,7 @@
       <xs:element ref="instance_type"/>
       <xs:element ref="port"/>
       <xs:element ref="password"/>
+      <xs:element ref="region"/>
     </xs:choice>
   </xs:group>
   <xs:element name="port_redirection">
@@ -177,7 +178,7 @@
   <xs:element name="instance_type" type="xs:string"/>
   <xs:element name="port" type="xs:string"/>
   <xs:element name="password" type="xs:string"/>
-  <xs:element name="timeout" type="xs:string"/>
+  <xs:element name="region" type="xs:string"/>
   <xs:element name="container">
     <xs:complexType>
       <xs:sequence>
