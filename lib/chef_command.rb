@@ -269,7 +269,7 @@ end
 
 class EC2CommandBuilder < BaseCommandBuilder
   def build_create_command
-    security_groups =  @node_info["security_groups"] || "quicklaunch-1"
+    security_groups =  @node_info["security_groups"]
     image =  @node_info["image_id"]
     instance_type =  @node_info["instance_type"]
     key_pair_id =  @node_info["key_pair_id"]
@@ -282,7 +282,7 @@ class EC2CommandBuilder < BaseCommandBuilder
     command += "-S #{key_pair_id} " if key_pair_id
     command += "-G #{security_groups} " if security_groups
     command += "-Z #{zone} " if zone
-    command += "--region #{region}" if region
+    command += "--region #{region} " if region
     command += build_auth_info
 
     command += super()
@@ -292,6 +292,7 @@ class EC2CommandBuilder < BaseCommandBuilder
   def build_delete_command(instance_id)
     command = "knife ec2 server delete #{instance_id} -y "
     command += "-N #{@node_name} "
+    command += "--region #{@node_info["region"]} " if @node_info["region"]
     command += build_auth_info
   end
 
