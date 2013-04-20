@@ -107,7 +107,7 @@ class ChefNodeDeployer < BaseDeployer
     #puts "[#{Time.now}] Start deploy_node #{@node_name}"
 
     if get_server_ip
-      node_info["server_ip"] = get_server_ip
+      node_info["server_ip"] ||= get_server_ip
       save
     end
 
@@ -148,7 +148,7 @@ class ChefNodeDeployer < BaseDeployer
     end
 
     unless node_info.has_key?("server_ip")
-      node_info["server_ip"] = get_server_ip
+      node_info["server_ip"] ||= get_server_ip
       save
     end
 
@@ -472,6 +472,8 @@ class ChefNodeDeployer < BaseDeployer
     cloud = node_info["cloud"]
     if cloud.class == String
       return cloud.downcase
+    elsif cloud.class == NilClass
+      return Rails.application.config.notcloud
     else
       return cloud
     end

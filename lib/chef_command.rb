@@ -61,7 +61,7 @@ class ChefCommand
   end
 
   def build_create_command
-    if @node_info["cloud"].downcase == Rails.application.config.notcloud
+    if @node_info["cloud"] == nil || @node_info["cloud"].downcase == Rails.application.config.notcloud
       command_builder = BootstrapCommandBuilder.new(@node_name, @node_info, @services, @server_ip)
     elsif @node_info["cloud"].downcase == Rails.application.config.ec2
       command_builder = EC2CommandBuilder.new(@node_name, @node_info, @services)

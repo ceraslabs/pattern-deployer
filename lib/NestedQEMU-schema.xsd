@@ -160,6 +160,7 @@
       <xs:element ref="port"/>
       <xs:element ref="password"/>
       <xs:element ref="region"/>
+      <xs:element ref="server_ip"/>
     </xs:choice>
   </xs:group>
   <xs:element name="port_redirection">
@@ -179,6 +180,7 @@
   <xs:element name="port" type="xs:string"/>
   <xs:element name="password" type="xs:string"/>
   <xs:element name="region" type="xs:string"/>
+  <xs:element name="server_ip" type="xs:string"/>
   <xs:element name="container">
     <xs:complexType>
       <xs:sequence>
