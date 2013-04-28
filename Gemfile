@@ -42,7 +42,7 @@ gem 'therubyracer'
 
 gem 'mysql2'
 
-gem 'chef', '~>10.18.2'
+gem 'chef', '10.24.0'
 gem 'knife-ec2'
 gem 'customized-knife-openstack', :git => 'git://github.com/ceraslabs/knife-openstack.git'
 
