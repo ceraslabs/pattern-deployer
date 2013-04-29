@@ -85,6 +85,7 @@ class ChefNodeDeployer < BaseDeployer
     if @parent.class == TopologyDeployer
       attributes["topology_id"] = @parent.get_topology_id
     end
+    attributes["public_ip"] ||= node_info["server_ip"]
   end
 
   def deploy
@@ -216,6 +217,12 @@ class ChefNodeDeployer < BaseDeployer
     if (chef_command.failed? || chef_node.nil? ||
         !chef_node.deployment_show_up? ||
         chef_node.deployment_failed?)
+      #debug
+      puts "Chef command failed? #{chef_command.failed?}"
+      puts "Chef_node is nil? #{chef_node.nil?}"
+      puts "Chef node didn't show up? #{chef_node.deployment_show_up?}"
+      puts "Chef node indicate failed? #{chef_node.deployment_failed?}"
+
       msg = chef_command.get_err_msg
       inner_msg = chef_node.get_err_msg if chef_node
       raise DeploymentError.new(:message => msg, :inner_message => inner_msg)
@@ -450,6 +457,7 @@ class ChefNodeDeployer < BaseDeployer
     load_output
     chef_node = get_chef_node
     if chef_node
+      chef_node.reload
       attributes["public_ip"] ||= chef_node.get_server_ip
       attributes["private_ip"] ||= chef_node.get_private_ip
     end
