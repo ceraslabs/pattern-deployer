@@ -220,8 +220,8 @@ class ChefNodeDeployer < BaseDeployer
       #debug
       puts "Chef command failed? #{chef_command.failed?}"
       puts "Chef_node is nil? #{chef_node.nil?}"
-      puts "Chef node didn't show up? #{chef_node.deployment_show_up?}"
-      puts "Chef node indicate failed? #{chef_node.deployment_failed?}"
+      puts "Chef node didn't show up? #{chef_node.deployment_show_up?}" if chef_node
+      puts "Chef node indicate failed? #{chef_node.deployment_failed?}" if chef_node
 
       msg = chef_command.get_err_msg
       inner_msg = chef_node.get_err_msg if chef_node
