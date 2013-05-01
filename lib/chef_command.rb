@@ -318,6 +318,7 @@ class OpenStackCommandBuilder < BaseCommandBuilder
     command += "-I #{image_id} "
     command += "-f #{instance_type} " if instance_type
     command += "-S #{key_pair_id} "
+    command += "--auto-alloc-floating-ip " if Rails.configuration.openstack_auto_allocate_ip
     command += build_auth_info
 
     command += super()
@@ -328,6 +329,7 @@ class OpenStackCommandBuilder < BaseCommandBuilder
     command = "knife openstack server delete #{instance_id} -y "
     command += "-N #{@node_name} "
     command += "--region #{@node_info["region"]} " if @node_info["region"]
+    command += "--dealloc-floating-ip " if Rails.configuration.openstack_auto_deallocate_ip
     command += build_auth_info
   end
 
