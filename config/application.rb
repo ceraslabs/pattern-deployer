@@ -132,6 +132,6 @@ module PatternDeployer
     config.openstack_auto_allocate_ip = true
 
     # Auto deallocate floating IP when shuting down servers in OpenStack
-    config.openstack_auto_deallocate_ip = false
+    config.openstack_auto_deallocate_ip = true
   end
 end
