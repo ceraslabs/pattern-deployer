@@ -19,7 +19,7 @@ fi
 sudo gem install ohai --no-rdoc --no-ri --verbose
 
 # install Chef 10
-sudo gem install chef --no-rdoc --no-ri --verbose -v "~>10.18"
+sudo gem install chef --no-rdoc --no-ri --verbose -v "10.24.0"
 
 # create solo.rb
 cat >/tmp/solo.rb <<EOL
