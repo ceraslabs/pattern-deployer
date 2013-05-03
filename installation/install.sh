@@ -28,14 +28,14 @@ cookbook_path "/tmp/chef-solo/cookbooks"
 EOL
 
 # get external ip address
-my_ip=`curl -m 5 -s http://169.254.169.254/latest/meta-data/public-ipv4`
+my_ip=`curl -m 5 -s http://169.254.169.254/latest/meta-data/public-ipv4` && true
 if [ "$my_ip" ]; then
   my_ip_valid=`echo "${my_ip}." | grep -E "([0-9]{1,3}\.){4}"`
 fi
 
 if [ ! "$my_ip_valid" ]; then
   echo "can't get external ip-address from meta-data, try to get it from ifconfig.me"
-  my_ip=`curl -m 5 -s ifconfig.me`
+  my_ip=`curl -m 5 -s ifconfig.me` && true
   if [ "$my_ip" ]; then
      my_ip_valid=`echo "${my_ip}." | grep -E "([0-9]{1,3}\.){4}"`
   fi
