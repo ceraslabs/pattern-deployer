@@ -85,7 +85,7 @@ class ChefNodeDeployer < BaseDeployer
     if @parent.class == TopologyDeployer
       attributes["topology_id"] = @parent.get_topology_id
     end
-    attributes["public_ip"] ||= node_info["server_ip"]
+    attributes["public_ip"] ||= node_info["server_ip"] if node_info["server_ip"]
   end
 
   def deploy
