@@ -268,6 +268,7 @@
       <xs:element name="database_name" type="xs:string"/>
       <xs:element name="database_user" type="xs:string"/>
       <xs:element name="database_password" type="xs:string"/>
+      <xs:element name="database_port" type="xs:string"/>
     </xs:choice>
   </xs:group>
   <xs:element name="snort_pair_first">

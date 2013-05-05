@@ -277,7 +277,14 @@ class TopologyWrapper
         db_info["user"]     ||= "myuser"
         db_info["password"] ||= "mypass"
 
-        if db_info["system"] != "mysql" && db_info["system"] != "postgresql"
+        db_info["system"] = db_info["system"].downcase if db_info["system"]
+
+        case db_info["system"]
+        when "mysql"
+          db_info["port"] ||= "3306"
+        when "postgresql"
+          db_info["port"] ||= "5432"
+        else
           raise ParametersValidationError.new(:message => "Unexpected dbms #{db_info['system']}, only 'mysql' or 'postgresql' is allowed")
         end
 
