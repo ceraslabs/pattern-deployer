@@ -83,8 +83,11 @@ require "resources_manager"
 ##~ field = fields.password
 ##~ field.set :type => "string", :description => "The password of the database's user"
 ##
-##~ field = fields.rootPassword
-##~ field.set :type => "string", :description => "The password of the root user"
+##~ field = fields.adminUser
+##~ field.set :type => "string", :description => "The admin username of the database"
+##
+##~ field = fields.adminPassword
+##~ field.set :type => "string", :description => "The password of the database's admin user"
 ##
 ##~ field = fields.inServer
 ##~ field.set :type => "string", :description => "The name of the server which host the database server"

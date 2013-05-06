@@ -462,7 +462,8 @@ class TopologyDeployer < BaseDeployer
       node.db_system     = child.get_db_system
       node.db_user       = child.get_db_user
       node.db_pwd        = child.get_db_pwd
-      node.db_root_pwd   = child.get_db_root_pwd
+      node.db_admin_user = child.get_db_admin_user
+      node.db_admin_pwd  = child.get_db_admin_pwd
       node.is_monitoring_server = child.monitoring_server?
       node.monitoring_server_url = child.monitoring_server_url
       node

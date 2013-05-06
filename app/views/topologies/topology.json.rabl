@@ -30,7 +30,8 @@ child topology => :deployment do
     attribute :server_ip => :host
     attribute :db_user => :user
     attribute :db_pwd => :password
-    attribute :db_root_pwd => :rootPassword
+    attribute :db_admin_user => :adminUser
+    attribute :db_admin_pwd => :adminPassword
     attribute :name => :inServer
   end
   monitoring_servers = nodes.select{ |node| node.is_monitoring_server }

@@ -269,24 +269,43 @@ class ChefNodeDeployer < BaseDeployer
     database ? database["password"] : nil
   end
 
-  #TODO handle other DBMS
-  def get_db_root_pwd
+  def get_db_admin_user
     return nil if database.nil?
 
-    if database && database.has_key?("root_password")
-      return database["root_password"]
+    case get_db_system
+    when "mysql"
+      return "root"
+    when "postgresql"
+      return "postgres"
+    else
+      raise "Unexpected DBMS #{get_db_system}. Only 'mysql' or 'postgresql' is allowed"
     end
+  end
+
+  def get_db_admin_pwd
+    return nil if database.nil?
+    return database["admin_password"] if database["admin_password"]
 
     chef_node = get_chef_node
-    if chef_node && chef_node.has_key?("mysql") && chef_node["mysql"].has_key?("server_root_password")
-      root_pwd = chef_node["mysql"]["server_root_password"]
-      if self.primary_deployer?
-        database["root_password"] = root_pwd
+
+    case get_db_system
+    when "mysql"
+      if self.primary_deployer? && chef_node && chef_node["mysql"] &&
+                                   chef_node["mysql"]["server_root_password"]
+        database["admin_password"] = chef_node["mysql"]["server_root_password"]
         save
       end
+    when "postgresql"
+      if self.primary_deployer? && chef_node && chef_node["postgresql"] &&
+                                   chef_node["postgresql"]["password"] && chef_node["postgresql"]["password"]["postgres"]
+        database["admin_password"] = chef_node["postgresql"]["password"]["postgres"]
+        save
+      end
+    else
+      raise "Unexpected DBMS #{get_db_system}. Only 'mysql' or 'postgresql' is allowed"
     end
 
-    root_pwd
+    database["admin_password"]
   end
 
   def monitoring_server?
