@@ -63,7 +63,7 @@ gem 'markdown-rails'
 
 gem "customized-chef-repo", :git => "git://github.com/ceraslabs/chef-repo.git"
 
-gem "passenger"
+gem "passenger", "~> 3.0"
 
 gem 'rabl'
 
