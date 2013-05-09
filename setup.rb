@@ -49,17 +49,15 @@ end
 
 include ShellUtils
 
-command = "gem install json --no-ri --no-rdoc --conservative"
-execute_and_exit_on_fail(command)
-require 'json'
+%w{ excon mixlib-cli json }.each do |gem|
+  command = "gem install #{gem} --no-ri --no-rdoc --conservative"
+  execute_and_exit_on_fail(command)
+end
 
-command = "gem install mixlib-cli --no-ri --no-rdoc --conservative"
-execute_and_exit_on_fail(command)
-require 'mixlib/cli'
-
-command = "gem install excon --no-ri --no-rdoc --conservative"
-execute_and_exit_on_fail(command)
+Gem.clear_paths
 require 'excon'
+require 'json'
+require 'mixlib/cli'
 
 
 class SubCommand
