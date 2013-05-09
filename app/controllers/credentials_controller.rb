@@ -54,8 +54,8 @@ require "my_errors"
 ##~ field = fields.openstackTenant
 ##~ field.set :type => "string", :description => "The OpenStack tenant"
 ##
-##~ field = fields.openstackEndpoint
-##~ field.set :type => "string", :description => "The OpenStack endpoint"
+##~ field = fields.openstackAuthUrl
+##~ field.set :type => "string", :description => "The OpenStack authentication URL"
 ##
 ##~ field = fields.link
 ##~ field.set :type => "string", :description => "The link of the credential"
@@ -130,8 +130,8 @@ class CredentialsController < RestfulController
   ##~ param.description = "Your OpenStack tenant. Required if the cloud is 'openstack'"
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "endpoint", :dataType => "string", :allowMultiple => false, :required => false, :paramType => "query"
-  ##~ param.description = "Your OpenStack API endpoint. Required if the cloud is 'openstack'"
+  ##~ param.set :name => "auth_url", :dataType => "string", :allowMultiple => false, :required => false, :paramType => "query"
+  ##~ param.description = "Your OpenStack authentication URL. E.g. http://YOUR_OPENSTACK_SERVER:5000/v2.0/tokens. Required if the cloud is 'openstack'"
   ##
   def create
     for_cloud = params[:for_cloud]
@@ -155,7 +155,7 @@ class CredentialsController < RestfulController
                                             :openstack_username => params[:username],
                                             :openstack_password => params[:password],
                                             :openstack_tenant => params[:tenant],
-                                            :openstack_endpoint => params[:endpoint])
+                                            :openstack_endpoint => params[:auth_url])
     else
       err_msg = "The cloud #{cloud} is not supported. Only #{SUPPORTED_CLOUD.join(', ')} are supported"
       raise ParametersValidationError.new(:message => err_msg)
@@ -265,8 +265,8 @@ class CredentialsController < RestfulController
   ##~ param.description = "Your new OpenStack tenant. Used in 'redefine' operation"
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "endpoint", :dataType => "string", :allowMultiple => false, :required => false, :paramType => "query"
-  ##~ param.description = "Your new OpenStack API endpoint. Used in 'redefine' operation"
+  ##~ param.set :name => "auth_url", :dataType => "string", :allowMultiple => false, :required => false, :paramType => "query"
+  ##~ param.description = "Your OpenStack authentication URL. E.g. http://YOUR_OPENSTACK_SERVER:5000/v2.0/tokens. Used in 'redefine' operation"
   ##
   def update
     @credential = Credential.find(params[:id])
@@ -283,7 +283,7 @@ class CredentialsController < RestfulController
         @credential.openstack_username = params[:username] || @credential.openstack_username 
         @credential.openstack_password = params[:password] || @credential.openstack_password 
         @credential.openstack_tenant = params[:tenant] || @credential.openstack_tenant 
-        @credential.openstack_endpoint = params[:endpoint] || @credential.openstack_endpoint 
+        @credential.openstack_endpoint = params[:auth_url] || @credential.openstack_endpoint
       end
     else
       err_msg = "Invalid operation. Supported operations are #{get_operations(CredentialOp).join(',')}"
