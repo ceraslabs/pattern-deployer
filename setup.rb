@@ -17,6 +17,7 @@
 #
 
 require 'fileutils'
+require 'ipaddr'
 require 'rubygems'
 require 'yaml'
 
@@ -55,6 +56,10 @@ require 'json'
 command = "gem install mixlib-cli --no-ri --no-rdoc --conservative"
 execute_and_exit_on_fail(command)
 require 'mixlib/cli'
+
+command = "gem install excon --no-ri --no-rdoc --conservative"
+execute_and_exit_on_fail(command)
+require 'excon'
 
 
 class SubCommand
@@ -477,7 +482,19 @@ class SetupCLI
     :short        => "-s URL",
     :long         => "--chef-server URL",
     :description  => "Chef server URL",
-    :default      => "http://localhost:4000"
+    :default      => begin
+      query_url ||= "http://169.254.169.254/latest/meta-data/public-ipv4"
+      my_ip = Excon.get(query_url, :connect_timeout => 5).body
+      IPAddr.new(my_ip)
+      "http://#{my_ip.strip}:4000"
+    rescue ArgumentError, Excon::Errors::Timeout
+      alternative_url = "http://ifconfig.me/ip"
+      if query_url != alternative_url
+        query_url = alternative_url
+        retry
+      end
+      "http://localhost:4000"
+    end
 
   option :chef_client_key,
     :short        => "-k PATH",
