@@ -127,11 +127,11 @@ class ChefNodeDeployer < BaseDeployer
 
     if attributes.has_key?("migration")
       if self.get_id == attributes["migration"]["source"]
-        self.services << "migrate_from"
+        self.services = ["migrate_from"]
       elsif self.get_id == attributes["migration"]["destination"]
-        self.services << "migrate_to"
+        self.services = ["migrate_to"]
       elsif self.get_id == attributes["migration"]["load_balancer"]
-        self.services << "on_member_migrate"
+        self.services = ["on_member_migrate"]
       else
         raise "Unexpected migration node #{self.get_id}"
       end
