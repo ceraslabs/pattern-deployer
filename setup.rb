@@ -17,6 +17,7 @@
 #
 
 require 'fileutils'
+require 'ipaddr'
 require 'rubygems'
 require 'yaml'
 
@@ -48,12 +49,14 @@ end
 
 include ShellUtils
 
-command = "gem install json --no-ri --no-rdoc --conservative"
-execute_and_exit_on_fail(command)
-require 'json'
+%w{ excon mixlib-cli json }.each do |gem|
+  command = "gem install #{gem} --no-ri --no-rdoc --conservative"
+  execute_and_exit_on_fail(command)
+end
 
-command = "gem install mixlib-cli --no-ri --no-rdoc --conservative"
-execute_and_exit_on_fail(command)
+Gem.clear_paths
+require 'excon'
+require 'json'
 require 'mixlib/cli'
 
 
@@ -340,6 +343,12 @@ class ProductionCommand < SubCommand
   protected
 
   def run_bundle_install
+    gem_lock_file = "Gemfile.lock"
+    FileUtils.rm(gem_lock_file) if File.exists?(gem_lock_file)
+
+    chef_repo = "chef-repo"
+    FileUtils.rm(chef_repo) if File.exists?(chef_repo)
+
     execute_and_exit_on_fail("bundle install --path=vendor/bundle", :as_user => @cli.config[:as_user])
   end
 
@@ -477,7 +486,19 @@ class SetupCLI
     :short        => "-s URL",
     :long         => "--chef-server URL",
     :description  => "Chef server URL",
-    :default      => "http://localhost:4000"
+    :default      => begin
+      query_url ||= "http://169.254.169.254/latest/meta-data/public-ipv4"
+      my_ip = Excon.get(query_url, :connect_timeout => 5).body
+      IPAddr.new(my_ip)
+      "http://#{my_ip.strip}:4000"
+    rescue ArgumentError, Excon::Errors::Timeout
+      alternative_url = "http://ifconfig.me/ip"
+      if query_url != alternative_url
+        query_url = alternative_url
+        retry
+      end
+      "http://localhost:4000"
+    end
 
   option :chef_client_key,
     :short        => "-k PATH",

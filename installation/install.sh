@@ -18,13 +18,8 @@ fi
 #sudo gem update --no-rdoc --no-ri
 sudo gem install ohai --no-rdoc --no-ri --verbose
 
-# walk-around for issue http://tickets.opscode.com/browse/CHEF-3835
-sudo gem install net-ssh -v 2.2.2 --no-rdoc --no-ri
-sudo gem install net-ssh-gateway -v 1.1.0 --no-rdoc --no-ri
-sudo gem install net-ssh-multi -v 1.1 --no-rdoc --no-ri
-
 # install Chef 10
-sudo gem install chef --no-rdoc --no-ri --verbose -v "~>10.18"
+sudo gem install chef --no-rdoc --no-ri --verbose -v "10.24.0"
 
 # create solo.rb
 cat >/tmp/solo.rb <<EOL
@@ -33,14 +28,20 @@ cookbook_path "/tmp/chef-solo/cookbooks"
 EOL
 
 # get external ip address
-my_ip=`curl -m 5 -s http://169.254.169.254/latest/meta-data/public-ipv4 | grep '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}'`
-if [ "$my_ip" = "" ]
-then
-  echo "can't get external ip-address from meta-data, try to get it from ifconfig.me"
-  my_ip=`curl -m 5 -s ifconfig.me | grep '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}'`
+my_ip=`curl -m 5 -s http://169.254.169.254/latest/meta-data/public-ipv4` && true
+if [ "$my_ip" ]; then
+  my_ip_valid=`echo "${my_ip}." | grep -E "([0-9]{1,3}\.){4}"`
 fi
-if [ "$my_ip" = "" ]
-then
+
+if [ ! "$my_ip_valid" ]; then
+  echo "can't get external ip-address from meta-data, try to get it from ifconfig.me"
+  my_ip=`curl -m 5 -s ifconfig.me` && true
+  if [ "$my_ip" ]; then
+     my_ip_valid=`echo "${my_ip}." | grep -E "([0-9]{1,3}\.){4}"`
+  fi
+fi
+
+if [ ! "$my_ip_valid" ]; then
   echo "can't get external ip-address, use localhost instead"
   my_ip=localhost
 fi

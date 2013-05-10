@@ -85,6 +85,7 @@ class ChefNodeDeployer < BaseDeployer
     if @parent.class == TopologyDeployer
       attributes["topology_id"] = @parent.get_topology_id
     end
+    attributes["public_ip"] ||= node_info["server_ip"] if node_info["server_ip"]
   end
 
   def deploy
@@ -107,7 +108,7 @@ class ChefNodeDeployer < BaseDeployer
     #puts "[#{Time.now}] Start deploy_node #{@node_name}"
 
     if get_server_ip
-      node_info["server_ip"] = get_server_ip
+      node_info["server_ip"] ||= get_server_ip
       save
     end
 
@@ -160,7 +161,7 @@ class ChefNodeDeployer < BaseDeployer
     end
 
     unless node_info.has_key?("server_ip")
-      node_info["server_ip"] = get_server_ip
+      node_info["server_ip"] ||= get_server_ip
       save
     end
 
@@ -228,6 +229,12 @@ class ChefNodeDeployer < BaseDeployer
     if (chef_command.failed? || chef_node.nil? ||
         !chef_node.deployment_show_up? ||
         chef_node.deployment_failed?)
+      #debug
+      puts "Chef command failed? #{chef_command.failed?}"
+      puts "Chef_node is nil? #{chef_node.nil?}"
+      puts "Chef node didn't show up? #{chef_node.deployment_show_up?}" if chef_node
+      puts "Chef node indicate failed? #{chef_node.deployment_failed?}" if chef_node
+
       msg = chef_command.get_err_msg
       inner_msg = chef_node.get_err_msg if chef_node
       raise DeploymentError.new(:message => msg, :inner_message => inner_msg)
@@ -291,24 +298,43 @@ class ChefNodeDeployer < BaseDeployer
     database ? database["password"] : nil
   end
 
-  #TODO handle other DBMS
-  def get_db_root_pwd
+  def get_db_admin_user
     return nil if database.nil?
 
-    if database && database.has_key?("root_password")
-      return database["root_password"]
+    case get_db_system
+    when "mysql"
+      return "root"
+    when "postgresql"
+      return "postgres"
+    else
+      raise "Unexpected DBMS #{get_db_system}. Only 'mysql' or 'postgresql' is allowed"
     end
+  end
+
+  def get_db_admin_pwd
+    return nil if database.nil?
+    return database["admin_password"] if database["admin_password"]
 
     chef_node = get_chef_node
-    if chef_node && chef_node.has_key?("mysql") && chef_node["mysql"].has_key?("server_root_password")
-      root_pwd = chef_node["mysql"]["server_root_password"]
-      if self.primary_deployer?
-        database["root_password"] = root_pwd
+
+    case get_db_system
+    when "mysql"
+      if self.primary_deployer? && chef_node && chef_node["mysql"] &&
+                                   chef_node["mysql"]["server_root_password"]
+        database["admin_password"] = chef_node["mysql"]["server_root_password"]
         save
       end
+    when "postgresql"
+      if self.primary_deployer? && chef_node && chef_node["postgresql"] &&
+                                   chef_node["postgresql"]["password"] && chef_node["postgresql"]["password"]["postgres"]
+        database["admin_password"] = chef_node["postgresql"]["password"]["postgres"]
+        save
+      end
+    else
+      raise "Unexpected DBMS #{get_db_system}. Only 'mysql' or 'postgresql' is allowed"
     end
 
-    root_pwd
+    database["admin_password"]
   end
 
   def monitoring_server?
@@ -403,6 +429,7 @@ class ChefNodeDeployer < BaseDeployer
   def load_credential
     raise "Unexpected missing of resources" unless resources
 
+    credential_id ||= node_info["use_credential"]
     if credential_id
       # this node already have a credential assigned, so update the credential content
       credential = resources.find_credential_by_id(credential_id)
@@ -422,7 +449,7 @@ class ChefNodeDeployer < BaseDeployer
         err_msg = "Can not find any credential to authenticate with EC2 cloud, please upload your credential first"
         raise DeploymentError.new(:message => err_msg)
       end
-      credential_id = credential.credential_id
+      self.credential_id = credential.credential_id
       node_info["aws_access_key_id"]     = credential.access_key_id
       node_info["aws_secret_access_key"] = credential.secret_access_key
     elsif get_cloud == Rails.application.config.openstack
@@ -431,7 +458,7 @@ class ChefNodeDeployer < BaseDeployer
         err_msg = "Can not find any credential to authenticate with OpenStack cloud, please upload your credential first"
         raise DeploymentError.new(:message => err_msg)
       end
-      credential_id = credential.credential_id
+      self.credential_id = credential.credential_id
       node_info["openstack_username"] = credential.username
       node_info["openstack_password"] = credential.password
       node_info["openstack_tenant"]   = credential.tenant
@@ -480,6 +507,7 @@ class ChefNodeDeployer < BaseDeployer
     load_output
     chef_node = get_chef_node
     if chef_node
+      chef_node.reload
       attributes["public_ip"] ||= chef_node.get_server_ip
       attributes["private_ip"] ||= chef_node.get_private_ip
     end
@@ -502,6 +530,8 @@ class ChefNodeDeployer < BaseDeployer
     cloud = node_info["cloud"]
     if cloud.class == String
       return cloud.downcase
+    elsif cloud.class == NilClass
+      return Rails.application.config.notcloud
     else
       return cloud
     end

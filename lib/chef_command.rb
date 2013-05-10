@@ -61,7 +61,7 @@ class ChefCommand
   end
 
   def build_create_command
-    if @node_info["cloud"].downcase == Rails.application.config.notcloud
+    if @node_info["cloud"] == nil || @node_info["cloud"].downcase == Rails.application.config.notcloud
       command_builder = BootstrapCommandBuilder.new(@node_name, @node_info, @services, @server_ip)
     elsif @node_info["cloud"].downcase == Rails.application.config.ec2
       command_builder = EC2CommandBuilder.new(@node_name, @node_info, @services)
@@ -245,6 +245,7 @@ class BaseCommandBuilder
     port =  @node_info["port"]
     timeout = Float(@node_info["timeout"] || "0")
     cloud =  @node_info["cloud"] || Rails.application.config.notcloud
+    region = @node_info["region"]
 
     command = ""
     command += "-x #{ssh_user} "
@@ -252,6 +253,7 @@ class BaseCommandBuilder
     command += "-i #{identity_file} " if identity_file
     command += "-P #{password} " if password
     command += "-p #{port} " if port
+    command += "--region #{region} " if region
     command += "--no-host-key-verify "
 
     command += "-r '"
@@ -274,7 +276,6 @@ class EC2CommandBuilder < BaseCommandBuilder
     instance_type =  @node_info["instance_type"]
     key_pair_id =  @node_info["key_pair_id"]
     zone =  @node_info["availability_zone"]
-    region = @node_info["region"]
 
     command = "knife ec2 server create "
     command += "-I #{image} "
@@ -282,7 +283,6 @@ class EC2CommandBuilder < BaseCommandBuilder
     command += "-S #{key_pair_id} " if key_pair_id
     command += "-G #{security_groups} " if security_groups
     command += "-Z #{zone} " if zone
-    command += "--region #{region} " if region
     command += build_auth_info
 
     command += super()
@@ -321,6 +321,7 @@ class OpenStackCommandBuilder < BaseCommandBuilder
     command += "-I #{image_id} "
     command += "-f #{instance_type} " if instance_type
     command += "-S #{key_pair_id} "
+    command += "--auto-alloc-floating-ip " if Rails.configuration.openstack_auto_allocate_ip
     command += build_auth_info
 
     command += super()
@@ -330,6 +331,8 @@ class OpenStackCommandBuilder < BaseCommandBuilder
   def build_delete_command(instance_id)
     command = "knife openstack server delete #{instance_id} -y "
     command += "-N #{@node_name} "
+    command += "--region #{@node_info["region"]} " if @node_info["region"]
+    command += "--dealloc-floating-ip " if Rails.configuration.openstack_auto_deallocate_ip
     command += build_auth_info
   end
 

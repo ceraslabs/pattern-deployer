@@ -159,6 +159,8 @@
       <xs:element ref="port"/>
       <xs:element ref="password"/>
       <xs:element ref="region"/>
+      <xs:element ref="server_ip"/>
+      <xs:element ref="use_credential"/>
     </xs:choice>
   </xs:group>
   <xs:element name="cloud" type="xs:string"/>
@@ -171,6 +173,8 @@
   <xs:element name="port" type="xs:string"/>
   <xs:element name="password" type="xs:string"/>
   <xs:element name="region" type="xs:string"/>
+  <xs:element name="server_ip" type="xs:string"/>
+  <xs:element name="use_credential" type="xs:string"/>
   <xs:element name="container">
     <xs:complexType>
       <xs:sequence>
@@ -279,6 +283,7 @@
       <xs:element name="database_name" type="xs:string"/>
       <xs:element name="database_user" type="xs:string"/>
       <xs:element name="database_password" type="xs:string"/>
+      <xs:element name="database_port" type="xs:string"/>
     </xs:choice>
   </xs:group>
   <xs:element name="snort_pair_first">
