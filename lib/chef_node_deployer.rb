@@ -400,6 +400,7 @@ class ChefNodeDeployer < BaseDeployer
   def load_credential
     raise "Unexpected missing of resources" unless resources
 
+    credential_id ||= node_info["use_credential"]
     if credential_id
       # this node already have a credential assigned, so update the credential content
       credential = resources.find_credential_by_id(credential_id)
@@ -419,7 +420,7 @@ class ChefNodeDeployer < BaseDeployer
         err_msg = "Can not find any credential to authenticate with EC2 cloud, please upload your credential first"
         raise DeploymentError.new(:message => err_msg)
       end
-      credential_id = credential.credential_id
+      self.credential_id = credential.credential_id
       node_info["aws_access_key_id"]     = credential.access_key_id
       node_info["aws_secret_access_key"] = credential.secret_access_key
     elsif get_cloud == Rails.application.config.openstack
@@ -428,7 +429,7 @@ class ChefNodeDeployer < BaseDeployer
         err_msg = "Can not find any credential to authenticate with OpenStack cloud, please upload your credential first"
         raise DeploymentError.new(:message => err_msg)
       end
-      credential_id = credential.credential_id
+      self.credential_id = credential.credential_id
       node_info["openstack_username"] = credential.username
       node_info["openstack_password"] = credential.password
       node_info["openstack_tenant"]   = credential.tenant
