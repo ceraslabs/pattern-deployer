@@ -343,6 +343,12 @@ class ProductionCommand < SubCommand
   protected
 
   def run_bundle_install
+    gem_lock_file = "Gemfile.lock"
+    FileUtils.rm(gem_lock_file) if File.exists?(gem_lock_file)
+
+    chef_repo = "chef-repo"
+    FileUtils.rm(chef_repo) if File.exists?(chef_repo)
+
     execute_and_exit_on_fail("bundle install --path=vendor/bundle", :as_user => @cli.config[:as_user])
   end
 
