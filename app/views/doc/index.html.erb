@@ -3,6 +3,8 @@
 <head>
     <title>API Doc</title>
     <link href='http://fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'/>
+
+    <%= stylesheet_link_tag "header" %>
     <%= stylesheet_link_tag "swagger/screen" %>
     <%= javascript_include_tag "swagger/jquery-1.8.0.min" %>
     <%= javascript_include_tag "swagger/jquery.slideto.min" %>
@@ -71,27 +73,8 @@
 </head>
 
 <body>
-<div id='header'>
-    <div class="swagger-ui-wrap">
-        <a id="logo" href="<%= root_path %>">home</a>
 
-        <form id='api_selector'>
-            <!--<div class='input icon-btn'>
-                <img id="show-pet-store-icon" src="<%= asset_path 'pet_store_api.png' %>" title="Show Pet Store Apis">
-            </div>
-            <div class='input icon-btn'>
-                <img id="show-wordnik-dev-icon" src="<%= asset_path 'wordnik_api.png' %>" title="Show Wordnik Developer Apis">
-            </div>
-            <div class='input icon-btn'>
-                <img id="show-deployer-icon" src="<%= asset_path 'arrow_refresh.png' %>" title="Show Deployer Apis">
-            </div>-->
-            <div class='input'><input placeholder="http://example.com/api" id="input_baseUrl" name="baseUrl"
-                                      type="text"/></div>
-            <div class='input'><input placeholder="api_key" id="input_apiKey" name="apiKey" type="text"/></div>
-            <div class='input'><a id="explore" href="#">Explore</a></div>
-        </form>
-    </div>
-</div>
+<%= render "devise/shared/header" %>
 
 <div id="message-bar" class="swagger-ui-wrap">
     &nbsp;
