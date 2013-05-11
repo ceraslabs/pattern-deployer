@@ -1,0 +1,98 @@
+/*
+ *---------------------------------------------------
+ *  header
+ *---------------------------------------------------
+ */
+
+#header {
+  background-color: #83ad00;
+  overflow: hidden;
+}
+
+#header .container {
+  margin: 0px auto;
+  padding: 0px;
+  position: relative;
+  min-width: 960px;
+}
+
+#header .container h1#logo {
+  display: block;
+  clear: none;
+  float: left;
+  font-size: 1.6em;
+  margin: 0 0 0 0px;
+  padding: 0;
+}
+
+#header .container h1#logo a {
+  display: block;
+  clear: none;
+  float: left;
+  padding: 20px 0 20px 60px;
+  color: white;
+  text-decoration: none;
+}
+
+#header .container h1#logo a span {
+  display: block;
+  clear: none;
+  float: left;
+  padding: 0;
+  margin: 0;
+}
+
+#header .container h1#logo a span.light {
+  color: #c6ff14;
+  color: #666666;
+}
+
+#header .container ul#nav {
+  float: none;
+  clear: both;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  display: block;
+  float: right;
+  clear: none;
+  padding: 20px 30px 0 0;
+}
+
+#header .container ul#nav li {
+  float: left;
+  clear: none;
+  margin: 0;
+  padding: 2px 10px;
+  border-right: 1px solid #dddddd;
+}
+
+#header .container ul#nav li:last-child, #header .container ul#nav li.last {
+  padding-right: 0;
+  border-right: none;
+}
+
+#header .container ul#nav li {
+  border-color: #9bbd32;
+  border: none;
+}
+
+#header .container ul#nav li a {
+  display: block;
+  padding: 8px 10px 8px 10px;
+  color: #999999;
+  text-decoration: none;
+  background-color: none;
+  color: white;
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  -o-border-radius: 4px;
+  -ms-border-radius: 4px;
+  -khtml-border-radius: 4px;
+  border-radius: 4px;
+}
+
+#header .container ul#nav li a:active, #header .container ul#nav li a.active, #header .container ul#nav li a:hover {
+  background-color: #547f00;
+  color: white;
+}
