@@ -125,7 +125,7 @@ class MigrationDeployer < BaseDeployer
   def deploy_node(node_deployer)
     node_deployer.update_deployment
 
-    timeout = 600
+    timeout = 3600
     unless node_deployer.wait(timeout)
       kill(:kill_worker => false)
       raise "Deployment timeout"
