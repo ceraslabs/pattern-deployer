@@ -481,13 +481,13 @@ class ChefNodeDeployer < BaseDeployer
   def on_deploy_success
     super()
     on_deploy_finish
-    self.delete_key("migration") if self.has_key?("migration")
     save
   end
 
   def on_update_success
     super()
     on_update_finish
+    self.delete_key("migration") if self.has_key?("migration")
     save
   end
 
