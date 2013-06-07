@@ -312,14 +312,19 @@ class OpenStackCommandBuilder < BaseCommandBuilder
     image_id =  @node_info["image_id"]
     instance_type =  @node_info["instance_type"]
     key_pair_id =  @node_info["key_pair_id"]
+    is_private_network = @node_info["private_network"] == "true"
 
     command = "knife openstack server create "
-    command += "-a "
     command += "-I #{image_id} "
     command += "-f #{instance_type} " if instance_type
     command += "-S #{key_pair_id} "
-    command += "--auto-alloc-floating-ip " if Rails.configuration.openstack_auto_allocate_ip
     command += build_auth_info
+    if is_private_network
+      command += "--private-network "
+    else
+      command += "-a "
+      command += "--auto-alloc-floating-ip " if Rails.configuration.openstack_auto_allocate_ip
+    end
 
     command += super()
     command
