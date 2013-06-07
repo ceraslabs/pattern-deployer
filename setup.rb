@@ -208,7 +208,7 @@ EOH
       cookbooks_to_upload << file
     end
 
-    `knife cookbook list`.each do |line|
+    `bundle exec knife cookbook list`.each do |line|
       uploaded_cookbook = line.strip.split[0]
       cookbooks_to_upload.delete(uploaded_cookbook) if uploaded_cookbook
     end
@@ -216,7 +216,7 @@ EOH
     progress = false
     while cookbooks_to_upload.size > 0
       cookbooks_to_upload.each do |cookbook|
-        command = "knife cookbook upload #{cookbook} -o #{cookbooks_dir} -c #{chef_config_file} 2>/dev/null"
+        command = "bundle exec knife cookbook upload #{cookbook} -o #{cookbooks_dir} -c #{chef_config_file} 2>/dev/null"
         if system(command)
           progress = true
           cookbooks_to_upload.delete(cookbook)
