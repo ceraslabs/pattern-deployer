@@ -224,6 +224,7 @@ class ChefCommand
       observer.on_data(key, value)
     end
   end
+
 end
 
 
@@ -242,7 +243,6 @@ class BaseCommandBuilder
     port =  @node_info["port"]
     timeout = Float(@node_info["timeout"] || "0")
     cloud =  @node_info["cloud"] || Rails.application.config.notcloud
-    region = @node_info["region"]
 
     command = ""
     command += "-x #{ssh_user} "
@@ -250,7 +250,6 @@ class BaseCommandBuilder
     command += "-i #{identity_file} " if identity_file
     command += "-P #{password} " if password
     command += "-p #{port} " if port
-    command += "--region #{region} " if region
     command += "--no-host-key-verify "
 
     command += "-r '"
@@ -263,16 +262,19 @@ class BaseCommandBuilder
 
     command
   end
+
 end
 
 
 class EC2CommandBuilder < BaseCommandBuilder
+
   def build_create_command
     security_groups =  @node_info["security_groups"]
     image =  @node_info["image_id"]
     instance_type =  @node_info["instance_type"]
     key_pair_id =  @node_info["key_pair_id"]
     zone =  @node_info["availability_zone"]
+    region = @node_info["region"]
 
     command = "knife ec2 server create "
     command += "-I #{image} "
@@ -280,6 +282,7 @@ class EC2CommandBuilder < BaseCommandBuilder
     command += "-S #{key_pair_id} " if key_pair_id
     command += "-G #{security_groups} " if security_groups
     command += "-Z #{zone} " if zone
+    command += "--region #{region} " if region
     command += build_auth_info
 
     command += super()
@@ -308,16 +311,19 @@ end
 
 
 class OpenStackCommandBuilder < BaseCommandBuilder
+
   def build_create_command
     image_id =  @node_info["image_id"]
     instance_type =  @node_info["instance_type"]
     key_pair_id =  @node_info["key_pair_id"]
     is_private_network = @node_info["private_network"] == "true"
+    region = @node_info["region"]
 
     command = "knife openstack server create "
     command += "-I #{image_id} "
     command += "-f #{instance_type} " if instance_type
     command += "-S #{key_pair_id} "
+    command += "--region #{region} " if region
     command += build_auth_info
     if is_private_network
       command += "--private-network "
@@ -353,6 +359,7 @@ class OpenStackCommandBuilder < BaseCommandBuilder
     command += "--openstack-api-endpoint #{endpoint} "
     command
   end
+
 end
 
 
@@ -370,4 +377,5 @@ class BootstrapCommandBuilder < BaseCommandBuilder
     command += super()
     command
   end
+
 end
