@@ -107,6 +107,8 @@ class ChefNodeDeployer < BaseDeployer
     #debug
     #puts "[#{Time.now}] Start deploy_node #{@node_name}"
 
+    return if self.external?
+
     if get_server_ip
       node_info["server_ip"] ||= get_server_ip
       save
@@ -144,6 +146,8 @@ class ChefNodeDeployer < BaseDeployer
   end
 
   def update_deployment_helper
+    return if self.external?
+
     if get_server_ip.nil?
       raise "Cannot update node #{node_id}, since its ip is not available"
     end
@@ -235,6 +239,10 @@ class ChefNodeDeployer < BaseDeployer
 
   def get_server_ip
     attributes["public_ip"]
+  end
+
+  def external?
+    !!self.node_info["is_external"]
   end
 
   def application_server?

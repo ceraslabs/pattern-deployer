@@ -32,14 +32,19 @@ require "my_errors"
 ##
 ##~ @node_attrs = {}
 ##~ @node_attrs["cloud"] = "The cloud this node deploy to. So far, we supported #{@clouds.join(', ')}"
-##~ @node_attrs["security_groups"] = "list of security groups the node is using. Groups are comma-seperated if more than one."
+##~ @node_attrs["security_groups"] = "List of security groups the node is using. Groups are comma-seperated if more than one."
 ##~ @node_attrs["image_id"] = "The id of the image the node will use"
 ##~ @node_attrs["key_pair_id"] = "The ssh key pair id which is used to create the instance"
 ##~ @node_attrs["ssh_user"] = "The ssh username"
-##~ @node_attrs["availability_zone"] = "The Availability Zone. Used in EC2."
+##~ @node_attrs["availability_zone"] = "The Availability Zone. Used in EC2"
 ##~ @node_attrs["instance_type"] = "The type of the instance. For EC2, it can be 't1.micro', 'm1.small', etc. For OpenStack, it is the *ID* of instance flavor(not the name)."
 ##~ @node_attrs["port"] = "The ssh port. Port 22 will be used if this attribute is not set"
 ##~ @node_attrs["password"] = "The ssh password"
+##~ @node_attrs["region"] = "The EC2/OpenStack region"
+##~ @node_attrs["server_ip"] = "The IP address of the server. Use this attribute if it is an existing node"
+##~ @node_attrs["use_credential"] = "Choose an uploaded credential for authentication"
+##~ @node_attrs["private_network"] = "Bootstrap the node with private IP. Used in OpenStack"
+##~ @node_attrs["is_external"] = "Indicate the node is external. PDS won't take any action on an external node"
 ##~ @node_attrs_desc = "<h4>Supported attributes</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead>" + @node_attrs.sort.map{|key, value| "<tr><td>#{key}</td><td>#{value}</td></tr>"}.join + "</table>"
 ##
 ## * Model Node
