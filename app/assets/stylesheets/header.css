@@ -12,8 +12,7 @@
 #header .container {
   margin: 0px auto;
   padding: 0px;
-  position: relative;
-  min-width: 960px;
+  min-width: 1040px;
 }
 
 #header .container h1#logo {
@@ -65,6 +64,7 @@
   margin: 0;
   padding: 2px 10px;
   border-right: 1px solid #dddddd;
+  max-width:150px;
 }
 
 #header .container ul#nav li:last-child, #header .container ul#nav li.last {
@@ -92,7 +92,37 @@
   border-radius: 4px;
 }
 
-#header .container ul#nav li a:active, #header .container ul#nav li a.active, #header .container ul#nav li a:hover {
+#header .container ul#nav li a:active, #header .container ul#nav li a.active, #header .container ul#nav li a:hover, #header .container ul#nav li a.hover{
   background-color: #547f00;
   color: white;
+}
+
+#header .container ul#nav li ul li a:hover {
+  background-color: white;
+  color: #547f00;
+  text-decoration:underline;
+}
+
+#header .container ul#nav li  ul{
+    list-style:none;
+    position:absolute;
+    left:-9999px;
+    box-shadow:2px 2px 4px 4px #83ad00;
+}
+
+#header .container ul#nav li  ul li{
+    padding: 0px 0px 0px 0px;
+    float:none;
+    background-color:white;
+}
+
+#header .container ul#nav li  ul a{
+    white-space:nowrap;
+    color: #83ad00;
+    -moz-border-radius: 0px;
+    -webkit-border-radius: 0px;
+    -o-border-radius: 0px;
+    -ms-border-radius: 0px;
+    -khtml-border-radius: 0px;
+    border-radius: 0px;
 }

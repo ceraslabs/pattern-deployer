@@ -13,3 +13,22 @@
 //= require jquery
 //= require jquery_ujs
 //= require_tree .
+
+$(function() {
+    $("#nav").find("li").each(function() {
+        $(this).mouseenter(function() {
+            $(this).find("ul").each(function() {
+                var offset = $(this).siblings("a").addClass("hover").offset();
+                var height = $(this).parent().height();
+                $(this).offset({ top: offset.top + height, left: offset.left });
+            });
+        });
+
+        $(this).mouseleave(function() {
+            $(this).find("ul").each(function() {
+                $(this).siblings("a").removeClass("hover");
+                $(this).offset({ top: -9999, left: -9999 });
+            });
+        });
+    });
+});

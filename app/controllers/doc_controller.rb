@@ -14,9 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class DocController < ActionController::Base
+class DocController < ApplicationController
 
   def index
+    redirect_to home_index_path unless user_signed_in?
     @url = request.protocol + request.host_with_port
   end
 
