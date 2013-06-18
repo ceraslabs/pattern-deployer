@@ -61,7 +61,11 @@
       <xs:selector xpath=".//monitor"/>
       <xs:field xpath="@node"/>
     </xs:keyref>
-    
+    <xs:keyref name="monitoring_server_node" refer="my_node">
+      <xs:selector xpath=".//send_metric_to"/>
+      <xs:field xpath="@node"/>
+    </xs:keyref>
+
     <!-- vpnip must be unique -->
     <xs:unique name="unique_vpnip">
       <xs:selector xpath=".//vpnip"/>
@@ -111,6 +115,7 @@
       <xs:group ref="database_elements"/>
       <xs:element ref="chef_server"/>
       <xs:element ref="monitor"/>
+      <xs:element ref="send_metric_to"/>
     </xs:choice>
   </xs:group>
   <xs:element name="service">
@@ -288,6 +293,11 @@
     </xs:complexType>
   </xs:element>
   <xs:element name="monitor">
+    <xs:complexType>
+      <xs:attribute name="node" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="send_metric_to">
     <xs:complexType>
       <xs:attribute name="node" type="xs:string" use="required"/>
     </xs:complexType>

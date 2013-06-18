@@ -185,6 +185,12 @@ class TopologyWrapper
     get_node_refs(in_element, type)
   end
 
+  def get_minotor_server_client_refs
+    in_element = "send_metric_to"
+    type       = "monitor_server"
+    get_node_refs(in_element, type)
+  end
+
   def generate_ip(used_ips)
     ip = nil
     begin
