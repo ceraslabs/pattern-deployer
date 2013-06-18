@@ -35,8 +35,7 @@ class ChefNodeDeployer < BaseDeployer
 
   def reload(node_info, services, resources)
     super()
-    chef_node = get_chef_node
-    chef_node.reload if chef_node
+    get_chef_node.reload if get_chef_node
 
     set_fields(node_info, services, resources)
   end
@@ -127,9 +126,7 @@ class ChefNodeDeployer < BaseDeployer
   def prepare_update_deployment
     super()
     generic_prepare
-
-    chef_node = get_chef_node
-    chef_node.start_deployment if chef_node
+    get_chef_node.start_deployment if get_chef_node
   end
 
   def update_deployment
@@ -207,28 +204,26 @@ class ChefNodeDeployer < BaseDeployer
       raise "Chef command haven't been executed or it is not finished"
     end
 
-    chef_node = nil
     for i in 1..timeout
-      chef_node = get_chef_node
-      if chef_node
-        chef_node.reload
-        break if chef_node.deployment_show_up?
+      if get_chef_node
+        get_chef_node.reload
+        break if get_chef_node.deployment_show_up?
       end
 
       sleep 1
     end
 
-    if (chef_command.failed? || chef_node.nil? ||
-        !chef_node.deployment_show_up? ||
-        chef_node.deployment_failed?)
+    if (chef_command.failed? || get_chef_node.nil? ||
+        !get_chef_node.deployment_show_up? ||
+        get_chef_node.deployment_failed?)
       #debug
       puts "Chef command failed? #{chef_command.failed?}"
-      puts "Chef_node is nil? #{chef_node.nil?}"
-      puts "Chef node didn't show up? #{chef_node.deployment_show_up?}" if chef_node
-      puts "Chef node indicate failed? #{chef_node.deployment_failed?}" if chef_node
+      puts "Chef node is nil? #{get_chef_node.nil?}"
+      puts "Chef node didn't show up? #{get_chef_node.deployment_show_up?}" if get_chef_node
+      puts "Chef node indicate failed? #{get_chef_node.deployment_failed?}" if get_chef_node
 
       msg = chef_command.get_err_msg
-      inner_msg = chef_node.get_err_msg if chef_node
+      inner_msg = get_chef_node.get_err_msg if get_chef_node
       raise DeploymentError.new(:message => msg, :inner_message => inner_msg)
     end
   end
@@ -294,19 +289,17 @@ class ChefNodeDeployer < BaseDeployer
     return nil if database.nil?
     return database["admin_password"] if database["admin_password"]
 
-    chef_node = get_chef_node
-
     case get_db_system
     when "mysql"
-      if self.primary_deployer? && chef_node && chef_node["mysql"] &&
-                                   chef_node["mysql"]["server_root_password"]
-        database["admin_password"] = chef_node["mysql"]["server_root_password"]
+      if self.primary_deployer? && get_chef_node && get_chef_node["mysql"] &&
+                                   get_chef_node["mysql"]["server_root_password"]
+        database["admin_password"] = get_chef_node["mysql"]["server_root_password"]
         save
       end
     when "postgresql"
-      if self.primary_deployer? && chef_node && chef_node["postgresql"] &&
-                                   chef_node["postgresql"]["password"] && chef_node["postgresql"]["password"]["postgres"]
-        database["admin_password"] = chef_node["postgresql"]["password"]["postgres"]
+      if self.primary_deployer? && get_chef_node && get_chef_node["postgresql"] &&
+                                   get_chef_node["postgresql"]["password"] && get_chef_node["postgresql"]["password"]["postgres"]
+        database["admin_password"] = get_chef_node["postgresql"]["password"]["postgres"]
         save
       end
     else
@@ -365,11 +358,9 @@ class ChefNodeDeployer < BaseDeployer
 
     cloud = get_cloud
     if cloud == Rails.application.config.ec2
-      chef_node = get_chef_node
-      self.instance_id = chef_node["ec2"]["instance_id"] if chef_node && chef_node.has_key?("ec2") && chef_node["ec2"].has_key?("instance_id")
+      self.instance_id = get_chef_node["ec2"]["instance_id"] if get_chef_node && get_chef_node.has_key?("ec2") && get_chef_node["ec2"].has_key?("instance_id")
     elsif cloud == Rails.application.config.openstack
-      chef_node = get_chef_node
-      self.instance_id = chef_node["openstack"]["instance_id"] if chef_node && chef_node.has_key?("openstack") && chef_node["openstack"].has_key?("instance_id")
+      self.instance_id = get_chef_node["openstack"]["instance_id"] if get_chef_node && get_chef_node.has_key?("openstack") && get_chef_node["openstack"].has_key?("instance_id")
     elsif cloud == Rails.application.config.notcloud
       # don't need to do anything
     else
@@ -483,11 +474,10 @@ class ChefNodeDeployer < BaseDeployer
 
   def on_deploy_finish
     load_output
-    chef_node = get_chef_node
-    if chef_node
-      chef_node.reload
-      attributes["public_ip"] ||= chef_node.get_server_ip
-      attributes["private_ip"] ||= chef_node.get_private_ip
+    if get_chef_node
+      get_chef_node.reload
+      attributes["public_ip"] ||= get_chef_node.get_server_ip
+      attributes["private_ip"] ||= get_chef_node.get_private_ip
     end
   end
 
@@ -496,9 +486,8 @@ class ChefNodeDeployer < BaseDeployer
   end
 
   def load_output
-    chef_node = get_chef_node
-    if chef_node && chef_node.has_key?("output")
-      chef_node["output"].each do |key, value|
+    if get_chef_node && get_chef_node.has_key?("output")
+      get_chef_node["output"].each do |key, value|
         attributes[key] = value
       end
     end
