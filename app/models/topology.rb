@@ -20,6 +20,7 @@ require "base_deployer"
 
 class Topology < ActiveRecord::Base
 
+  include RestfulHelper
   include ContainersHelper
   include NodesHelper
   include TemplatesHelper
@@ -61,6 +62,8 @@ class Topology < ActiveRecord::Base
         raise XmlValidationError.new(:message => "unexpect element '#{element.to_s}', element must be container, node, or instance_templates")
       end
     end
+
+    generate_nodes_if_needed(topology_element)
 
     self.save!
   end
@@ -230,6 +233,17 @@ class Topology < ActiveRecord::Base
     raise "Cannot set state, the record is dirty: #{self.changes}" if self.changes.size > 0
     self.state = state
     self.unlock{self.save!}
+  end
+
+  def generate_nodes_if_needed(topology_element)
+    Rails.application.config.nodes.each do |node_xml|
+      node_element = parse_xml(node_xml)
+      node_name = node_element["id"]
+      if node_referenced?(topology_element, node_name) && !node_declared?(topology_element, node_name)
+        node = create_node_scaffold(node_element, self, self.owner)
+        node.update_node_attributes(node_element)
+      end
+    end
   end
 
 end

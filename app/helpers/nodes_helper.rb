@@ -45,4 +45,12 @@ module NodesHelper
     element.to_s
   end
 
+  def node_referenced?(element, node_name)
+    !!element.find_first("//*[@node='#{node_name}']")
+  end
+
+  def node_declared?(element, node_name)
+    !!element.find_first("//node[@id='#{node_name}']")
+  end
+
 end
