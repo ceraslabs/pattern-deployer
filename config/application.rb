@@ -137,9 +137,9 @@ module PatternDeployer
     # Get the IP address of current server
     begin
       query_url ||= "http://169.254.169.254/latest/meta-data/public-ipv4"
-      ipaddress = Excon.get(query_url, :connect_timeout => 5).body
+      public_ip = Excon.get(query_url, :connect_timeout => 5).body
       require 'ipaddr'
-      config.ipaddress = IPAddr.new(ipaddress).to_s
+      config.public_ip = IPAddr.new(public_ip).to_s
     rescue ArgumentError, Excon::Errors::Timeout
       alternative_url = "http://ifconfig.me/ip"
       if query_url != alternative_url
@@ -151,14 +151,27 @@ module PatternDeployer
       require 'ohai'
       ohai = Ohai::System.new
       ohai.all_plugins
-      config.ipaddress = ohai[:ipaddress]
+      config.public_ip = ohai[:ipaddress]
+    end
+
+    begin
+      query_url = "http://169.254.169.254/latest/meta-data/private-ipv4"
+      private_ip = Excon.get(query_url, :connect_timeout => 5).body
+      require 'ipaddr'
+      config.private_ip = IPAddr.new(private_ip).to_s
+    rescue ArgumentError, Excon::Errors::Timeout
+      # Use Ohai if none of above work
+      require 'ohai'
+      ohai = Ohai::System.new
+      ohai.all_plugins
+      config.private_ip = ohai[:ipaddress]
     end
 
     # A list of nodes definition. Node declared here can be reference without declared in pattern.
     config.nodes = [
       "<node id='PDS'>
         <is_external>true</is_external>
-        <server_ip>#{config.ipaddress}</server_ip>
+        <server_ip>#{config.private_ip}</server_ip>
       </node>"
     ]
   end
