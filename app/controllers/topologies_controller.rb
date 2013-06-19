@@ -234,8 +234,6 @@ class TopologiesController < RestfulController
       definition = file_io.read
     end
 
-    TopologyWrapper.validate_xml(definition, Rails.application.config.schema_file)
-
     if definition
       @topology = create_resource_from_xml(definition)
     else
@@ -246,7 +244,13 @@ class TopologiesController < RestfulController
     end
 
     @pattern = get_pattern(@topology)
-    render :action => "show", :formats => "json"
+    begin
+      TopologyWrapper.validate_xml(@pattern, Rails.application.config.schema_file)
+      render :action => "show", :formats => "json"
+    rescue LibXML::XML::Error => ex
+      @topology.destroy
+      raise XmlValidationError.new(:message => ex.message, :inner_exception => ex)
+    end
   end
 
 
