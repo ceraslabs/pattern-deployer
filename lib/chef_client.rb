@@ -39,20 +39,21 @@ class ChefClientsManager
   end
 
   def delete(client_name)
-    if @list_of_clients.include?(client_name)
-      #command = "knife client delete #{client_name} -y"
-      #success = system command #TODO cretralize command execution
-      #if not success
-      #  err_msg = "Command '#{command}' failed"
-      #  raise DeploymentError.new(:message => err_msg, :std_err => $?)
-      #end
+    return if not @list_of_clients.include?(client_name)
+
+    begin
       delete_client = Chef::Knife::ClientDelete.new
       delete_client.name_args = [client_name]
       delete_client.config[:yes] = true
       delete_client.run
-    end
 
-    @list_of_clients.delete(client_name)
+      @list_of_clients.delete(client_name)
+    rescue Exception => ex
+      puts "INFO: an exception when deleting chef client #{client_name}"
+      puts "[#{Time.now}] #{ex.class.name}: #{ex.message}"
+      puts "Trace:"
+      puts ex.backtrace.join("\n")
+    end
   end
 
   #def deregister(client_name)

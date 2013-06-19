@@ -173,15 +173,8 @@ class ChefNodeDeployer < BaseDeployer
     @chef_command.stop if @chef_command
     success, msg = delete_instance
 
-    begin
-      ChefNodesManager.instance.delete(node_id)
-      ChefClientsManager.instance.delete(node_id)
-    rescue Exception => ex
-      puts "Unexpected exception when deleting node and client of #{node_id}"
-      puts "[#{Time.now}] #{ex.class.name}: #{ex.message}"
-      puts "Trace:"
-      puts ex.backtrace.join("\n")
-    end
+    ChefNodesManager.instance.delete(node_id)
+    ChefClientsManager.instance.delete(node_id)
 
     super
 
