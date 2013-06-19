@@ -208,11 +208,6 @@ EOH
       cookbooks_to_upload << file
     end
 
-    `bundle exec knife cookbook list`.each do |line|
-      uploaded_cookbook = line.strip.split[0]
-      cookbooks_to_upload.delete(uploaded_cookbook) if uploaded_cookbook
-    end
-
     progress = false
     while cookbooks_to_upload.size > 0
       cookbooks_to_upload.each do |cookbook|
