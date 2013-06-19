@@ -234,6 +234,8 @@ class TopologiesController < RestfulController
       definition = file_io.read
     end
 
+    TopologyWrapper.validate_xml(definition, Rails.application.config.schema_file)
+
     if definition
       @topology = create_resource_from_xml(definition)
     else
