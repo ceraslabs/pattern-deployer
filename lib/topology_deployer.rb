@@ -680,7 +680,7 @@ class TopologyDeployer < BaseDeployer
   def load_vertice_data(new_vertex)
     sample_vertex = get_sample_vertex(new_vertex)
     #TODO VPNIP
-    ["port_redir", FileType::WAR_FILE, "database", FileType::SQL_SCRIPT_FILE].each do |attr_key|
+    ["port_redir", FileType::WAR_FILE, "database", FileType::SQL_SCRIPT_FILE, "credential_id"].each do |attr_key|
       new_vertex[attr_key] = sample_vertex[attr_key].clone if sample_vertex.has_key?(attr_key)
     end
   end
