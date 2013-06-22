@@ -319,7 +319,17 @@ class BaseDeployer
   end
 
   def get_databag
-    @databag_manager.get_or_create_databag(deployer_id)
+    retried = false
+
+    begin
+      @databag_manager.get_or_create_databag(deployer_id)
+    rescue Net::HTTPServerException => ex
+      raise ex if retried
+
+      @databag_manager.reload
+      retried = true
+      retry
+    end
   end
 
   def get_state_by_type(type_of_state)
