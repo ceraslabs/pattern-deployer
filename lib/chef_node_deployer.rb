@@ -261,7 +261,7 @@ class ChefNodeDeployer < BaseDeployer
   end
 
   def get_app_url
-    "http://" + get_server_ip + "/" + get_app_name if get_server_ip && get_app_name
+    "http://#{get_server_ip}/#{get_app_name}/" if get_server_ip && get_app_name
   end
 
   def get_db_system
@@ -318,7 +318,7 @@ class ChefNodeDeployer < BaseDeployer
   end
 
   def monitoring_server_url
-    "http://" + get_server_ip + "/ganglia" if get_server_ip
+    "http://" + get_server_ip + "/ganglia/" if get_server_ip
   end
 
   def server_created?
