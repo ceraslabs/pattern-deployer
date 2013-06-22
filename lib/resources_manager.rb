@@ -90,7 +90,7 @@ class ResourcesManager
 
   def find_my_key_pair(cloud)
     @resources.find do |res|
-      res.resource_type == Resource::KEY_PAIR && res.for_cloud == cloud
+      res.resource_type == Resource::KEY_PAIR && res.for_cloud == cloud && res.mine?
     end
   end
 
@@ -122,7 +122,7 @@ class ResourcesManager
 
   def find_my_credential(cloud)
     @resources.find do |res|
-      res.resource_type == Resource::CREDENTIAL && res.for_cloud == cloud
+      res.resource_type == Resource::CREDENTIAL && res.for_cloud == cloud && res.mine?
     end
   end
 

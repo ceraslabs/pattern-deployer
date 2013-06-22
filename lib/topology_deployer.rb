@@ -614,7 +614,9 @@ class TopologyDeployer < BaseDeployer
         node_deployer = ChefNodeDeployer.new(extended_node_id, self)
         node_deployer.reset(node_info.clone, services, resources)
         self << node_deployer
-        new_vertice[extended_node_id] = Vertex.new(extended_node_id, node_deployer, self)
+        new_vertex = Vertex.new(extended_node_id, node_deployer, self)
+        load_vertice_data(new_vertex)
+        new_vertice[extended_node_id] = new_vertex
       end
     end
 
@@ -631,7 +633,6 @@ class TopologyDeployer < BaseDeployer
     dirty_vertice = Hash.new
     new_vertice.each_value do |new_vertex|
       dirty_vertice.merge!(setup_external_connection(new_vertex, external_vertice))
-      load_vertice_data(new_vertex)
     end
     dirty_vertice
   end

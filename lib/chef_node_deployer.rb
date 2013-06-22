@@ -403,7 +403,7 @@ class ChefNodeDeployer < BaseDeployer
   def load_credential
     raise "Unexpected missing of resources" unless resources
 
-    credential_id ||= node_info["use_credential"]
+    self.credential_id ||= node_info["use_credential"]
     if credential_id
       # this node already have a credential assigned, so update the credential content
       credential = resources.find_credential_by_id(credential_id)
