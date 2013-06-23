@@ -480,8 +480,8 @@ class ChefNodeDeployer < BaseDeployer
     load_output
     if get_chef_node
       get_chef_node.reload
-      attributes["public_ip"] ||= get_chef_node.get_server_ip
-      attributes["private_ip"] ||= get_chef_node.get_private_ip
+      attributes["public_ip"] ||= get_chef_node.get_server_ip if get_chef_node.get_server_ip
+      attributes["private_ip"] ||= get_chef_node.get_private_ip if get_chef_node.get_private_ip
     end
   end
 

@@ -70,7 +70,7 @@ class ChefNodeWrapper
     elsif self.has_key?("ipaddress")
       return self["ipaddress"]
     else
-      raise "ipaddress is missing in chef node #{@node_name}"
+      #nothing
     end
   end
 
@@ -80,7 +80,7 @@ class ChefNodeWrapper
     elsif self.has_key?("ipaddress")
       return self["ipaddress"]
     else
-      raise "ipaddress is missing in chef node #{@node_name}"
+      #nothing
     end
   end
 
