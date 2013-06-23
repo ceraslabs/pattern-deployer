@@ -171,7 +171,7 @@ class MainDeployer < BaseDeployer
 
         # wait for deployment finish and do error checking
         unless wait
-          kill(:kill_worker => false)
+          kill_children
           raise "Deployment timeout"
         end
 
@@ -207,7 +207,7 @@ class MainDeployer < BaseDeployer
       begin
         @topology_deployer.scale
         unless wait
-          kill(:kill_worker => false)
+          kill_children
           raise "Deployment timeout"
         end
         raise get_children_error if get_children_state == State::DEPLOY_FAIL
@@ -241,7 +241,7 @@ class MainDeployer < BaseDeployer
       begin
         @topology_deployer.repair
         unless wait
-          kill(:kill_worker => false)
+          kill_children
           raise "Deployment timeout"
         end
         raise get_children_error if get_children_state == State::DEPLOY_FAIL

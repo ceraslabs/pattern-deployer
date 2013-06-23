@@ -471,7 +471,11 @@ class TopologyDeployer < BaseDeployer
   end
 
   def wait(timeout)
-    @worker_thread.join
+    if @worker_thread
+      @worker_thread.join(timeout)
+    else
+      true
+    end
   end
 
   def on_data(key, value, vertex_name)
@@ -537,9 +541,7 @@ class TopologyDeployer < BaseDeployer
       raise "Unexpected action #{action}"
     end
 
-    start_time = Time.now
-    timeout = Rails.application.config.chef_max_deploy_time
-    while Time.now - start_time < timeout
+    while true
       new_vertice.each do |vertex|
         vertex.on_success if vertex.deploy_success?
         vertex.on_failed if vertex.deploy_failed?
@@ -573,8 +575,6 @@ class TopologyDeployer < BaseDeployer
       # scan the topology every 10 second
       sleep 10
     end #while
-
-    !(Time.now - start_time < timeout)
   rescue Exception => ex
     #debug
     puts ex.message

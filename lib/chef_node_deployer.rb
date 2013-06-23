@@ -195,12 +195,7 @@ class ChefNodeDeployer < BaseDeployer
 
   def kill(options={})
     @chef_command.stop if @chef_command
-    timeout = 10
-    if @worker_thread && !@worker_thread.join(timeout)
-      @worker_thread.kill
-    end
-    set_deploy_state(State::DEPLOY_FAIL) if self.deploy_state == State::DEPLOYING
-    set_update_state(State::DEPLOY_FAIL) if self.update_state == State::DEPLOYING
+    super()
   end
 
   def assert_success!(chef_command, timeout = 60)

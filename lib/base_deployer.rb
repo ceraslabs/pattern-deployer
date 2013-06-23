@@ -134,7 +134,9 @@ class BaseDeployer
   end
 
   def wait(timeout = Rails.configuration.chef_max_deploy_time)
+    start_time = Time.now
     @children.all? do |child|
+      timeout = timeout - (Time.now - start_time)
       child.wait(timeout)
     end
   end
@@ -142,19 +144,23 @@ class BaseDeployer
   def kill(options={})
     @children.each{ |child| child.kill }
 
-    kill_worker = true unless options[:kill_worker] == false
-    timeout = 60
-    if kill_worker && @worker_thread && !@worker_thread.join(timeout)
+    kill_worker = true unless options[:keep_worker]
+    if kill_worker && @worker_thread
+      puts "About to kill deployer: #{deployer_id}"
       @worker_thread.kill
     end
 
     if self.update_state == State::DEPLOYING
-      set_update_state(get_children_state)
+      set_update_state(State::DEPLOY_FAIL)
     elsif self.deploy_state == State::DEPLOYING
-      set_deploy_state(get_children_state)
+      set_deploy_state(State::DEPLOY_FAIL)
     else
-      raise "Nothing is deploying"
+      # nothing
     end
+  end
+
+  def kill_children
+    kill(:keep_worker => true)
   end
 
   def set_state(state)
