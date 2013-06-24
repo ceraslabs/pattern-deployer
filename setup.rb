@@ -251,10 +251,16 @@ EOH
     end
 
     # collect the list of APIs
-    apis = Array.new
+    apis_names = Array.new
     Dir.foreach(docs_dir) do |file_name|
       next if file_name == "." || file_name == ".." || file_name == "index.json.erb"
       api_name = file_name.sub(/\.json.erb$/, "")
+      apis_names << api_name
+    end
+    apis_names.sort!
+
+    apis = Array.new
+    apis_names.each do |api_name|
       apis << %Q[{"path":"/api_docs/#{api_name}", "description":"#{api_name}"}]
     end
 
