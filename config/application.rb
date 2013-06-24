@@ -128,6 +128,9 @@ module PatternDeployer
     # The timeout for waiting the virtual ip address of another deploying instance
     config.chef_wait_vpnip_timeout = 600
 
+    # The timeout for waiting members of load balancer
+    config.chef_wait_balancer_members_timeout = 1800
+
     # Auto allocate floating IP when creating servers in OpenStack
     config.openstack_auto_allocate_ip = true
 

@@ -81,6 +81,7 @@ class ChefNodeDeployer < BaseDeployer
 
     attributes["timeout_waiting_ip"] = Rails.configuration.chef_wait_ip_timeout
     attributes["timeout_waiting_vpnip"] = Rails.configuration.chef_wait_vpnip_timeout
+    attributes["timeout_waiting_members"] = Rails.configuration.chef_wait_balancer_members_timeout
     if @parent.class == TopologyDeployer
       attributes["topology_id"] = @parent.get_topology_id
     end
