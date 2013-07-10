@@ -31,11 +31,6 @@ module TemplatesHelper
       err_msg = "The template element doesnot have attribute 'id'. The invalid XML documnet is: #{element.to_s}"
       raise XmlValidationError.new(:message => err_msg)
     end
-
-    if element.find_first("service/*[@node]")
-      err_msg = "Service inside template should not have any connection to node. The invalid XML documnet is: #{element.to_s}"
-      raise XmlValidationError.new(:message => err_msg)
-    end
   end
 
   def get_template_pattern(xml, template)

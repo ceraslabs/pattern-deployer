@@ -119,6 +119,9 @@ class Template < ActiveRecord::Base
         end
 
         self.base_templates << base_template
+      elsif element.name == "service"
+        service = self.services.find_by_service_id!(element["name"])
+        service.update_service_connections(element)
       end
     end
 

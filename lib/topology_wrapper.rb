@@ -114,31 +114,42 @@ class TopologyWrapper
 
   def get_node_refs_helper
     node_refs = Array.new
-    @doc.find("//node").each do |from_element|
-      from_element.find(".//*[@node]").each do |ref_element|
-        from_node_id = from_element["id"]
-        from_nodes = get_all_copies(from_node_id)
-        to_node_id = ref_element["node"]
-        to_nodes = get_all_copies(to_node_id)
+    @doc.find("//node | //template").each do |from_element|
+      case from_element.name
+      when "template"
+        template_id = from_element["id"]
+        from_nodes_ids = get_nodes_with_template(template_id).map{ |node| node["id"] }
+      when "node"
+        from_nodes_ids = [from_element["id"]]
+      else
+        raise "Unexpected element name #{from_element.name}"
+      end
 
-        if from_nodes.size == 1 && to_nodes.size == 1
-          node_refs << { "from" => from_nodes.first, "to" => to_nodes.first, "in_element" => ref_element.name.to_s }
-        elsif from_nodes.size > 1 && to_nodes.size == 1
-          from_nodes.each do |from_node|
-            node_refs << { "from" => from_node, "to" => to_nodes.first, "in_element" => ref_element.name.to_s }
+      from_element.find(".//*[@node]").each do |ref_element|
+        from_nodes_ids.each do |from_node_id|
+          from_nodes = get_all_copies(from_node_id)
+          to_node_id = ref_element["node"]
+          to_nodes = get_all_copies(to_node_id)
+
+          if from_nodes.size == 1 && to_nodes.size == 1
+            node_refs << { "from" => from_nodes.first, "to" => to_nodes.first, "in_element" => ref_element.name.to_s }
+          elsif from_nodes.size > 1 && to_nodes.size == 1
+            from_nodes.each do |from_node|
+              node_refs << { "from" => from_node, "to" => to_nodes.first, "in_element" => ref_element.name.to_s }
+            end
+          elsif from_nodes.size == 1 && to_nodes.size > 1
+            to_nodes.each do |to_node|
+              node_refs << { "from" => from_nodes.first, "to" => to_node, "in_element" => ref_element.name.to_s }
+            end
+          elsif from_nodes.size == to_nodes.size
+            for i in 0 .. from_nodes.size - 1
+              node_refs << { "from" => from_nodes[i], "to" => to_nodes[i], "in_element" => ref_element.name.to_s }
+            end
+          else
+            err_msg = "The dependencies from node '#{from_node_id}' to node '#{to_node_id}' is invalid. "
+            err_msg += "For valid dependencies, the depending node and the depended node must have same number of copies or at least one of them has just one copy"
+            raise XmlValidationError.new(:message => err_msg)
           end
-        elsif from_nodes.size == 1 && to_nodes.size > 1
-          to_nodes.each do |to_node|
-            node_refs << { "from" => from_nodes.first, "to" => to_node, "in_element" => ref_element.name.to_s }
-          end
-        elsif from_nodes.size == to_nodes.size
-          for i in 0 .. from_nodes.size - 1
-            node_refs << { "from" => from_nodes[i], "to" => to_nodes[i], "in_element" => ref_element.name.to_s }
-          end
-        else
-          err_msg = "The dependencies from node '#{from_node_id}' to node '#{to_node_id}' is invalid. "
-          err_msg += "For valid dependencies, the depending node and the depended node must have same number of copies or at least one of them has just one copy"
-          raise XmlValidationError.new(:message => err_msg)
         end
       end
     end
@@ -385,6 +396,46 @@ class TopologyWrapper
     get_nodes_with_services(["ossec_client"])
   end
 
+  def get_nodes_with_template(template_id)
+    nodes = Hash.new
+    get_descendant_templates(template_id).each do |d_template|
+      @doc.find("//use_template[@name='#{d_template}']").each do |use_template_element|
+        node = use_template_element.parent
+        node_id = node["id"]
+        nodes[node_id] = node unless nodes.has_key?(node_id)
+      end
+    end
+
+    nodes.values
+  end
+
+  def get_descendant_templates(source_template)
+    # use breadth first search algorithm
+    descendants = Array.new
+    descendants << source_template
+    queue = Queue.new
+    queue << source_template
+    while queue.size > 0
+      template = queue.pop
+      get_child_templates(template).each do |child|
+        next if descendants.include?(child)
+        descendants << child
+        queue << child
+      end
+    end
+
+    descendants
+  end
+
+  def get_child_templates(template_id)
+    templates = Array.new
+    @doc.find("//extend[@template='#{template_id}']").each do |extend_element|
+      parent_template = extend_element.parent["id"]
+      templates << parent_template unless templates.include?(parent_template)
+    end
+    templates
+  end
+
   def get_num_of_copies(id)
     element = get_node(id)
     #element = get_container(id) if element.nil?
@@ -465,18 +516,18 @@ class TopologyWrapper
   #  parent << new_ref
   #end
 
-  def get_nodes_ref_to(my_node_id)
-    nodes = Array.new
-    @doc.find("//node").each do |node_element|
-      element = node_element.find_first(".//*[@node='#{my_node_id}']")
-      nodes << node_element if element
-    end
-    return nodes
-  end
+  #def get_nodes_ref_to(my_node_id)
+  #  nodes = Array.new
+  #  @doc.find("//node").each do |node_element|
+  #    element = node_element.find_first(".//*[@node='#{my_node_id}']")
+  #    nodes << node_element if element
+  #  end
+  #  return nodes
+  #end
   
-  def get_refs(node_element, ref_to)
-    node_element.find(".//*[@node='#{ref_to}']")
-  end
+  #def get_refs(node_element, ref_to)
+  #  node_element.find(".//*[@node='#{ref_to}']")
+  #end
   
   #def delete_ref(ref_element)
   #  if ref_element.name == "first" || ref_element.name == "second"
