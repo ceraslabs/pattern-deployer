@@ -65,8 +65,8 @@ class ChefNodeWrapper
   end
 
   def get_server_ip
-    if self.has_key?("ec2")
-      return self["ec2"]["public_ipv4"]  
+    if self.has_key?("cloud")
+      return self["cloud"]["public_ipv4"]
     elsif self.has_key?("ipaddress")
       return self["ipaddress"]
     else
@@ -75,8 +75,8 @@ class ChefNodeWrapper
   end
 
   def get_private_ip
-    if self.has_key?("ec2")
-      return self["ec2"]["public_ipv4"]
+    if self.has_key?("cloud")
+      return self["cloud"]["private_ipv4"]
     elsif self.has_key?("ipaddress")
       return self["ipaddress"]
     else
