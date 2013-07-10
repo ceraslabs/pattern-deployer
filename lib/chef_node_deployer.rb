@@ -186,14 +186,6 @@ class ChefNodeDeployer < BaseDeployer
     return success, msg
   end
 
-  def wait(timeout)
-    if @worker_thread
-      @worker_thread.join(timeout)
-    else
-      true
-    end
-  end
-
   def kill(options={})
     @chef_command.stop if @chef_command
     super()

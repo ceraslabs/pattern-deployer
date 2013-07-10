@@ -134,11 +134,15 @@ class BaseDeployer
   end
 
   def wait(timeout = Rails.configuration.chef_max_deploy_time)
-    start_time = Time.now
-    @children.all? do |child|
-      timeout = timeout - (Time.now - start_time)
-      child.wait(timeout)
+    if @worker_thread
+      @worker_thread.join(timeout)
+    else
+      true
     end
+  end
+
+  def worker_thread_running?
+    %w{ sleep run }.include?(@worker_thread.status)
   end
 
   def kill(options={})

@@ -297,6 +297,24 @@ class MainDeployer < BaseDeployer
     end
   end
 
+  def wait(timeout = Rails.configuration.chef_max_deploy_time)
+    start_time = Time.now
+    while running? && !timeout?(start_time, timeout)
+      sleep 60
+    end
+    timeout?(start_time, timeout) ? false : true
+  end
+
+  def running?
+    @children.any? do |child|
+      child.worker_thread_running?
+    end
+  end
+
+  def timeout?(start_time, timeout)
+    Time.now - start_time > timeout
+  end
+
 
   protected
 

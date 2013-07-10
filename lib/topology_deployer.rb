@@ -470,14 +470,6 @@ class TopologyDeployer < BaseDeployer
     end
   end
 
-  def wait(timeout)
-    if @worker_thread
-      @worker_thread.join(timeout)
-    else
-      true
-    end
-  end
-
   def on_data(key, value, vertex_name)
     vertex = @vertice[vertex_name]
     if key == :public_ip || key == :private_ip
