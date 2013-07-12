@@ -64,12 +64,4 @@ PatternDeployer::Application.configure do
   # The location of the uploaded files
   config.uploaded_files_dir = "/tmp/test/uploaded_files"
 
-  # The location of the uploaded war files
-  config.war_files_dir = [config.uploaded_files_dir, "war_files"].join("/")
-
-  # The location of the uploaded identity files
-  config.identity_files_dir = [config.uploaded_files_dir, "identity_files"].join("/")
-
-  # The location of the uploaded sql scripts
-  config.sql_scripts_dir = [config.uploaded_files_dir, "sql_script_files"].join("/")
 end

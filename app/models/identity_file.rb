@@ -25,10 +25,6 @@ class IdentityFile < UploadedFile
 
   protected
 
-  def get_file_dir
-    Rails.configuration.identity_files_dir
-  end
-
   def key_pair_id_unique_within_cloud
     self.class.all.each do |file|
       if file.id != self.id && file.for_cloud == self.for_cloud && file.key_pair_id == self.key_pair_id

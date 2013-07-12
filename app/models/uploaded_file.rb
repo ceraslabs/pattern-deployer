@@ -22,7 +22,7 @@ class UploadedFile < ActiveRecord::Base
 
   validates :file_name, :presence => true
   validates_presence_of :owner
-  validate :file_name_unique_within_same_type
+  validate :file_name_unique
 
   after_save :commit_file
   after_destroy :delete_file
@@ -72,7 +72,7 @@ class UploadedFile < ActiveRecord::Base
   protected
 
   def get_file_dir
-    raise "Not implemented"
+    [Rails.configuration.uploaded_files_dir, self.owner.id].join("/")
   end
 
   def commit_file
@@ -82,26 +82,30 @@ class UploadedFile < ActiveRecord::Base
       FileUtils.mv("#{get_temp_dir}/#{file_name}", get_file_path)
       @dirty = false
     end
+    true
   end
 
   def delete_file
     FileUtils.rm(get_file_path) if File.exists?(get_file_path)
+    true
   end
 
   def write_to_disk(file_io)
-    File.open("#{get_temp_dir}/#{file_name}", "w") do |out|
+    temp_dir = get_temp_dir
+    FileUtils.mkdir_p(temp_dir) unless File.directory?(temp_dir)
+    File.open("#{temp_dir}/#{file_name}", "w") do |out|
       out.write(file_io.read)
     end
   end
 
   def get_temp_dir
-    "/tmp"
+    ["/tmp", self.owner.id].join("/")
   end
 
-  def file_name_unique_within_same_type
+  def file_name_unique
     UploadedFile.all.each do |file|
-      if file.id != self.id && file.instance_of?(self.class) && file.file_name == self.file_name
-        errors.add(:file_name, "have already been taken")
+      if file.id != self.id && file.file_name == self.file_name && file.owner.id == self.owner.id
+        errors.add(:file_name, "'#{self.file_name}' have already been taken")
       end
     end
   end
