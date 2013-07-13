@@ -22,8 +22,6 @@ require "fileutils"
 
 class ChefCookbookWrapper
 
-  @@cookbook_files_backup_folder = "/tmp/"
-
   def initialize(name)
     @name = name
   end
@@ -42,16 +40,22 @@ class ChefCookbookWrapper
   end
 
   def add_cookbook_file(file)
-    existing_file = get_cookbook_file(file.file_name, file.owner)
-    if existing_file.nil? || !FileUtils.compare_file(file.get_file_path, existing_file)
-      destination = get_cookbook_file_folder(file.owner)
+    existing_file = get_cookbook_file(file)
+    new_file = file.get_file_path
+    if existing_file.nil? || !FileUtils.compare_file(new_file, existing_file)
+      destination = get_cookbook_file_folder(file.owner.id)
       FileUtils.mkdir_p(destination)
       FileUtils.cp(file.get_file_path, destination)
     end
   end
 
-  def get_cookbook_file(file_name, file_owner)
-    file_path = [get_cookbook_file_folder(file_owner), file_name].join("/")
+  def delete_cookbook_file(file)
+    file_path = get_cookbook_file(file)
+    File.delete(file_path) if file_path
+  end
+
+  def get_cookbook_file(file)
+    file_path = [get_cookbook_file_folder(file.owner.id), file.file_name].join("/")
     if File.exists?(file_path)
       return file_path
     else
@@ -59,8 +63,10 @@ class ChefCookbookWrapper
     end
   end
 
-  def get_cookbook_file_folder(file_owner)
-    [Rails.application.config.chef_repo_dir, "cookbooks", @name, "files", "default", "user#{file_owner.id}"].join("/")
+  def get_cookbook_file_folder(user_id = nil)
+    path = [Rails.application.config.chef_repo_dir, "cookbooks", @name, "files", "default"]
+    path << "user#{user_id}" if user_id
+    path.join("/")
   end
 
   def save

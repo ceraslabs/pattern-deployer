@@ -382,6 +382,7 @@ class ChefNodeDeployer < BaseDeployer
     key_pair_id = node_info["key_pair_id"].strip
     identity_file = resources.find_identity_file(key_pair_id)
     if identity_file
+      identity_file.select
       node_info["identity_file"] = identity_file.get_file_path
     else
       raise "Cannot find identity file for key pair id #{key_pair_id}"
@@ -395,6 +396,8 @@ class ChefNodeDeployer < BaseDeployer
     if credential_id
       # this node already have a credential assigned, so update the credential content
       credential = resources.find_credential_by_id(credential_id)
+      raise "Can not find credential with id #{credential_id}" if credential.nil?
+      credential.select
       node_info["aws_access_key_id"]     = credential.access_key_id if credential.respond_to?(:access_key_id)
       node_info["aws_secret_access_key"] = credential.secret_access_key if credential.respond_to?(:secret_access_key)
       node_info["openstack_username"]    = credential.username if credential.respond_to?(:username)
@@ -430,6 +433,8 @@ class ChefNodeDeployer < BaseDeployer
     else
       raise "unexpected cloud #{get_cloud}"
     end
+
+    credential.select if credential
   end
 
   #def validate_cloud_provider!

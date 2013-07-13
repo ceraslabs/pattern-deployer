@@ -29,6 +29,8 @@ class Topology < ActiveRecord::Base
   has_many   :containers, :dependent => :destroy, :inverse_of => :topology
   has_many   :nodes, :dependent => :destroy, :as => :parent
   has_many   :templates, :dependent => :destroy, :inverse_of => :topology
+  has_and_belongs_to_many :uploaded_files
+  has_and_belongs_to_many :credentials
 
   attr_accessible :description, :topology_id, :state, :owner, :containers, :nodes, :templates, :id
   validates :state, :presence => true, :inclusion => { :in => [State::UNDEPLOY, State::DEPLOYING, State::DEPLOY_SUCCESS, State::DEPLOY_FAIL], 
@@ -99,6 +101,7 @@ class Topology < ActiveRecord::Base
     deployer.deploy
 
     self.set_state(State::DEPLOYING)
+    self.register_selected_resources(resources)
   end
 
   def scale(topology_xml, services, resources, nodes, diff)
@@ -113,6 +116,7 @@ class Topology < ActiveRecord::Base
     deployer.scale
 
     self.set_state(State::DEPLOYING)
+    self.register_selected_resources(resources)
   end
 
   def repair(topology_xml, services, resources)
@@ -127,6 +131,7 @@ class Topology < ActiveRecord::Base
     deployer.repair
 
     self.set_state(State::DEPLOYING)
+    self.register_selected_resources(resources)
   end
 
   def undeploy(topology_xml, services, resources)
@@ -250,6 +255,14 @@ class Topology < ActiveRecord::Base
       if topology.id != self.id && topology.topology_id == self.topology_id && topology.owner.id == self.owner.id
         errors.add(:topology_id, "'#{self.topology_id}' have already been taken")
       end
+    end
+  end
+
+  def register_selected_resources(resources)
+    resources.each do |resource|
+      next if !resource.selected? || resource.topologies.exists?(self)
+      resource.topologies << self
+      resource.save
     end
   end
 

@@ -17,6 +17,7 @@
 class UploadedFile < ActiveRecord::Base
 
   belongs_to :owner, :autosave => true, :class_name => "User", :foreign_key => "user_id", :inverse_of => :uploaded_files
+  has_and_belongs_to_many :topologies
 
   attr_accessible :file_name, :id, :owner
 
@@ -24,6 +25,7 @@ class UploadedFile < ActiveRecord::Base
   validates_presence_of :owner
   validate :file_name_unique
 
+  before_destroy :file_destroyable
   after_save :commit_file
   after_destroy :delete_file
 
@@ -87,6 +89,10 @@ class UploadedFile < ActiveRecord::Base
 
   def delete_file
     FileUtils.rm(get_file_path) if File.exists?(get_file_path)
+    # Files may be copied to the cookbook, delete them if it is
+    cookbook_name = Rails.configuration.chef_cookbook_name
+    cookbook = ChefCookbookWrapper.create(cookbook_name)
+    cookbook.delete_cookbook_file(self)
     true
   end
 
@@ -109,4 +115,12 @@ class UploadedFile < ActiveRecord::Base
       end
     end
   end
+
+  def file_destroyable
+    if self.topologies.any?{ |t| t.state != State::UNDEPLOY }
+      msg = "Uploaded file #{file_name} cannot be destroyed. Please make sure it is not being used by any topology"
+      raise ParametersValidationError.new(:message => msg)
+    end
+  end
+
 end

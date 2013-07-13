@@ -17,12 +17,15 @@
 class Credential < ActiveRecord::Base
 
   belongs_to :owner, :autosave => true, :class_name => "User", :foreign_key => "user_id", :inverse_of => :credentials
+  has_and_belongs_to_many :topologies
 
   attr_accessible :credential_id, :for_cloud, :owner, :id
 
   validate :credential_id_unique
   validates :for_cloud, :inclusion => { :in => Rails.configuration.supported_clouds, :message => "cloud %{value} is not supported" }
   validates_presence_of :owner
+
+  before_destroy :credential_destroyable
 
 
   def credential_id_unique
@@ -35,6 +38,13 @@ class Credential < ActiveRecord::Base
 
     if Credential.where(query, query_params).first
       errors.add(:credential_id, "'#{credential_id}' have already been taken")
+    end
+  end
+
+  def credential_destroyable
+    if self.topologies.any?{ |t| t.state != State::UNDEPLOY }
+      msg = "Credential #{credential_id} cannot be destroyed. Please make sure it is not being used by any topology"
+      raise ParametersValidationError.new(:message => msg)
     end
   end
 

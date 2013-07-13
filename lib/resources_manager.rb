@@ -34,6 +34,7 @@ class ResourceWrapper
     @resource = resource
     @type = type
     @is_mine = is_mine
+    @selected = false
   end
 
   def resource_type
@@ -46,6 +47,14 @@ class ResourceWrapper
 
   def get_id
     @resource[:id]
+  end
+
+  def select
+    @selected = true
+  end
+
+  def selected?
+    @selected
   end
 
   def respond_to?(sym)
@@ -110,6 +119,10 @@ class ResourcesManager
     @resources.find do |res|
       res.resource_type == file_type && res.file_name == file_name
     end
+  end
+
+  def each(&block)
+    @resources.each(&block)
   end
 
   protected

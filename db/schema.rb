@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20121217000916) do
+ActiveRecord::Schema.define(:version => 20130713195831) do
 
   create_table "containers", :force => true do |t|
     t.string   "container_id"
@@ -34,6 +34,11 @@ ActiveRecord::Schema.define(:version => 20121217000916) do
     t.string  "openstack_tenant"
     t.string  "openstack_endpoint"
     t.integer "user_id",               :null => false
+  end
+
+  create_table "credentials_topologies", :force => true do |t|
+    t.integer "topology_id"
+    t.integer "credential_id"
   end
 
   create_table "nodes", :force => true do |t|
@@ -128,6 +133,11 @@ ActiveRecord::Schema.define(:version => 20121217000916) do
   end
 
   add_index "topologies", ["topology_id"], :name => "index_topologies_on_topology_id"
+
+  create_table "topologies_uploaded_files", :force => true do |t|
+    t.integer "topology_id"
+    t.integer "uploaded_file_id"
+  end
 
   create_table "uploaded_files", :force => true do |t|
     t.string   "type"

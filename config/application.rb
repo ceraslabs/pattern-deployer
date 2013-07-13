@@ -119,6 +119,9 @@ module PatternDeployer
     # The location of chef config file
     config.chef_config_file = "#{Rails.root}/chef-repo/.chef/knife.rb"
 
+    # The name of the cookbook
+    config.chef_cookbook_name = "NestedQEMU"
+
     # The deployment of application pattern will stop if the deployment time is more than this.
     config.chef_max_deploy_time = 3600
 

@@ -860,8 +860,8 @@ class TopologyDeployer < BaseDeployer
   end
 
   def prepare_cookbook
-    cookbook = ChefCookbookWrapper.create("NestedQEMU")
-    raise "Cannot find cookbook NestedQEMU" unless cookbook
+    cookbook_name = Rails.configuration.chef_cookbook_name
+    cookbook = ChefCookbookWrapper.create(cookbook_name)
     @vertice.each_value do |vertex|
       [FileType::WAR_FILE, FileType::SQL_SCRIPT_FILE].each do |file_type|
         next unless vertex.has_key?(file_type)
@@ -872,6 +872,7 @@ class TopologyDeployer < BaseDeployer
           err_msg = "The file #{file_name} does not exist. Please upload that file before deploy"
           raise DeploymentError.new(:message => err_msg)
         end
+        file.select
         cookbook.add_cookbook_file(file)
       end
     end
