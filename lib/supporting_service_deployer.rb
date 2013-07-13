@@ -23,7 +23,7 @@ require "my_errors"
 class SupportingServiceDeployer < BaseDeployer
 
   def initialize(service_name)
-    my_id = [self.class.get_id_prefix, "service", service_name].join("_")
+    my_id = self.class.join(self.class.get_id_prefix, "service", service_name)
     super(my_id)
 
     @service_name = service_name

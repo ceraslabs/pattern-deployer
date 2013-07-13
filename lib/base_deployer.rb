@@ -73,6 +73,10 @@ class BaseDeployer
     "PatternDeployer"
   end
 
+  def self.join(*tokens)
+    tokens.join("-")
+  end
+
   def get_children
     @children || Hash.new
   end
@@ -412,4 +416,5 @@ class BaseDeployer
     set_update_state(State::DEPLOY_FAIL)
     set_update_error(err_msg)
   end
+
 end

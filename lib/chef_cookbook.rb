@@ -41,17 +41,17 @@ class ChefCookbookWrapper
     end
   end
 
-  def add_cookbook_file(file_name, file)
-    existing_file = get_cookbook_file(file_name)
-    if existing_file.nil? || !FileUtils.compare_file(file, existing_file)
-      destination = get_cookbook_file_folder
+  def add_cookbook_file(file)
+    existing_file = get_cookbook_file(file.file_name, file.owner)
+    if existing_file.nil? || !FileUtils.compare_file(file.get_file_path, existing_file)
+      destination = get_cookbook_file_folder(file.owner)
       FileUtils.mkdir_p(destination)
-      FileUtils.cp(file, destination)
+      FileUtils.cp(file.get_file_path, destination)
     end
   end
 
-  def get_cookbook_file(file_name)
-    file_path = [get_cookbook_file_folder, file_name].join("/")
+  def get_cookbook_file(file_name, file_owner)
+    file_path = [get_cookbook_file_folder(file_owner), file_name].join("/")
     if File.exists?(file_path)
       return file_path
     else
@@ -59,8 +59,8 @@ class ChefCookbookWrapper
     end
   end
 
-  def get_cookbook_file_folder
-    [Rails.application.config.chef_repo_dir, "cookbooks", @name, "files", "default"].join("/")
+  def get_cookbook_file_folder(file_owner)
+    [Rails.application.config.chef_repo_dir, "cookbooks", @name, "files", "default", "user#{file_owner.id}"].join("/")
   end
 
   def save
@@ -71,4 +71,5 @@ class ChefCookbookWrapper
   end
 
   private_class_method :new
+
 end

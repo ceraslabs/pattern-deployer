@@ -31,11 +31,10 @@ class Topology < ActiveRecord::Base
   has_many   :templates, :dependent => :destroy, :inverse_of => :topology
 
   attr_accessible :description, :topology_id, :state, :owner, :containers, :nodes, :templates, :id
-
-  validates :topology_id, :presence => true, :uniqueness => true
   validates :state, :presence => true, :inclusion => { :in => [State::UNDEPLOY, State::DEPLOYING, State::DEPLOY_SUCCESS, State::DEPLOY_FAIL], 
                                                        :message => "%{value} is not a valid state" }
   validates_presence_of :owner
+  validate :topology_id_unique
   validate :topology_mutable
 
   after_initialize :set_default_values
@@ -204,7 +203,7 @@ class Topology < ActiveRecord::Base
   def get_deployer
     deployer = DeployersManager.get_deployer(self.topology_id)
     if deployer.nil?
-      deployer = MainDeployer.new(self.topology_id)
+      deployer = MainDeployer.new(self.topology_id, self.owner.id)
       DeployersManager.add_deployer(self.topology_id, deployer)
     end
 
@@ -242,6 +241,14 @@ class Topology < ActiveRecord::Base
       if node_referenced?(topology_element, node_name) && !node_declared?(topology_element, node_name)
         node = create_node_scaffold(node_element, self, self.owner)
         node.update_node_attributes(node_element)
+      end
+    end
+  end
+
+  def topology_id_unique
+    Topology.all.each do |topology|
+      if topology.id != self.id && topology.topology_id == self.topology_id && topology.owner.id == self.owner.id
+        errors.add(:topology_id, "'#{self.topology_id}' have already been taken")
       end
     end
   end

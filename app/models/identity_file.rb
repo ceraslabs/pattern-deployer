@@ -20,15 +20,15 @@ class IdentityFile < UploadedFile
 
   validates :for_cloud, :inclusion => { :in => Rails.configuration.supported_clouds, :message => "cloud %{value} is not supported" }
   validates :key_pair_id, :presence => true
-  validate :key_pair_id_unique_within_cloud
+  validate :key_pair_id_unique
 
 
   protected
 
-  def key_pair_id_unique_within_cloud
+  def key_pair_id_unique
     self.class.all.each do |file|
-      if file.id != self.id && file.for_cloud == self.for_cloud && file.key_pair_id == self.key_pair_id
-        errors.add(:key_pair_id, "have already been uploaded")
+      if file.id != self.id && file.key_pair_id == self.key_pair_id && file.owner.id == self.owner.id
+        errors.add(:key_pair_id, "'#{self.key_pair_id}' have already been uploaded")
       end
     end
   end

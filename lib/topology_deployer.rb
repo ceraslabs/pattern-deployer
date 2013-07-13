@@ -273,8 +273,8 @@ class TopologyDeployer < BaseDeployer
 
   attr_accessor :topology, :resources
 
-  def initialize(topology_id)
-    my_id = [self.class.get_id_prefix, "topology", topology_id].join("_")
+  def initialize(topology_id, owner)
+    my_id = self.class.join(self.class.get_id_prefix, "user", owner, "topology", topology_id)
     super(my_id, topology_id)
   end
 
@@ -602,7 +602,7 @@ class TopologyDeployer < BaseDeployer
       services = topology.get_services(node_id)
       num_of_copies = topology.get_num_of_copies(node_id)
       (num_of_copies + 1 .. num_of_copies + how_many).each do |rank|
-        extended_node_id = [node_id, rank].join("_")
+        extended_node_id = self.class.join(node_id, rank)
         node_deployer = ChefNodeDeployer.new(extended_node_id, self)
         node_deployer.reset(node_info.clone, services, resources)
         self << node_deployer
@@ -688,7 +688,7 @@ class TopologyDeployer < BaseDeployer
     nodes.each do |node_id|
       num_of_copies = topology.get_num_of_copies(node_id)
       (num_of_copies - how_many + 1 .. num_of_copies).each do |rank|
-        vertex_name = [node_id, rank].join("_")
+        vertex_name = self.class.join(node_id, rank)
         vertice_to_delete[vertex_name] = @vertice[vertex_name]
       end
     end
@@ -872,7 +872,7 @@ class TopologyDeployer < BaseDeployer
           err_msg = "The file #{file_name} does not exist. Please upload that file before deploy"
           raise DeploymentError.new(:message => err_msg)
         end
-        cookbook.add_cookbook_file(file_name, file.get_file_path)
+        cookbook.add_cookbook_file(file)
       end
     end
 

@@ -30,7 +30,7 @@ class MainDeployer < BaseDeployer
   # If the deployment of a topology needs supporting service, it will consume supporting service through this class
   class MySupportingServiceDeployer < BaseDeployer
     def initialize(service_deployer, topology)
-      id = [self.class.get_id_prefix, "topology", topology.get_topology_id, "service", service_deployer.get_service_name].join("_")
+      id = self.class.join(self.class.get_id_prefix, "topology", topology.get_topology_id, "service", service_deployer.get_service_name)
       super(id, topology.get_topology_id)
 
       @deployer = service_deployer
@@ -100,7 +100,7 @@ class MainDeployer < BaseDeployer
 
   class MySupportingServicesDeployer < BaseDeployer
     def initialize(name, topology_id)
-      my_id = [self.class.get_id_prefix, "topology", topology_id, "services", name].join("_")
+      my_id = self.class.join(self.class.get_id_prefix, "topology", topology_id, "services", name)
       super(my_id, topology_id)
 
       @name = name
@@ -129,9 +129,12 @@ class MainDeployer < BaseDeployer
   end #class MySupportingServicesDeployer
 
 
-  def initialize(topology_id)
-    my_id = [self.class.get_id_prefix, "main", topology_id].join("_")
+  attr_accessor :owner_id
+
+  def initialize(topology_id, owner_id)
+    my_id = self.class.join(self.class.get_id_prefix, "user", owner_id, "main", topology_id)
     super(my_id, topology_id)
+    self.owner_id = owner_id
   end
 
   def get_id
@@ -345,7 +348,7 @@ class MainDeployer < BaseDeployer
     services_deployers = options[:supporting_services]
 
     if @topology_deployer.nil?
-      @topology_deployer = TopologyDeployer.new(topology.get_topology_id)
+      @topology_deployer = TopologyDeployer.new(topology.get_topology_id, self.owner_id)
       self << @topology_deployer
     end
 
