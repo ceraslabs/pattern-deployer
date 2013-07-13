@@ -66,7 +66,7 @@ class ChefNodeDeployer < BaseDeployer
   end
 
   def get_pretty_name
-    name_no_suffix = short_name.sub(/_\d+$/, "")
+    name_no_suffix = short_name.sub(/-\d+$/, "")
     if @parent.class == TopologyDeployer && @parent.topology.get_num_of_copies(name_no_suffix) > 1
       return short_name
     else

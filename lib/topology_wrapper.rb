@@ -234,7 +234,7 @@ class TopologyWrapper
         if vpnip_element["index"].nil?
           free_ips << vpnip_element.content.strip
         else
-          node_name = "#{node['id']}_#{vpnip_element['index']}"
+          node_name = BaseDeployer.join(node['id'], vpnip_element['index'])
           vpnips[node_name] = vpnip_element.content.strip
           indice_with_ip << Integer(vpnip_element["index"])
         end
@@ -244,7 +244,7 @@ class TopologyWrapper
       indice_without_ip = all_indice - indice_with_ip
 
       indice_without_ip.each do |i|
-        node_name = node['id'] + "_" + i.to_s
+        node_name = BaseDeployer.join(node['id'], i)
         if free_ips.empty?
           generated_ip = generate_ip(used_ips)
           used_ips << generated_ip
@@ -452,7 +452,7 @@ class TopologyWrapper
     num_of_copies = get_num_of_copies(node_id)
     all_copies = Array.new
     for i in 1..num_of_copies
-      all_copies << "#{node_id}_#{i}"
+      all_copies << BaseDeployer.join(node_id, i)
     end
     return all_copies
   end
