@@ -146,7 +146,7 @@ class BaseDeployer
   end
 
   def worker_thread_running?
-    %w{ sleep run }.include?(@worker_thread.status)
+    %w{ sleep run }.include?(@worker_thread.status) if @worker_thread
   end
 
   def kill(options={})
