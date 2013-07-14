@@ -35,6 +35,9 @@ class Topology < ActiveRecord::Base
   attr_accessible :description, :topology_id, :state, :owner, :containers, :nodes, :templates, :id
   validates :state, :presence => true, :inclusion => { :in => [State::UNDEPLOY, State::DEPLOYING, State::DEPLOY_SUCCESS, State::DEPLOY_FAIL], 
                                                        :message => "%{value} is not a valid state" }
+  #TODO underscore in topology name is deprecated
+  validates :topology_id, :format => { :with => /^[[:alnum:]_]+$/,
+                                       :message => "%{value} doesnot match regex /^[[:alnum:]_]+$/" }
   validates_presence_of :owner
   validate :topology_id_unique
   validate :topology_mutable
