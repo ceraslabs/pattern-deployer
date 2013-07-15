@@ -383,22 +383,23 @@ class ChefNodeDeployer < BaseDeployer
 
   def load_key_pair
     raise "Unexpected missing of resources" unless resources
-    keypair_id = node_info["key_pair_id"]
-    if keypair_id
-      keypair_id.strip!
-    else
-      keypair_id = find_keypair_id
-    end
-
     if self.identity_file_id
       identity_file = resources.find_file_by_id(self.identity_file_id)
-    elsif keypair_id
-      identity_file = resources.find_identity_file(keypair_id)
+      raise "Cannot find identity file with id #{self.identity_file_id}" if identity_file.nil?
     else
-      return # No action is needed
-    end
+      if get_cloud == Rails.application.config.ec2 || get_cloud == Rails.application.config.openstack
+        node_info["key_pair_id"] ||= resources.find_keypair_id(get_cloud)
+      elsif get_cloud == Rails.application.config.notcloud
+        return # no action is needed
+      else
+        raise "unexpected cloud #{get_cloud}"
+      end
 
-    raise "Cannot find identity file for key pair id #{keypair_id}" if identity_file.nil?
+      keypair_id = node_info["key_pair_id"]
+      raise "Cannot find any keypair for cloud #{get_cloud}" if keypair_id.nil?
+      identity_file = resources.find_identity_file(keypair_id) if keypair_id
+      raise "Cannot find identity file with keypair id #{keypair_id}" if identity_file.nil?
+    end
 
     identity_file.select
     node_info["identity_file"] = identity_file.get_file_path
