@@ -868,9 +868,11 @@ class TopologyDeployer < BaseDeployer
     self.save
     get_children.each{ |child| child.save }
     #save cookbook
-    cookbook_name = Rails.configuration.chef_cookbook_name
-    cookbook = ChefCookbookWrapper.create(cookbook_name)
-    cookbook.save
+    if get_deploy_state == State::DEPLOYING
+      cookbook_name = Rails.configuration.chef_cookbook_name
+      cookbook = ChefCookbookWrapper.create(cookbook_name)
+      cookbook.save
+    end
   end
 
 end

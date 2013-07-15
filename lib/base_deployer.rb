@@ -129,6 +129,7 @@ class BaseDeployer
 
     begin
       get_databag.delete if get_databag
+      self.attributes.clear
     rescue Exception => ex
       puts "Unexpected exception when deleting databag"
       puts "[#{Time.now}] #{ex.class.name}: #{ex.message}"
