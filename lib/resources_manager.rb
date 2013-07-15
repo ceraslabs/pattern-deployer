@@ -113,7 +113,7 @@ class ResourcesManager
 
   def find_credential_by_name(credential_name, cloud)
     credentials = @resources.select do |res|
-      res.resource_type == Resource::CREDENTIAL && res.credential_id == credential_name && res.cloud == cloud
+      res.resource_type == Resource::CREDENTIAL && res.credential_id == credential_name && res.for_cloud == cloud
     end
     credential = select_resource(credentials)
     credential
