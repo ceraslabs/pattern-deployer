@@ -113,7 +113,7 @@ class ResourcesManager
 
   def find_credential_by_name(credential_name, cloud)
     credentials = @resources.select do |res|
-      res.resource_type == Resource::CREDENTIAL && res.credential_id == credential_name && cloud.casecmp(res.for_cloud)
+      res.resource_type == Resource::CREDENTIAL && res.credential_id == credential_name && cloud.casecmp(res.for_cloud) == 0
     end
     credential = select_resource(credentials)
     credential
@@ -121,7 +121,7 @@ class ResourcesManager
 
   def find_keypair_id(cloud)
     keypairs = @resources.select do |res|
-      res.resource_type == Resource::KEY_PAIR && cloud.casecmp(res.for_cloud)
+      res.resource_type == Resource::KEY_PAIR && cloud.casecmp(res.for_cloud) == 0
     end
     keypair = select_resource(keypairs)
     keypair ? keypair.key_pair_id : nil
@@ -161,7 +161,7 @@ class ResourcesManager
 
   def find_credential(cloud)
     credentials = @resources.select do |res|
-      res.resource_type == Resource::CREDENTIAL && cloud.casecmp(res.for_cloud)
+      res.resource_type == Resource::CREDENTIAL && cloud.casecmp(res.for_cloud) == 0
     end
     credential = select_resource(credentials)
     credential
