@@ -305,6 +305,10 @@ class BaseDeployer
     msg
   end
 
+  def self.true?(str)
+    "true".casecmp(str) == 0
+  end
+
 
   protected
 

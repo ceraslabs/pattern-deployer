@@ -226,11 +226,11 @@ class ChefNodeDeployer < BaseDeployer
   end
 
   def get_server_ip
-    attributes["public_ip"]
+    private_network? ? attributes["private_ip"] : attributes["public_ip"]
   end
 
   def external?
-    !!self.node_info["is_external"]
+    self.class.true?(self.node_info["is_external"])
   end
 
   def application_server?
@@ -239,6 +239,10 @@ class ChefNodeDeployer < BaseDeployer
 
   def database_server?
     services.include?("database_server") && self.database
+  end
+
+  def private_network?
+    self.class.true?(self.node_info["private_network"])
   end
 
   def get_app_name
