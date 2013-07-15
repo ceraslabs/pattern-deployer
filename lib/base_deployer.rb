@@ -77,6 +77,10 @@ class BaseDeployer
     tokens.join("-")
   end
 
+  def get_owner_id
+    /-user-(\d+)-topology-/.match(self.deployer_id)[1]
+  end
+
   def get_children
     @children || Hash.new
   end

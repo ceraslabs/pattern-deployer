@@ -39,23 +39,23 @@ class ChefCookbookWrapper
     end
   end
 
-  def add_cookbook_file(file)
-    existing_file = get_cookbook_file(file)
+  def add_cookbook_file(file, user_id)
+    existing_file = get_cookbook_file(file, user_id)
     new_file = file.get_file_path
     if existing_file.nil? || !FileUtils.compare_file(new_file, existing_file)
-      destination = get_cookbook_file_folder(file.owner.id)
+      destination = get_cookbook_file_folder(user_id)
       FileUtils.mkdir_p(destination)
       FileUtils.cp(file.get_file_path, destination)
     end
   end
 
-  def delete_cookbook_file(file)
-    file_path = get_cookbook_file(file)
+  def delete_cookbook_file(file, user_id)
+    file_path = get_cookbook_file(file, user_id)
     File.delete(file_path) if file_path
   end
 
-  def get_cookbook_file(file)
-    file_path = [get_cookbook_file_folder(file.owner.id), file.file_name].join("/")
+  def get_cookbook_file(file, user_id)
+    file_path = [get_cookbook_file_folder(user_id), file.file_name].join("/")
     if File.exists?(file_path)
       return file_path
     else

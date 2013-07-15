@@ -245,7 +245,7 @@ class ContainersController < RestfulController
       raise ParametersValidationError.new(:message => "Parameter num_of_copies is missing") unless params[:num_of_copies]
 
       if scale_at_runtime?
-        resources = get_resources
+        resources = get_resources(@topology)
         services = SupportingService.get_all_services
         self.formats = [:xml]
         topology_xml = render_to_string(:partial => "topologies/topology", :locals => {:topology => @topology})

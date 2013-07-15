@@ -341,10 +341,9 @@ class TopologyDeployer < BaseDeployer
   def prepare_deploy(topology, resources)
     self.reset(topology, resources)
     initialize_deployment_graph(:reset_children => true)
+    load_topology_info
 
     super()
-    load_topology_info
-    prepare_cookbook
 
     save_all
   end
@@ -673,8 +672,14 @@ class TopologyDeployer < BaseDeployer
   def load_vertice_data(new_vertex)
     sample_vertex = get_sample_vertex(new_vertex)
     #TODO VPNIP
-    ["port_redir", FileType::WAR_FILE, "database", FileType::SQL_SCRIPT_FILE, "credential_id"].each do |attr_key|
-      new_vertex[attr_key] = sample_vertex[attr_key].clone if sample_vertex.has_key?(attr_key)
+    ["port_redir", FileType::WAR_FILE, "database", FileType::SQL_SCRIPT_FILE, "credential_id",
+     "war_file_id", "sql_script_file_id", "identity_file_id"].each do |attr_key|
+      next if not sample_vertex.has_key?(attr_key)
+      begin
+        new_vertex[attr_key] = sample_vertex[attr_key].clone
+      rescue TypeError
+        new_vertex[attr_key] = sample_vertex[attr_key]
+      end
     end
   end
 
@@ -859,31 +864,13 @@ class TopologyDeployer < BaseDeployer
     end
   end
 
-  def prepare_cookbook
-    cookbook_name = Rails.configuration.chef_cookbook_name
-    cookbook = ChefCookbookWrapper.create(cookbook_name)
-    @vertice.each_value do |vertex|
-      [FileType::WAR_FILE, FileType::SQL_SCRIPT_FILE].each do |file_type|
-        next unless vertex.has_key?(file_type)
-
-        file_name = vertex[file_type]["name"]
-        file = resources.get_file(file_name, file_type)
-        if file.nil? || !File.exists?(file.get_file_path)
-          err_msg = "The file #{file_name} does not exist. Please upload that file before deploy"
-          raise DeploymentError.new(:message => err_msg)
-        end
-        file.select
-        cookbook.add_cookbook_file(file)
-      end
-    end
-
-    cookbook.save
-  end
-
-
   def save_all
     self.save
     get_children.each{ |child| child.save }
+    #save cookbook
+    cookbook_name = Rails.configuration.chef_cookbook_name
+    cookbook = ChefCookbookWrapper.create(cookbook_name)
+    cookbook.save
   end
 
 end

@@ -30,19 +30,15 @@ end
 
 class ResourceWrapper
 
-  def initialize(resource, type, is_mine)
+  def initialize(resource, type, context)
     @resource = resource
     @type = type
-    @is_mine = is_mine
+    @context = context
     @selected = false
   end
 
   def resource_type
     @type
-  end
-
-  def mine?
-    @is_mine
   end
 
   def get_id
@@ -55,6 +51,19 @@ class ResourceWrapper
 
   def selected?
     @selected
+  end
+
+  def owned_by_me?
+    @resource.owner.id == get_current_user.id
+  end
+
+  def readable_by_me?
+    resource = @resource
+    @context.instance_eval{ can? :read, resource }
+  end
+
+  def get_current_user
+    @context.instance_eval{ current_user }
   end
 
   def respond_to?(sym)
@@ -72,53 +81,70 @@ end
 
 class ResourcesManager
 
-  def initialize
+  attr_reader :topology
+
+  @@file_types = [Resource::KEY_PAIR, Resource::WAR_FILE, Resource::SQL_SCRIPT]
+
+  def initialize(topology, controller)
+    @topology = topology
+    @context = controller
     @resources = Array.new
   end
 
-  def add_resources_if_not_added(resources, type, options={})
-    is_mine = options[:is_mine] || false
+  def add_resources(resources, type)
     resources.each do |res|
-      @resources << ResourceWrapper.new(res, type, is_mine) unless self.include?(res, type)
+      @resources << ResourceWrapper.new(res, type, @context) unless self.include?(res, type)
     end
   end
 
-  def find_my_ec2_credential
-    find_my_credential(Rails.application.config.ec2)
+  def find_ec2_credential
+    find_credential(Rails.application.config.ec2)
   end
 
-  def find_my_openstack_credential
-    find_my_credential(Rails.application.config.openstack)
+  def find_openstack_credential
+    find_credential(Rails.application.config.openstack)
   end
 
   def find_credential_by_id(credential_id)
-    @resources.select do |res|
-      res.resource_type == Resource::CREDENTIAL && res.credential_id == credential_id
-    end.first
+    @resources.find do |res|
+      res.resource_type == Resource::CREDENTIAL && res.get_id == credential_id
+    end
   end
 
-  def find_my_key_pair(cloud)
-    @resources.find do |res|
-      res.resource_type == Resource::KEY_PAIR && res.for_cloud == cloud && res.mine?
+  def find_credential_by_name(credential_name, cloud)
+    credentials = @resources.select do |res|
+      res.resource_type == Resource::CREDENTIAL && res.credential_id == credential_name && res.cloud == cloud
     end
+    credential = select_resource(credentials)
+    credential
+  end
+
+  def find_keypair_id(cloud)
+    keypairs = @resources.select do |res|
+      res.resource_type == Resource::KEY_PAIR && res.for_cloud == cloud
+    end
+    keypair = select_resource(keypairs)
+    keypair ? keypair.key_pair_id : nil
+  end
+
+  def find_file_by_id(id)
+    @resources.find{ |res| @@file_types.include?(res.resource_type) && res.get_id == id }
   end
 
   def find_identity_file(key_pair_id)
-    @resources.find do |res|
+    id_files = @resources.select do |res|
       res.resource_type == Resource::KEY_PAIR && res.key_pair_id == key_pair_id
     end
+    id_file = select_resource(id_files)
+    id_file
   end
 
-  #def find_key_pair(cloud, key_pair_id)
-  #  @resources.select do |res|
-  #    res.resource_type == Resource::KEY_PAIR && res.for_cloud == cloud && res.key_pair_id == key_pair_id && res.mine?
-  #  end.first
-  #end
-
-  def get_file(file_name, file_type)
-    @resources.find do |res|
-      res.resource_type == file_type && res.file_name == file_name
+  def find_file_by_name(file_name)
+    files = @resources.select do |res|
+      @@file_types.include?(res.resource_type) && res.file_name == file_name
     end
+    file = select_resource(files)
+    file
   end
 
   def each(&block)
@@ -133,10 +159,19 @@ class ResourcesManager
     end
   end
 
-  def find_my_credential(cloud)
-    @resources.find do |res|
-      res.resource_type == Resource::CREDENTIAL && res.for_cloud == cloud && res.mine?
+  def find_credential(cloud)
+    credentials = @resources.select do |res|
+      res.resource_type == Resource::CREDENTIAL && res.for_cloud == cloud
     end
+    credential = select_resource(credentials)
+    credential
+  end
+
+  def select_resource(resources)
+    resource = resources.find{ |res| res.owner.id == self.topology.owner.id && res.readable_by_me? }
+    resource = resources.find{ |res| res.owned_by_me? } if resource.nil?
+    resource = resources.find{ |res| res.readable_by_me? } if resource.nil?
+    resource
   end
 
   #def get_file_path(file_name)

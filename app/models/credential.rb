@@ -42,6 +42,18 @@ class Credential < ActiveRecord::Base
     end
   end
 
+  def unlock(&block)
+    begin
+      self.class.skip_callback(:save, :before, :credential_mutable)
+      yield
+    ensure
+      self.class.set_callback(:save, :before, :credential_mutable)
+    end
+  end
+
+
+  protected
+
   def credential_mutable
     if self.topologies.any?{ |t| t.state != State::UNDEPLOY }
       msg = "Credential #{credential_id} cannot be modified. Please make sure it is not being used by any topology"

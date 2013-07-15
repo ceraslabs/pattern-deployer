@@ -356,7 +356,7 @@ class TopologiesController < RestfulController
       @topology.description = params[:description]
       @topology.save!
     when TopologyOp::DEPLOY, TopologyOp::UNDEPLOY, TopologyOp::REPAIR
-      resources = get_resources
+      resources = get_resources(@topology)
       services = SupportingService.get_all_services
       topology_xml = get_pattern(@topology)
 

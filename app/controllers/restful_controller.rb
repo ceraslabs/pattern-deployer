@@ -41,16 +41,12 @@ class RestfulController < ApplicationController
     resources.delete_if {|res| res.owner.id != current_user.id}
   end
 
-  def get_resources
-    resources = ResourcesManager.new
-    resources.add_resources_if_not_added get_resources_own_by_me(Credential.all), Resource::CREDENTIAL, :is_mine => true
-    resources.add_resources_if_not_added get_resources_readable_by_me(Credential.all), Resource::CREDENTIAL
-    resources.add_resources_if_not_added get_resources_own_by_me(IdentityFile.all), Resource::KEY_PAIR, :is_mine => true
-    resources.add_resources_if_not_added get_resources_readable_by_me(IdentityFile.all), Resource::KEY_PAIR
-    resources.add_resources_if_not_added get_resources_own_by_me(WarFile.all), Resource::WAR_FILE, :is_mine => true
-    resources.add_resources_if_not_added get_resources_readable_by_me(WarFile.all), Resource::WAR_FILE
-    resources.add_resources_if_not_added get_resources_own_by_me(SqlScriptFile.all), Resource::SQL_SCRIPT, :is_mine => true
-    resources.add_resources_if_not_added get_resources_readable_by_me(SqlScriptFile.all), Resource::SQL_SCRIPT
+  def get_resources(topology)
+    resources = ResourcesManager.new(topology, self)
+    resources.add_resources(Credential.all, Resource::CREDENTIAL)
+    resources.add_resources(IdentityFile.all, Resource::KEY_PAIR)
+    resources.add_resources(WarFile.all, Resource::WAR_FILE)
+    resources.add_resources(SqlScriptFile.all, Resource::SQL_SCRIPT)
     resources
   end
 

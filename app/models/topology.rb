@@ -265,7 +265,7 @@ class Topology < ActiveRecord::Base
     resources.each do |resource|
       next if !resource.selected? || resource.topologies.exists?(self)
       resource.topologies << self
-      resource.save
+      resource.unlock{ resource.save }
     end
   end
 

@@ -16,6 +16,7 @@
 #
 require "chef_client"
 require "chef_command"
+require "chef_cookbook"
 require "chef_databag"
 require "chef_node"
 require "topology_wrapper"
@@ -23,7 +24,7 @@ require "topology_wrapper"
 class ChefNodeDeployer < BaseDeployer
 
   attr_accessor :short_name, :node_id, :services, :resources
-  deployer_attr_accessor :node_info, :database, :instance_id, :credential_id
+  deployer_attr_accessor :node_info, :database, :instance_id, :credential_id, :identity_file_id
 
   def initialize(name, parent_deployer)
     my_id = self.class.join(parent_deployer.deployer_id, "node", name)
@@ -339,6 +340,7 @@ class ChefNodeDeployer < BaseDeployer
   def generic_prepare
     load_credential
     load_key_pair
+    load_cookbook_files
   end
 
   def get_chef_node
@@ -376,65 +378,88 @@ class ChefNodeDeployer < BaseDeployer
   end
 
   def load_key_pair
-    return unless node_info.has_key?("key_pair_id")
     raise "Unexpected missing of resources" unless resources
-
-    key_pair_id = node_info["key_pair_id"].strip
-    identity_file = resources.find_identity_file(key_pair_id)
-    if identity_file
-      identity_file.select
-      node_info["identity_file"] = identity_file.get_file_path
+    keypair_id = node_info["key_pair_id"]
+    if keypair_id
+      keypair_id.strip!
     else
-      raise "Cannot find identity file for key pair id #{key_pair_id}"
+      keypair_id = find_keypair_id
     end
+
+    if self.identity_file_id
+      identity_file = resources.find_file_by_id(self.identity_file_id)
+    elsif keypair_id
+      identity_file = resources.find_identity_file(keypair_id)
+    else
+      return # No action is needed
+    end
+
+    raise "Cannot find identity file for key pair id #{keypair_id}" if identity_file.nil?
+
+    identity_file.select
+    node_info["identity_file"] = identity_file.get_file_path
+    self.identity_file_id ||= identity_file.get_id
   end
 
   def load_credential
     raise "Unexpected missing of resources" unless resources
+    credential_name = node_info["use_credential"]
 
-    self.credential_id ||= node_info["use_credential"]
-    if credential_id
-      # this node already have a credential assigned, so update the credential content
-      credential = resources.find_credential_by_id(credential_id)
-      raise "Can not find credential with id #{credential_id}" if credential.nil?
-      credential.select
-      node_info["aws_access_key_id"]     = credential.access_key_id if credential.respond_to?(:access_key_id)
-      node_info["aws_secret_access_key"] = credential.secret_access_key if credential.respond_to?(:secret_access_key)
-      node_info["openstack_username"]    = credential.username if credential.respond_to?(:username)
-      node_info["openstack_password"]    = credential.password if credential.respond_to?(:password)
-      node_info["openstack_tenant"]      = credential.tenant if credential.respond_to?(:tenant)
-      node_info["openstack_endpoint"]    = credential.endpoint if credential.respond_to?(:endpoint)
-      return
-    end
-
-    # assign this node a credential
-    if get_cloud == Rails.application.config.ec2
-      credential = resources.find_my_ec2_credential
-      if credential.nil?
-        err_msg = "Can not find any credential to authenticate with EC2 cloud, please upload your credential first"
-        raise DeploymentError.new(:message => err_msg)
-      end
-      self.credential_id = credential.credential_id
-      node_info["aws_access_key_id"]     = credential.access_key_id
-      node_info["aws_secret_access_key"] = credential.secret_access_key
-    elsif get_cloud == Rails.application.config.openstack
-      credential = resources.find_my_openstack_credential
-      if credential.nil?
-        err_msg = "Can not find any credential to authenticate with OpenStack cloud, please upload your credential first"
-        raise DeploymentError.new(:message => err_msg)
-      end
-      self.credential_id = credential.credential_id
-      node_info["openstack_username"] = credential.username
-      node_info["openstack_password"] = credential.password
-      node_info["openstack_tenant"]   = credential.tenant
-      node_info["openstack_endpoint"] = credential.endpoint
-    elsif get_cloud == Rails.application.config.notcloud
-      # no action is needed
+    if self.credential_id
+      credential = resources.find_credential_by_id(self.credential_id)
+    elsif credential_name
+      crednetial = resources.find_credential_by_name(credential_name, get_cloud)
     else
-      raise "unexpected cloud #{get_cloud}"
+      if get_cloud == Rails.application.config.ec2
+        credential = resources.find_ec2_credential
+      elsif get_cloud == Rails.application.config.openstack
+        credential = resources.find_openstack_credential
+      elsif get_cloud == Rails.application.config.notcloud
+        return # no action is needed
+      else
+        raise "unexpected cloud #{get_cloud}"
+      end
     end
 
-    credential.select if credential
+    if credential.nil?
+      err_msg = "Can not find any credential to authenticate to #{get_cloud}, please upload your credential first"
+      raise DeploymentError.new(:message => err_msg)
+    end
+
+    credential.select
+    node_info["aws_access_key_id"]     = credential.access_key_id if credential.respond_to?(:access_key_id)
+    node_info["aws_secret_access_key"] = credential.secret_access_key if credential.respond_to?(:secret_access_key)
+    node_info["openstack_username"]    = credential.username if credential.respond_to?(:username)
+    node_info["openstack_password"]    = credential.password if credential.respond_to?(:password)
+    node_info["openstack_tenant"]      = credential.tenant if credential.respond_to?(:tenant)
+    node_info["openstack_endpoint"]    = credential.endpoint if credential.respond_to?(:endpoint)
+    self.credential_id ||= credential.get_id
+  end
+
+  def load_cookbook_files
+    cookbook_name = Rails.configuration.chef_cookbook_name
+    cookbook = ChefCookbookWrapper.create(cookbook_name)
+    [FileType::WAR_FILE, FileType::SQL_SCRIPT_FILE].each do |file_type|
+      next if not attributes.has_key?(file_type)
+
+      file_id = attributes["#{file_type}_id"]
+      file_name = attributes[file_type]["name"]
+      if file_id
+        file = resources.find_file_by_id(file_id)
+      elsif file_name
+        file = resources.find_file_by_name(file_name)
+      else
+        raise "Unexpected missing file ID and name"
+      end
+
+      if file.nil? || !File.exists?(file.get_file_path)
+        err_msg = "The file #{file_name} does not exist. Please upload that file before deploy"
+        raise DeploymentError.new(:message => err_msg)
+      end
+      file.select
+      cookbook.add_cookbook_file(file, get_owner_id)
+      attributes["#{file_type}_id"] ||= file.get_id
+    end
   end
 
   #def validate_cloud_provider!

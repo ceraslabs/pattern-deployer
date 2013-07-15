@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require "chef_cookbook"
+
 class UploadedFile < ActiveRecord::Base
 
   belongs_to :owner, :autosave => true, :class_name => "User", :foreign_key => "user_id", :inverse_of => :uploaded_files
@@ -26,6 +28,7 @@ class UploadedFile < ActiveRecord::Base
   validate :file_name_unique
 
   before_destroy :file_mutable
+  before_destroy :delete_cookbook_files
   before_save :file_mutable
   after_save :commit_file
   after_destroy :delete_file
@@ -71,6 +74,15 @@ class UploadedFile < ActiveRecord::Base
     [self.get_file_dir, self.file_name].join("/")
   end
 
+  def unlock(&block)
+    begin
+      self.class.skip_callback(:save, :before, :file_mutable)
+      yield
+    ensure
+      self.class.set_callback(:save, :before, :file_mutable)
+    end
+  end
+
 
   protected
 
@@ -90,10 +102,15 @@ class UploadedFile < ActiveRecord::Base
 
   def delete_file
     FileUtils.rm(get_file_path) if File.exists?(get_file_path)
-    # Files may be copied to the cookbook, delete them if it is
+    true
+  end
+
+  def delete_cookbook_files
     cookbook_name = Rails.configuration.chef_cookbook_name
     cookbook = ChefCookbookWrapper.create(cookbook_name)
-    cookbook.delete_cookbook_file(self)
+    self.topologies.each do |t|
+      cookbook.delete_cookbook_file(self, t.owner.id)
+    end
     true
   end
 
