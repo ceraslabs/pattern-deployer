@@ -25,7 +25,8 @@ class UploadedFile < ActiveRecord::Base
   validates_presence_of :owner
   validate :file_name_unique
 
-  before_destroy :file_destroyable
+  before_destroy :file_mutable
+  before_save :file_mutable
   after_save :commit_file
   after_destroy :delete_file
 
@@ -116,9 +117,9 @@ class UploadedFile < ActiveRecord::Base
     end
   end
 
-  def file_destroyable
+  def file_mutable
     if self.topologies.any?{ |t| t.state != State::UNDEPLOY }
-      msg = "Uploaded file #{file_name} cannot be destroyed. Please make sure it is not being used by any topology"
+      msg = "Uploaded file #{file_name} cannot be modified. Please make sure it is not being used by any topology"
       raise ParametersValidationError.new(:message => msg)
     end
   end

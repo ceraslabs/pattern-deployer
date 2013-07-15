@@ -25,7 +25,8 @@ class Credential < ActiveRecord::Base
   validates :for_cloud, :inclusion => { :in => Rails.configuration.supported_clouds, :message => "cloud %{value} is not supported" }
   validates_presence_of :owner
 
-  before_destroy :credential_destroyable
+  before_save :credential_mutable
+  before_destroy :credential_mutable
 
 
   def credential_id_unique
@@ -41,9 +42,9 @@ class Credential < ActiveRecord::Base
     end
   end
 
-  def credential_destroyable
+  def credential_mutable
     if self.topologies.any?{ |t| t.state != State::UNDEPLOY }
-      msg = "Credential #{credential_id} cannot be destroyed. Please make sure it is not being used by any topology"
+      msg = "Credential #{credential_id} cannot be modified. Please make sure it is not being used by any topology"
       raise ParametersValidationError.new(:message => msg)
     end
   end
