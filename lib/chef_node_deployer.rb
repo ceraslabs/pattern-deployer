@@ -408,7 +408,7 @@ class ChefNodeDeployer < BaseDeployer
     if self.credential_id
       credential = resources.find_credential_by_id(self.credential_id)
     elsif credential_name
-      crednetial = resources.find_credential_by_name(credential_name, get_cloud)
+      credential = resources.find_credential_by_name(credential_name, get_cloud)
     else
       if get_cloud == Rails.application.config.ec2
         credential = resources.find_ec2_credential

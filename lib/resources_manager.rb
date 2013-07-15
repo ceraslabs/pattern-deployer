@@ -105,9 +105,9 @@ class ResourcesManager
     find_credential(Rails.application.config.openstack)
   end
 
-  def find_credential_by_id(credential_id)
+  def find_credential_by_id(id)
     @resources.find do |res|
-      res.resource_type == Resource::CREDENTIAL && res.get_id == credential_id
+      res.resource_type == Resource::CREDENTIAL && res.get_id == id
     end
   end
 
