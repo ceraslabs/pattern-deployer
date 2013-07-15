@@ -305,8 +305,12 @@ class BaseDeployer
     msg
   end
 
-  def self.true?(str)
-    "true".casecmp(str) == 0
+  def self.true?(obj)
+    if obj.class == String
+      "true".casecmp(obj) == 0
+    else
+      !!obj
+    end
   end
 
 
