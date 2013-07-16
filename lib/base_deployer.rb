@@ -306,7 +306,7 @@ class BaseDeployer
     msg
   end
 
-  def self.true?(obj)
+  def self.to_bool(obj)
     if obj.class == String
       "true".casecmp(obj) == 0
     else

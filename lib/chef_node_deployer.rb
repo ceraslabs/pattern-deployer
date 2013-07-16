@@ -230,7 +230,11 @@ class ChefNodeDeployer < BaseDeployer
   end
 
   def external?
-    self.class.true?(self.node_info["is_external"])
+    self.class.to_bool(self.node_info["is_external"])
+  end
+
+  def private_network?
+    self.class.to_bool(self.node_info["private_network"])
   end
 
   def application_server?
@@ -239,10 +243,6 @@ class ChefNodeDeployer < BaseDeployer
 
   def database_server?
     services.include?("database_server") && self.database
-  end
-
-  def private_network?
-    self.class.true?(self.node_info["private_network"])
   end
 
   def get_app_name
@@ -386,6 +386,7 @@ class ChefNodeDeployer < BaseDeployer
     if self.identity_file_id
       identity_file = resources.find_file_by_id(self.identity_file_id)
       raise "Cannot find identity file with id #{self.identity_file_id}" if identity_file.nil?
+      node_info["key_pair_id"] ||= identity_file.key_pair_id
     else
       if get_cloud == Rails.application.config.ec2 || get_cloud == Rails.application.config.openstack
         node_info["key_pair_id"] ||= resources.find_keypair_id(get_cloud)

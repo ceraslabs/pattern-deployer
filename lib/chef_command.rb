@@ -316,7 +316,7 @@ class OpenStackCommandBuilder < BaseCommandBuilder
     image_id =  @node_info["image_id"]
     instance_type =  @node_info["instance_type"]
     key_pair_id =  @node_info["key_pair_id"]
-    is_private_network = BaseDeployer.true?(@node_info["private_network"])
+    is_private_network = BaseDeployer.to_bool(@node_info["private_network"])
     region = @node_info["region"]
 
     command = "knife openstack server create "
