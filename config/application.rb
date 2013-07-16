@@ -177,6 +177,10 @@ module PatternDeployer
     config.nodes = [
       "<node id='PDS'>
         <is_external>true</is_external>
+        <server_ip>#{config.public_ip}</server_ip>
+      </node>",
+      "<node id='PDSPrivate'>
+        <is_external>true</is_external>
         <server_ip>#{config.private_ip}</server_ip>
       </node>"
     ]
