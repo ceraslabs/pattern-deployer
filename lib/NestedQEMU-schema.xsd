@@ -163,7 +163,7 @@
       <xs:element ref="availability_zone"/>
       <xs:element ref="instance_type"/>
       <xs:element ref="port"/>
-      <xs:element ref="password"/>
+      <xs:element ref="ssh_password"/>
       <xs:element ref="region"/>
       <xs:element ref="server_ip"/>
       <xs:element ref="use_credential"/>
@@ -186,7 +186,7 @@
   <xs:element name="availability_zone" type="xs:string"/>
   <xs:element name="instance_type" type="xs:string"/>
   <xs:element name="port" type="xs:string"/>
-  <xs:element name="password" type="xs:string"/>
+  <xs:element name="ssh_password" type="xs:string"/>
   <xs:element name="region" type="xs:string"/>
   <xs:element name="server_ip" type="xs:string"/>
   <xs:element name="use_credential" type="xs:string"/>

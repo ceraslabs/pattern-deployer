@@ -237,18 +237,18 @@ class BaseCommandBuilder
   end
 
   def build_create_command
-    identity_file =  @node_info["identity_file"]
-    ssh_user =  @node_info["ssh_user"]
-    password =  @node_info["password"]
-    port =  @node_info["port"]
+    identity_file = @node_info["identity_file"]
+    ssh_user = @node_info["ssh_user"]
+    ssh_password = @node_info["ssh_password"]
+    port = @node_info["port"]
     timeout = Float(@node_info["timeout"] || "0")
-    cloud =  @node_info["cloud"] || Rails.application.config.notcloud
+    cloud = @node_info["cloud"] || Rails.application.config.notcloud
 
     command = ""
     command += "-x #{ssh_user} "
     command += "-N #{@node_name} "
     command += "-i #{identity_file} " if identity_file
-    command += "-P #{password} " if password
+    command += "-P #{ssh_password} " if ssh_password
     command += "-p #{port} " if port
     command += "--no-host-key-verify "
 
