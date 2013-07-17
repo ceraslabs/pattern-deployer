@@ -49,7 +49,7 @@ end
 
 include ShellUtils
 
-%w{ excon mixlib-cli json }.each do |gem|
+%w{ excon mixlib-cli json ohai }.each do |gem|
   command = "gem install #{gem} --no-ri --no-rdoc --conservative"
   execute_and_exit_on_fail(command)
 end
@@ -58,6 +58,7 @@ Gem.clear_paths
 require 'excon'
 require 'json'
 require 'mixlib/cli'
+require 'ohai'
 
 
 class SubCommand
@@ -488,17 +489,30 @@ class SetupCLI
     :long         => "--chef-server URL",
     :description  => "Chef server URL",
     :default      => begin
-      query_url ||= "http://169.254.169.254/latest/meta-data/public-ipv4"
-      my_ip = Excon.get(query_url, :connect_timeout => 5).body
-      IPAddr.new(my_ip)
-      "http://#{my_ip.strip}:4000"
-    rescue ArgumentError, Excon::Errors::Timeout
-      alternative_url = "http://ifconfig.me/ip"
-      if query_url != alternative_url
-        query_url = alternative_url
-        retry
+      retried = false
+      failed = false
+
+      begin
+        query_url ||= "http://169.254.169.254/latest/meta-data/public-ipv4"
+        my_ip = Excon.get(query_url, :connect_timeout => 5).body
+        IPAddr.new(my_ip)
+      rescue ArgumentError, Excon::Errors::Timeout
+        if not retried
+          retried = true
+          query_url = "http://ifconfig.me/ip"
+          retry
+        else
+          failed = true
+        end
       end
-      "http://localhost:4000"
+
+      if failed
+        ohai = Ohai::System.new
+        ohai.all_plugins
+        my_ip = ohai[:ipaddress]
+      end
+
+      "http://#{my_ip.strip}:4000"
     end
 
   option :chef_client_key,
