@@ -391,7 +391,7 @@ class ChefNodeDeployer < BaseDeployer
       if get_cloud == Rails.application.config.ec2 || get_cloud == Rails.application.config.openstack
         node_info["key_pair_id"] ||= resources.find_keypair_id(get_cloud)
       elsif get_cloud == Rails.application.config.notcloud
-        return # no action is needed
+        return unless node_info.has_key?("key_pair_id") # if user doesn't specify a private key, he possibly want to use password to login
       else
         raise "unexpected cloud #{get_cloud}"
       end
