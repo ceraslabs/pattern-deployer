@@ -510,6 +510,9 @@ class TopologyDeployer < BaseDeployer
           child.reset(node_info.clone, services, resources)
         elsif reload_children
           child.reload(node_info.clone, services, resources)
+        else
+          child.node_info ||= node_info.clone
+          child.services ||= services
         end
 
         child_deployers << child
