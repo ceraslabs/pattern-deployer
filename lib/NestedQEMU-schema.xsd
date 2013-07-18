@@ -169,6 +169,7 @@
       <xs:element ref="use_credential"/>
       <xs:element ref="private_network"/>
       <xs:element ref="is_external"/>
+      <xs:element ref="verbose"/>
     </xs:choice>
   </xs:group>
   <xs:element name="port_redirection">
@@ -192,6 +193,7 @@
   <xs:element name="use_credential" type="xs:string"/>
   <xs:element name="private_network" type="xs:string"/>
   <xs:element name="is_external" type="xs:string"/>
+  <xs:element name="verbose" type="xs:string"/>
   <xs:element name="container">
     <xs:complexType>
       <xs:sequence>

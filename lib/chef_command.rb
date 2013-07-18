@@ -243,6 +243,7 @@ class BaseCommandBuilder
     port = @node_info["port"]
     timeout = Float(@node_info["timeout"] || "0")
     cloud = @node_info["cloud"] || Rails.application.config.notcloud
+    verbose = BaseDeployer.to_bool(@node_info["verbose"])
 
     command = ""
     command += "-x #{ssh_user} "
@@ -250,6 +251,7 @@ class BaseCommandBuilder
     command += "-i #{identity_file} " if identity_file
     command += "-P #{ssh_password} " if ssh_password
     command += "-p #{port} " if port
+    command += "-VV " if verbose
     command += "--no-host-key-verify "
 
     command += "-r '"
