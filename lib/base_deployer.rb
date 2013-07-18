@@ -42,13 +42,14 @@ class BaseDeployer
   end
 
 
-  attr_accessor :deployer_id, :attributes, :topology_id
+  attr_accessor :deployer_id, :attributes, :topology_id, :topology_owner_id
 
   deployer_attr_accessor :deploy_state, :deploy_error, :update_state, :update_error
 
-  def initialize(deployer_id, topology_id = nil, parent_deployer = nil)
+  def initialize(deployer_id, parent_deployer = nil, topology_id = nil, topology_owner_id = nil)
     self.deployer_id = deployer_id
-    self.topology_id = topology_id
+    self.topology_id = topology_id || parent_deployer.topology_id
+    self.topology_owner_id = topology_owner_id || parent_deployer.topology_owner_id
     self.attributes = Hash.new
 
     @parent = parent_deployer if parent_deployer
@@ -338,11 +339,11 @@ class BaseDeployer
   end
 
   def lock_file
-    Rails.root.join("tmp", "deployers", "#{topology_id}.lock") if topology_id
+    Rails.root.join("tmp", "deployers", "#{topology_id}-#{topology_owner_id}.lock") if topology_id
   end
 
   def pid_file
-    Rails.root.join("tmp", "deployers", "#{topology_id}.pid") if topology_id
+    Rails.root.join("tmp", "deployers", "#{topology_id}-#{topology_owner_id}.pid") if topology_id
   end
 
   def get_databag

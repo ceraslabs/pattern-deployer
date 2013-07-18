@@ -129,12 +129,9 @@ class MainDeployer < BaseDeployer
   end #class MySupportingServicesDeployer
 
 
-  attr_accessor :owner_id
-
-  def initialize(topology_id, owner_id)
-    my_id = self.class.join(self.class.get_id_prefix, "user", owner_id, "main", topology_id)
-    super(my_id, topology_id)
-    self.owner_id = owner_id
+  def initialize(topology)
+    my_id = self.class.join(self.class.get_id_prefix, "user", topology.owner.id, "main", topology.topology_id)
+    super(my_id, nil, topology.topology_id, topology.owner.id)
   end
 
   def get_id
@@ -348,7 +345,7 @@ class MainDeployer < BaseDeployer
     services_deployers = options[:supporting_services]
 
     if @topology_deployer.nil?
-      @topology_deployer = TopologyDeployer.new(topology.get_topology_id, self.owner_id)
+      @topology_deployer = TopologyDeployer.new(self)
       self << @topology_deployer
     end
 

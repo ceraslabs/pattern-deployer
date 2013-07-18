@@ -211,7 +211,7 @@ class Topology < ActiveRecord::Base
   def get_deployer
     deployer = DeployersManager.get_deployer(self.id)
     if deployer.nil?
-      deployer = MainDeployer.new(self.topology_id, self.owner.id)
+      deployer = MainDeployer.new(self)
       DeployersManager.add_deployer(self.id, deployer)
     end
 

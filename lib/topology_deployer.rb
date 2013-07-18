@@ -273,9 +273,9 @@ class TopologyDeployer < BaseDeployer
 
   attr_accessor :topology, :resources
 
-  def initialize(topology_id, owner)
-    my_id = self.class.join(self.class.get_id_prefix, "user", owner, "topology", topology_id)
-    super(my_id, topology_id)
+  def initialize(parent_deployer)
+    my_id = self.class.join(self.class.get_id_prefix, "user", parent_deployer.topology_owner_id, "topology", parent_deployer.topology_id)
+    super(my_id, parent_deployer)
   end
 
   def reload(topology, resources = nil)

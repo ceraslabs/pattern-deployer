@@ -28,7 +28,7 @@ class ChefNodeDeployer < BaseDeployer
 
   def initialize(name, parent_deployer)
     my_id = self.class.join(parent_deployer.deployer_id, "node", name)
-    super(my_id, parent_deployer.topology_id, parent_deployer)
+    super(my_id, parent_deployer)
 
     self.short_name = name
     self.node_id = deployer_id
