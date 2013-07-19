@@ -92,6 +92,9 @@ class ChefCommand
   end
 
   def execute
+    # avoid execute knife command at the same time
+    sleep rand(30)
+
     #debug
     puts "[#{Time.now}] About to execute command: #{@command}"
 
