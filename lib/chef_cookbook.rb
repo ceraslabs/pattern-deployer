@@ -40,18 +40,22 @@ class ChefCookbookWrapper
   end
 
   def add_cookbook_file(file, user_id)
-    existing_file = get_cookbook_file(file, user_id)
-    new_file = file.get_file_path
-    if existing_file.nil? || !FileUtils.compare_file(new_file, existing_file)
-      destination = get_cookbook_file_folder(user_id)
-      FileUtils.mkdir_p(destination)
-      FileUtils.cp(file.get_file_path, destination)
+    self.lock do
+      existing_file = get_cookbook_file(file, user_id)
+      new_file = file.get_file_path
+      if existing_file.nil? || !FileUtils.compare_file(new_file, existing_file)
+        destination = get_cookbook_file_folder(user_id)
+        FileUtils.mkdir_p(destination)
+        FileUtils.cp(file.get_file_path, destination)
+      end
     end
   end
 
   def delete_cookbook_file(file, user_id)
-    file_path = get_cookbook_file(file, user_id)
-    File.delete(file_path) if file_path
+    self.lock do
+      file_path = get_cookbook_file(file, user_id)
+      File.delete(file_path) if file_path
+    end
   end
 
   def get_cookbook_file(file, user_id)
@@ -70,10 +74,26 @@ class ChefCookbookWrapper
   end
 
   def save
-    uploader = Chef::Knife::CookbookUpload.new
-    uploader.name_args = [@name]
-    uploader.config[:cookbook_path] = "#{Rails.application.config.chef_repo_dir}/cookbooks"
-    uploader.run
+    self.lock do
+      uploader = Chef::Knife::CookbookUpload.new
+      uploader.name_args = [@name]
+      uploader.config[:cookbook_path] = "#{Rails.application.config.chef_repo_dir}/cookbooks"
+      uploader.run
+    end
+  end
+
+  def lock
+    raise "Unexpected missing of block" unless block_given?
+
+    FileUtils.mkdir_p(File.dirname(lock_file))
+    File.open(lock_file, "w") do |file|
+      file.flock(File::LOCK_EX)
+      yield
+    end
+  end
+
+  def lock_file
+    Rails.root.join("tmp", "cookbooks", "#{@name}.lock")
   end
 
   private_class_method :new
