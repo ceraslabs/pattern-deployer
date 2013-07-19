@@ -246,7 +246,7 @@ class ContainersController < RestfulController
 
       if scale_at_runtime?
         resources = get_resources(@topology)
-        services = SupportingService.get_all_services
+        services = Hash.new # TODO remove supporting services totally
         self.formats = [:xml]
         topology_xml = render_to_string(:partial => "topologies/topology", :locals => {:topology => @topology})
         nodes = @container.nodes.map{|node| node.node_id}

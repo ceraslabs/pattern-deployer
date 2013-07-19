@@ -364,17 +364,7 @@ class MainDeployer < BaseDeployer
   end
 
   def create_my_services_deployer(name, services_deployers, services_to_acquire, topology)
-    topology_id = topology.get_topology_id
-    my_services = MySupportingServicesDeployer.new(name, topology_id)
-
-    services = Array.new
-    services << "host_protection" if services_to_acquire.include?("host_protection") && topology.get_hids_clients.size > 0
-    services << "dns"             if services_to_acquire.include?("dns") && topology.get_dns_clients.size > 0
-    services << "openvpn"         if services_to_acquire.include?("openvpn") && topology.get_openvpn_clients.size > 0
-
-    services.map do |service|
-      MySupportingServiceDeployer.new(services_deployers[service], topology)
-    end
+    Array.new
   end
 
 end

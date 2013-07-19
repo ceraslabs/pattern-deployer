@@ -74,9 +74,6 @@ require "my_errors"
 ##
 class SupportingServicesController < RestfulController
 
-  before_filter :initialize_db
-
-
   ####
   ##~ api = @supporting_service.apis.add
   ##~ api.path = "/supporting_services"

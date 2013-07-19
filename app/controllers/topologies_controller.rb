@@ -357,7 +357,7 @@ class TopologiesController < RestfulController
       @topology.save!
     when TopologyOp::DEPLOY, TopologyOp::UNDEPLOY, TopologyOp::REPAIR
       resources = get_resources(@topology)
-      services = SupportingService.get_all_services
+      services = Hash.new #TODO remove supporting services totally
       topology_xml = get_pattern(@topology)
 
       if operation == TopologyOp::DEPLOY
