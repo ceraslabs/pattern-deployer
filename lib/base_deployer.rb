@@ -333,6 +333,7 @@ class BaseDeployer
   end
 
   def primary_deployer?
+    return false if not File.exists?(pid_file)
     File.open(pid_file, "r") do |file|
       file.read == Process.pid.to_s
     end
