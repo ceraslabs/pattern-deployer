@@ -155,11 +155,10 @@ class BaseDeployer
     %w{ sleep run }.include?(@worker_thread.status) if @worker_thread
   end
 
-  def kill(options={})
+  def kill
     @children.each{ |child| child.kill }
 
-    kill_worker = true unless options[:keep_worker]
-    if kill_worker && @worker_thread
+    if @worker_thread
       puts "About to kill deployer: #{deployer_id}"
       @worker_thread.kill
     end
@@ -171,10 +170,6 @@ class BaseDeployer
     else
       # nothing
     end
-  end
-
-  def kill_children
-    kill(:keep_worker => true)
   end
 
   def set_state(state)

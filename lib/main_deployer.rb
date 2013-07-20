@@ -154,6 +154,8 @@ class MainDeployer < BaseDeployer
   end
 
   def deploy
+    DeployersManager.instance.add_active_deployer(self.deployer_id, self)
+
     # start a new thread to do the deployment
     @worker_thread = Thread.new do
       begin
@@ -171,7 +173,6 @@ class MainDeployer < BaseDeployer
 
         # wait for deployment finish and do error checking
         unless wait
-          kill_children
           raise "Deployment timeout"
         end
 
@@ -182,6 +183,8 @@ class MainDeployer < BaseDeployer
         #debug
         puts ex.message
         puts ex.backtrace[0..10].join("\n")
+      ensure
+        DeployersManager.instance.delete_active_deployer(self.deployer_id)
       end
     end
   end
@@ -201,13 +204,14 @@ class MainDeployer < BaseDeployer
   end
 
   def scale
+    DeployersManager.instance.add_active_deployer(self.deployer_id, self)
+
     # start a new thread to do the deployment
     @worker_thread.kill if @worker_thread
     @worker_thread = Thread.new do
       begin
         @topology_deployer.scale
         unless wait
-          kill_children
           raise "Deployment timeout"
         end
         raise get_children_error if get_children_state == State::DEPLOY_FAIL
@@ -217,6 +221,8 @@ class MainDeployer < BaseDeployer
         #debug
         puts ex.message
         puts ex.backtrace[0..10].join("\n")
+      ensure
+        DeployersManager.instance.delete_active_deployer(self.deployer_id)
       end
     end
   end
@@ -236,12 +242,13 @@ class MainDeployer < BaseDeployer
   end
 
   def repair
+    DeployersManager.instance.add_active_deployer(self.deployer_id, self)
+
     @worker_thread.kill if @worker_thread
     @worker_thread = Thread.new do
       begin
         @topology_deployer.repair
         unless wait
-          kill_children
           raise "Deployment timeout"
         end
         raise get_children_error if get_children_state == State::DEPLOY_FAIL
@@ -251,6 +258,8 @@ class MainDeployer < BaseDeployer
         #debug
         puts ex.message
         puts ex.backtrace[0..10].join("\n")
+      ensure
+        DeployersManager.instance.delete_active_deployer(self.deployer_id)
       end
     end
   end

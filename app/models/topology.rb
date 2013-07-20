@@ -156,7 +156,7 @@ class Topology < ActiveRecord::Base
       #debug
       puts @msg
     ensure
-      DeployersManager.delete_deployer(self.id)
+      DeployersManager.instance.delete_deployer(self.id)
       self.set_state(State::UNDEPLOY)
     end
   end
@@ -209,10 +209,10 @@ class Topology < ActiveRecord::Base
   protected
 
   def get_deployer
-    deployer = DeployersManager.get_deployer(self.id)
+    deployer = DeployersManager.instance.get_deployer(self.id)
     if deployer.nil?
       deployer = MainDeployer.new(self)
-      DeployersManager.add_deployer(self.id, deployer)
+      DeployersManager.instance.add_deployer(self.id, deployer)
     end
 
     deployer
