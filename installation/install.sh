@@ -102,4 +102,4 @@ sudo ruby setup.rb production -d --as-user $user \
                 --chef-server $chef_server_url
 
 # start the application
-sudo bundle exec passenger start -p 80 -e production -d --user=$user
+sudo bundle exec passenger start -p 80 -e production -d --user=$user --max-pool-size=3 --min-instances=3
