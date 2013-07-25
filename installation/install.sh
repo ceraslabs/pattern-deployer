@@ -80,6 +80,10 @@ fi
 user=$USER
 sudo chown -R $user:$user ~/.chef/
 
+# restart Chef Server with 3 processes
+sudo service chef-server stop
+sudo chef-server -e production -c 3
+
 # install the MySQL database and other neccessary dependencies
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-server mysql-client libmysqlclient-dev \
                                                        git-core libcurl4-openssl-dev libxslt-dev libxml2-dev
