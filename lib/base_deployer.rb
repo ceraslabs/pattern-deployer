@@ -58,7 +58,9 @@ class BaseDeployer
   end
 
   def reload
-    get_databag.reload
+    @databag_manager.reload_and_retry_if_failed do
+      get_databag.reload
+    end
     self.attributes = get_databag.get_data
   end
 
@@ -128,15 +130,8 @@ class BaseDeployer
     @worker_thread.kill if @worker_thread
     @worker_thread = nil
 
-    begin
-      get_databag.delete if get_databag
-      self.attributes.clear
-    rescue Exception => ex
-      puts "Unexpected exception when deleting databag"
-      puts "[#{Time.now}] #{ex.class.name}: #{ex.message}"
-      puts "Trace:"
-      puts ex.backtrace.join("\n")
-    end
+    get_databag.delete
+    self.attributes.clear
 
     success = self.class.summarize_successes(successes)
     msg = self.class.summarize_errors(msgs)
@@ -343,17 +338,7 @@ class BaseDeployer
   end
 
   def get_databag
-    retried = false
-
-    begin
-      @databag_manager.get_or_create_databag(deployer_id)
-    rescue Net::HTTPServerException => ex
-      raise ex if retried
-
-      @databag_manager.reload
-      retried = true
-      retry
-    end
+    @databag_manager.get_or_create_databag(deployer_id)
   end
 
   def get_state_by_type(type_of_state)

@@ -42,35 +42,47 @@ class DatabagWrapper
     databag = Chef::DataBag.new
     databag.name(@name)
     databag.destroy
+  rescue Net::HTTPServerException => e
+    @manager.reload
+    #debug
+    puts "[#{Time.now}]INFO: Failed to delete chef client #{@name}: #{e.message}"
+    puts e.backtrace[0..20].join("\n")
+  ensure
     @data = nil
-    @manager.deregister_databag(self.get_name)
+    @manager.deregister_databag(@name)
   end
 
   def save
-    if @manager.databag_and_item_exist?(@name)
-      databag_item = data_bag_item(@name, @name)
-    else
-      if @manager.databag_exist?(@name)
-        databag = Chef::DataBag.new
-        databag.name(@name)
-        databag.destroy
-      end
-
-      databag = Chef::DataBag.new
-      databag.name(@name)
-      databag.save
-      databag_item = Chef::DataBagItem.new
-      databag_item.data_bag(@name)
+    @manager.reload_and_retry_if_failed do
+      databag_item = get_databag_item
+      databag_item.raw_data = @data
+      databag_item.save
     end
-
-    databag_item.raw_data = @data
-    databag_item.save
-
-    @manager.register_databag(self.get_name)
+    @manager.register_databag(@name)
   end
 
   def reload
     @data = data_bag_item(@name, @name).raw_data
+  end
+
+  protected
+
+  def get_databag_item
+    if @manager.databag_exist?(@name) && @manager.databag_item_exist?(@name)
+      return data_bag_item(@name, @name)
+    end
+
+    if @manager.databag_exist?(@name)
+      databag = Chef::DataBag.new
+      databag.name(@name)
+      databag.destroy
+    end
+    databag = Chef::DataBag.new
+    databag.name(@name)
+    databag.save
+    databag_item = Chef::DataBagItem.new
+    databag_item.data_bag(@name)
+    databag_item
   end
 
 end
@@ -98,25 +110,55 @@ class DatabagsManager
     return @@instance
   end
 
+  def get_or_create_databag(name)
+    self.reload_and_retry_if_failed do
+      databag = get_databag(name)
+      if databag.nil?
+        databag = create_databag(name)
+        databag.save
+      end
+
+      databag
+    end
+  end
+
   def databag_exist?(name)
     @list_of_databags.any? do |databag|
       databag == name
     end
   end
 
-  def databag_and_item_exist?(name)
-    databag_exist?(name) && search(name.to_sym, "id:#{name}").first
+  def databag_item_exist?(name)
+    search(name.to_sym, "id:#{name}").first
   end
 
-  def get_or_create_databag(name)
-    databag = get_databag(name)
-    if databag.nil?
-      databag = create_databag(name)
-      databag.save
+  def register_databag(name)
+    @list_of_databags << name unless @list_of_databags.include?(name)
+  end
+
+  def deregister_databag(name)
+    @list_of_databags.delete(name)
+  end
+
+  def reload_and_retry_if_failed
+    raise "unexpected missing of block" unless block_given?
+    retried = false
+
+    begin
+      yield
+    rescue Net::HTTPServerException => e
+      raise e if retried
+      self.reload
+      retried = true
+      retry
     end
-
-    databag
   end
+
+  def reload
+    sync_list
+  end
+
+  protected
 
   def create_databag(name)
     if databag_exist?(name)
@@ -128,23 +170,6 @@ class DatabagsManager
     @cache[name] = databag
 
     databag
-  end
-
-  def reset_databag(name, data = Hash.new)
-    databag = get_databag(name)
-    if databag.nil?
-      raise "Cannot reset databag #{name} since it doesnot exist"
-    end
-
-    databag.reset_data(data)
-  end
-
-  def register_databag(name)
-    @list_of_databags << name unless @list_of_databags.include?(name)
-  end
-
-  def deregister_databag(name)
-    @list_of_databags.delete(name)
   end
 
   def get_databag(name)
@@ -159,11 +184,6 @@ class DatabagsManager
 
     return @cache[name]
   end
-
-  def reload
-    sync_list
-  end
-
 
   private_class_method :new
 

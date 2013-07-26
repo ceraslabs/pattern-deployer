@@ -161,31 +161,26 @@ class ChefNodesManager
   def delete(node_name)
     return if not @list_of_nodes.include?(node_name)
 
-    begin
-      if @cache.has_key?(node_name)
-        # This delete chef node and cleanup the cache, but it may talk to chef server twice
-        chef_node = get_node(node_name)
-        if chef_node.nil?
-          raise "Node '#{node_name}' doesnot exist, so it cannot be deleted"
-        end
-
-        chef_node.delete
-        @cache.delete(node_name)
-      else
-        # This delete the node without cleaning the cache, and it talk to chef server just once
-        node_delete = Chef::Knife::NodeDelete.new
-        node_delete.name_args = [node_name]
-        node_delete.config[:yes] = true
-        node_delete.run
-      end
-
-      @list_of_nodes.delete(node_name)
-    rescue Exception => ex
-      puts "INFO: an exception when deleting chef node #{node_name}"
-      puts "[#{Time.now}] #{ex.class.name}: #{ex.message}"
-      puts "Trace:"
-      puts ex.backtrace.join("\n")
+    if @cache.has_key?(node_name)
+      # This delete chef node and cleanup the cache, but it may talk to chef server twice
+      chef_node = get_node(node_name)
+      raise "Node '#{node_name}' doesnot exist, so it cannot be deleted" if chef_node.nil?
+      chef_node.delete
+      @cache.delete(node_name)
+    else
+      # This delete the node without cleaning the cache, and it talk to chef server just once
+      node_delete = Chef::Knife::NodeDelete.new
+      node_delete.name_args = [node_name]
+      node_delete.config[:yes] = true
+      node_delete.run
     end
+  rescue Exception => e
+    self.reload
+    #debug
+    puts "[#{Time.now}]INFO: Failed to delete chef node #{node_name}: #{e.message}"
+    puts e.backtrace[0..20].join("\n")
+  ensure
+    @list_of_nodes.delete(node_name)
   end
 
   #def deregister(node_name)

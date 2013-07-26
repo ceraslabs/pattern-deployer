@@ -41,19 +41,17 @@ class ChefClientsManager
   def delete(client_name)
     return if not @list_of_clients.include?(client_name)
 
-    begin
-      delete_client = Chef::Knife::ClientDelete.new
-      delete_client.name_args = [client_name]
-      delete_client.config[:yes] = true
-      delete_client.run
-
-      @list_of_clients.delete(client_name)
-    rescue Exception => ex
-      puts "INFO: an exception when deleting chef client #{client_name}"
-      puts "[#{Time.now}] #{ex.class.name}: #{ex.message}"
-      puts "Trace:"
-      puts ex.backtrace.join("\n")
-    end
+    delete_client = Chef::Knife::ClientDelete.new
+    delete_client.name_args = [client_name]
+    delete_client.config[:yes] = true
+    delete_client.run
+  rescue Net::HTTPServerException => e
+    self.reload
+    #debug
+    puts "[#{Time.now}]INFO: Failed to delete chef client #{client_name}: #{e.message}"
+    puts e.backtrace[0..20].join("\n")
+  ensure
+    @list_of_clients.delete(client_name)
   end
 
   #def deregister(client_name)
