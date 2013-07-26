@@ -137,7 +137,6 @@ class SubCommand
     db_config[@env]["password"] = @cli.config[:database_password]
     db_config[@env]["host"] = @cli.config[:database_host]
     db_config[@env]["database"] = @cli.config[:database_name]
-    db_config[@env]["reconnect"] = true
 
     write_to_file(db_file) do |fout|
       fout.write(db_config.to_yaml)
