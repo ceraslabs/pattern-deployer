@@ -254,8 +254,13 @@ class BaseCommandBuilder
     command += "-i #{identity_file} " if identity_file
     command += "-P #{ssh_password} " if ssh_password
     command += "-p #{port} " if port
-    command += "-VV " if verbose
     command += "--no-host-key-verify "
+    command += "--template-file #{Rails.root.join("chef-repo", ".chef", "bootstrap", "chef-full.erb")} "
+    if verbose
+      command += "-VV "
+    else
+      command += "-V "
+    end
 
     command += "-r '"
     if @services.size > 0
