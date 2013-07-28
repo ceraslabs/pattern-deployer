@@ -328,10 +328,10 @@ class MainDeployer < BaseDeployer
   protected
 
   def reload
-    super()
     ChefNodesManager.instance.reload
     ChefClientsManager.instance.reload
     DatabagsManager.instance.reload
+    super()
   end
 
   def prepare_openvpn_credential

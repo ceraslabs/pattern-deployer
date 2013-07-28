@@ -58,9 +58,7 @@ class BaseDeployer
   end
 
   def reload
-    @databag_manager.reload_and_retry_if_failed do
-      get_databag.reload
-    end
+    get_databag.reload
     self.attributes = get_databag.get_data
   end
 
