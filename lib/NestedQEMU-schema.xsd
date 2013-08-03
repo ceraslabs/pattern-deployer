@@ -170,6 +170,7 @@
       <xs:element ref="private_network"/>
       <xs:element ref="is_external"/>
       <xs:element ref="verbose"/>
+      <xs:element ref="system_file"/>
     </xs:choice>
   </xs:group>
   <xs:element name="port_redirection">
@@ -194,6 +195,16 @@
   <xs:element name="private_network" type="xs:string"/>
   <xs:element name="is_external" type="xs:string"/>
   <xs:element name="verbose" type="xs:string"/>
+  <xs:element name="system_file">
+    <xs:complexType>
+      <xs:all>
+        <xs:element ref="path"/>
+        <xs:element ref="content" minOccurs="0"/>
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="path" type="xs:string"/>
+  <xs:element name="content" type="xs:string"/>
   <xs:element name="container">
     <xs:complexType>
       <xs:sequence>

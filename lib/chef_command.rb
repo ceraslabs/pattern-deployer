@@ -112,7 +112,7 @@ class ChefCommand
   end
 
   def execute_and_cpature_output
-    IO.popen("script #{@log_file} -c '#{@command}' -e") do |output|
+    IO.popen("script #{@log_file} -c '#{escaped_command}' -e") do |output|
       capture_data(output)
     end
 
@@ -127,7 +127,7 @@ class ChefCommand
     start = Time.now
     now = Time.now
     until (now - start) > timeout
-      success = system("script #{@log_file} -c '#{@command}' -e")
+      success = system("script #{@log_file} -c '#{escaped_command}' -e")
 
       break if success
 
@@ -226,6 +226,12 @@ class ChefCommand
     @observers.each do |observer|
       observer.on_data(key, value)
     end
+  end
+
+  protected
+
+  def escaped_command
+    @command.gsub("'", %q{'"'"'})
   end
 
 end
@@ -328,6 +334,7 @@ class OpenStackCommandBuilder < BaseCommandBuilder
     key_pair_id =  @node_info["key_pair_id"]
     is_private_network = BaseDeployer.to_bool(@node_info["private_network"])
     region = @node_info["region"]
+    system_file = @node_info["system_file"] #TODO support multiple system files
 
     command = "knife openstack server create "
     command += "-I #{image_id} "
@@ -340,6 +347,10 @@ class OpenStackCommandBuilder < BaseCommandBuilder
     else
       command += "-a "
       command += "--auto-alloc-floating-ip " if Rails.configuration.openstack_auto_allocate_ip
+    end
+    if system_file
+      command += "--system-file-path #{system_file["path"]} "
+      command += "--system-file-content '#{system_file["content"]}' " if system_file["content"]
     end
 
     command += super()

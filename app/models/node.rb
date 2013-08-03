@@ -15,10 +15,12 @@
 # limitations under the License.
 #
 require "my_errors"
+require "xml_util"
 
 class Node < ActiveRecord::Base
 
   include ServicesHelper
+  include XmlUtil
 
   has_and_belongs_to_many :templates
   has_many :services, :dependent => :destroy, :as => :service_container
@@ -91,8 +93,9 @@ class Node < ActiveRecord::Base
         service.update_service_attributes(element)
       elsif element.name == "nest_within" || element.name == "use_template"
         next
-      elsif !element.attributes? && element.children.size == 1 && element.first.text?
-        self.attrs[element.name] = element.content
+      elsif attribute_element?(element)
+        node_attr = to_attribute(element)
+        self.attrs.merge!(node_attr)
       else
         err_msg = "Invalid node element: #{element.to_s}"
         raise XmlValidationError.new(:message => err_msg)

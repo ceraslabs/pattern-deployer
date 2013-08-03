@@ -14,10 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require "xml"
 require "my_errors"
+require "xml"
+require "xml_util"
 
 class TopologyWrapper
+
+  include XmlUtil
+
   def initialize(topology_xml)
     @doc = self.class.validate_xml(topology_xml, Rails.application.config.schema_file)
   end
@@ -66,7 +70,7 @@ class TopologyWrapper
 
   def get_elements_helper(base_element, template_ref_element, template_ref_attr)
     elements = Array.new
-    base_element.each do |element|
+    base_element.each_element do |element|
       if element.name == template_ref_element
         template_id = element[template_ref_attr]
         template = @doc.find_first("//template[@id='#{template_id}']")
@@ -86,14 +90,10 @@ class TopologyWrapper
     node_info = Hash.new
     get_elements(node_id).each do |element|
       next if element.name == "service"  # skip service elements because it is allowed to be duplicated, so we cannot hash it from a key
-
-      if element.content
-        node_info[element.name] = element.content.strip
-      else
-        node_info[element.name] = true
-      end
+      raise "Invalid element #{element} (It is not in attribute format)" unless attribute_element?(element)
+      node_info.merge!(to_attribute(element))
     end
-    return node_info
+    node_info
   end
 
   def get_provider(node_id)

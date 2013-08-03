@@ -15,10 +15,12 @@
 # limitations under the License.
 #
 require "my_errors"
+require "xml_util"
 
 class Template < ActiveRecord::Base
 
   include ServicesHelper
+  include XmlUtil
 
   belongs_to :topology, :autosave => true, :inverse_of => :templates
   belongs_to :owner, :autosave => true, :class_name => "User", :foreign_key => "user_id", :inverse_of => :templates
@@ -80,8 +82,9 @@ class Template < ActiveRecord::Base
         service.update_service_attributes(element)
       elsif element.name == "extend"
         next
-      elsif !element.attributes? && element.children.size == 1 && element.first.text?
-        self.attrs[element.name] = element.content
+      elsif attribute_element?(element)
+        template_attr = to_attribute(element)
+        self.attrs.merge!(template_attr)
       else
         err_msg = "Invalid template element: #{element.to_s}"
         raise XmlValidationError.new(:message => err_msg)
