@@ -171,6 +171,7 @@
       <xs:element ref="is_external"/>
       <xs:element ref="verbose"/>
       <xs:element ref="system_file"/>
+      <xs:element ref="openstack_hints"/>
     </xs:choice>
   </xs:group>
   <xs:element name="port_redirection">
@@ -201,6 +202,13 @@
         <xs:element ref="path"/>
         <xs:element ref="content" minOccurs="0"/>
       </xs:all>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="openstack_hints">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:any processContents="skip" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="path" type="xs:string"/>

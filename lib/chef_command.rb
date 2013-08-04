@@ -335,6 +335,7 @@ class OpenStackCommandBuilder < BaseCommandBuilder
     is_private_network = BaseDeployer.to_bool(@node_info["private_network"])
     region = @node_info["region"]
     system_file = @node_info["system_file"] #TODO support multiple system files
+    openstack_hints = @node_info["openstack_hints"]
 
     command = "knife openstack server create "
     command += "-I #{image_id} "
@@ -351,6 +352,10 @@ class OpenStackCommandBuilder < BaseCommandBuilder
     if system_file
       command += "--system-file-path #{system_file["path"]} "
       command += "--system-file-content '#{system_file["content"]}' " if system_file["content"]
+    end
+    if openstack_hints
+      str_hints = openstack_hints.map{ |key, value| "#{key}=#{value}" }.join(",")
+      command += "--openstack-hints '#{str_hints}' "
     end
 
     command += super()
