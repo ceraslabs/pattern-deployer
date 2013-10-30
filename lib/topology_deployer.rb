@@ -70,7 +70,7 @@ class TopologyDeployer < BaseDeployer
 
     @@valid_types = [:vpn_servers, :container_node, :vpn_connected_nodes, :vpn_clients,
                      :snort_pairs, :snort_nodes, :database_node, :balancer_members,
-                     :chef_server, :monitor_clients, :monitor_servers]
+                     :chef_server, :monitor_servers]
 
     def validate_type!(type)
       raise "Unexpected type of edge #{type}" unless @@valid_types.include?(type)
@@ -802,14 +802,6 @@ class TopologyDeployer < BaseDeployer
       chef_client = @vertice[ref['from']]
       chef_server = @vertice[ref['to']]
       chef_server.connect(chef_client, :chef_server)
-    end
-
-    #load pull metric relationships
-    #TODO this won't work if the default config file of Ganglia is changed. Need to revisit.
-    topology.get_minotor_client_server_refs.each do |ref|
-      monitor_server = @vertice[ref['from']]
-      monitor_client = @vertice[ref['to']]
-      monitor_client.connect(monitor_server, :monitor_clients)
     end
 
     #load push metric relationships

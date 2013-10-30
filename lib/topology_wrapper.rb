@@ -191,14 +191,8 @@ class TopologyWrapper
     get_node_refs(in_element, type)
   end
 
-  def get_minotor_client_server_refs
-    in_element = "monitor"
-    type       = "monitor_client"
-    get_node_refs(in_element, type)
-  end
-
   def get_minotor_server_client_refs
-    in_element = "send_metric_to"
+    in_element = "monitoring_server"
     type       = "monitor_server"
     get_node_refs(in_element, type)
   end

@@ -307,7 +307,7 @@ class ChefNodeDeployer < BaseDeployer
   end
 
   def monitoring_server?
-    services.include?("monitoring_server")
+    services.include?("xcamp_monitoring_server")
   end
 
   def monitoring_server_url
