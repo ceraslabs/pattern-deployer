@@ -132,7 +132,7 @@ require "resources_manager"
 ##~ field = fields.databases
 ##~ field.set :type => "List", :description => "The list of databases that being deployed", :items => {:$ref => "Database"}
 ##
-##~ field = fields.monitors
+##~ field = fields.monitoringServers
 ##~ field.set :type => "List", :description => "The list of monitoring server that being deployed", :items => {:$ref => "Monitor"}
 ##
 ## * Model Topology

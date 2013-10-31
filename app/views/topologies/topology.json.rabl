@@ -35,7 +35,7 @@ child topology => :deployment do
     attribute :name => :inServer
   end
   monitoring_servers = nodes.select{ |node| node.is_monitoring_server }
-  child(monitoring_servers => :monitoring_servers) do
+  child(monitoring_servers => :monitoringServers) do
     attribute :monitoring_server_url => :url
     attribute :name => :inServer
   end
