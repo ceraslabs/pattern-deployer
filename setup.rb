@@ -370,7 +370,7 @@ class ProductionCommand < SubCommand
     puts
     puts "* To start the application, please type following:"
     puts "cd #{FileUtils.pwd}"
-    puts "sudo bundle exec passenger start -p 80 -e production -d --user=#{@cli.config[:as_user]}"
+    puts "sudo bundle exec passenger start -p 80 -e production -d --user=#{@cli.config[:as_user]} --max-pool-size=3 --min-instances=3"
     puts
     puts "* To stop the application:"
     puts "cd #{FileUtils.pwd}"
