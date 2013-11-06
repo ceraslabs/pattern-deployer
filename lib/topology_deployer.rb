@@ -70,7 +70,7 @@ class TopologyDeployer < BaseDeployer
 
     @@valid_types = [:vpn_servers, :container_node, :vpn_connected_nodes, :vpn_clients,
                      :snort_pairs, :snort_nodes, :database_node, :balancer_members,
-                     :chef_server, :monitor_servers]
+                     :chef_server, :monitor_clients]
 
     def validate_type!(type)
       raise "Unexpected type of edge #{type}" unless @@valid_types.include?(type)
@@ -808,7 +808,7 @@ class TopologyDeployer < BaseDeployer
     topology.get_minotor_server_client_refs.each do |ref|
       monitor_client = @vertice[ref['from']]
       monitor_server = @vertice[ref['to']]
-      monitor_server.connect(monitor_client, :monitor_servers)
+      monitor_client.connect(monitor_server, :monitor_clients)
     end
   end
 
