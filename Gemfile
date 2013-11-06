@@ -47,7 +47,7 @@ gem 'customized-knife-ec2', :git => 'git://github.com/ceraslabs/knife-ec2.git'
 gem 'customized-knife-openstack', :git => 'git://github.com/ceraslabs/knife-openstack.git'
 gem 'fog', :git => 'git://github.com/ceraslabs/fog.git'
 
-gem 'devise'
+gem 'devise', '~> 3.1.0'
 gem 'fastercsv'
 gem 'rails_admin'
 gem "cancan"
