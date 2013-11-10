@@ -109,30 +109,47 @@ class ChefCommand
   end
 
   def execute_and_cpature_output
-    IO.popen("script #{@log_file} -c '#{@command}' -e") do |output|
+    IO.popen("script #{@log_file} -c '#{escaped_command}' -e") do |output|
       capture_data(output)
     end
 
     return $?.success?
   end
 
-  def execute_and_retry_on_fail(initial_wait = 60, timeout = 600)
-    # The nested instance takes at least 1 min to boot, so sleep 1 min
-    sleep initial_wait
+  def execute_and_retry_on_fail
+
+    initial_wait(900)
 
     success = false
-    start = Time.now
-    now = Time.now
-    until (now - start) > timeout
-      success = system("script #{@log_file} -c '#{@command}' -e 1>/dev/null 2>&1")
+    num_of_tries = 5
 
+    for i in 1 .. num_of_tries
+      puts "[#{Time.now}] try #{i} starts. (node #{@node_name})"
+
+      actual_command = "script #{@log_file} -c '#{escaped_command}' -e"
+      puts "[debug] Actual command: #{actual_command}"
+      IO.popen(actual_command){ |output| capture_data(output) }
+      success = $?.success?
+
+      puts "[#{Time.now}] try #{i} returns #{success}. (node #{@node_name})"
       break if success
 
-      sleep 10
-      now = Time.now
+      sleep 300
     end
 
     success
+  end
+
+  def initial_wait(duration = 900)
+    ["first_vm", "second_vm", "third_vm"].each_with_index do |nested_vm, i|
+      if @node_name.include?(nested_vm)
+        sleep duration * i
+      end
+    end
+  end
+
+  def escaped_command
+    @command.gsub("'", %q{'"'"'})
   end
 
   def stop

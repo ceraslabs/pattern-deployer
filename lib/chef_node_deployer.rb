@@ -210,7 +210,7 @@ class ChefNodeDeployer < BaseDeployer
     set_update_state(State::DEPLOY_FAIL) if self.update_state == State::DEPLOYING
   end
 
-  def assert_success!(chef_command, timeout = 60)
+  def assert_success!(chef_command, timeout = 300)
     unless chef_command.finished?
       raise "Chef command haven't been executed or it is not finished"
     end
@@ -232,7 +232,7 @@ class ChefNodeDeployer < BaseDeployer
       #debug
       puts "Chef command failed? #{chef_command.failed?}"
       puts "Chef_node is nil? #{chef_node.nil?}"
-      puts "Chef node didn't show up? #{chef_node.deployment_show_up?}" if chef_node
+      puts "Chef node deployment result not found? #{!chef_node.deployment_show_up?}" if chef_node
       puts "Chef node indicate failed? #{chef_node.deployment_failed?}" if chef_node
 
       msg = chef_command.get_err_msg

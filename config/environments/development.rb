@@ -60,7 +60,7 @@ PatternDeployer::Application.configure do
   #####################################################
 
   # The location of the chef logs files
-  config.chef_logs_dir = "/tmp/devel"
+  config.chef_logs_dir = Rails.root.join("log")
 
   # The location of the uploaded files
   config.uploaded_files_dir = "#{Rails.root}/uploaded_files/devel"

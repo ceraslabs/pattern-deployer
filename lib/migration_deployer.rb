@@ -47,7 +47,7 @@ class MigrationDeployer < BaseDeployer
     dest_deployer["migration"] = migration_info
     lb_deployer["migration"] = migration_info if lb_deployer
 
-    get_children.clear
+    @children.clear if @children
     get_children << lb_deployer if lb_deployer
     get_children << dest_deployer
     get_children << source_deployer
