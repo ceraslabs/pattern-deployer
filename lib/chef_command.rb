@@ -141,8 +141,8 @@ class ChefCommand
   end
 
   def initial_wait(duration = 900)
-    ["first_vm", "second_vm", "third_vm"].each_with_index do |nested_vm, i|
-      if @node_name.include?(nested_vm)
+    ["first_vm_1", "second_vm_1", "third_vm_1"].each_with_index do |nested_vm, i|
+      if @node_name.end_with?(nested_vm)
         sleep duration * i
       end
     end

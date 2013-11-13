@@ -65,9 +65,12 @@ class MigrationDeployer < BaseDeployer
 
     @worker_thread = Thread.new do
       begin
+        puts "[migration] Migration starts at #{Time.now.to_i} (#{get_id})"
+
         get_children.each do |child_node|
           deploy_node(child_node)
         end
+        puts "[migration] Migration finishes at #{Time.now.to_i} (#{get_id})"
 
         on_deploy_success
       rescue Exception => ex
@@ -179,6 +182,7 @@ class MigrationsDeployer < BaseDeployer
   end
 
   def add_migration(migration)
+    @children.clear
     @children << migration
   end
 
