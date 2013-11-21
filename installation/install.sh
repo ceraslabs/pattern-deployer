@@ -18,6 +18,9 @@ fi
 #sudo gem update --no-rdoc --no-ri
 sudo gem install ohai --no-rdoc --no-ri --verbose
 
+# walk around for the issue of ruby version
+sudo gem install mime-types --no-rdoc --no-ri --verbose -v "~>1.2"
+
 # install Chef 10
 sudo gem install chef --no-rdoc --no-ri --verbose -v "10.24.0"
 
