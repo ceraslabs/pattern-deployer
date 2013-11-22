@@ -68,3 +68,5 @@ gem "passenger", "~> 3.0"
 gem 'rabl', '0.9.0'
 
 gem 'open4'
+
+gem 'kaminari', '~> 0.14.0'
