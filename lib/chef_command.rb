@@ -262,7 +262,6 @@ class BaseCommandBuilder
     port =  @node_info["port"]
     timeout = Float(@node_info["timeout"] || "0")
     cloud =  @node_info["cloud"] || Rails.application.config.notcloud
-    region = @node_info["region"]
 
     command = ""
     command += "-x #{ssh_user} "
@@ -270,7 +269,6 @@ class BaseCommandBuilder
     command += "-i #{identity_file} " if identity_file
     command += "-P #{password} " if password
     command += "-p #{port} " if port
-    command += "--region #{region} " if region
     command += "--no-host-key-verify "
 
     command += "-r '"
@@ -293,6 +291,7 @@ class EC2CommandBuilder < BaseCommandBuilder
     instance_type =  @node_info["instance_type"]
     key_pair_id =  @node_info["key_pair_id"]
     zone =  @node_info["availability_zone"]
+    region = @node_info["region"]
 
     command = "knife ec2 server create "
     command += "-I #{image} "
@@ -300,6 +299,7 @@ class EC2CommandBuilder < BaseCommandBuilder
     command += "-S #{key_pair_id} " if key_pair_id
     command += "-G #{security_groups} " if security_groups
     command += "-Z #{zone} " if zone
+    command += "--region #{region} " if region
     command += build_auth_info
 
     command += super()
@@ -332,6 +332,7 @@ class OpenStackCommandBuilder < BaseCommandBuilder
     image_id =  @node_info["image_id"]
     instance_type =  @node_info["instance_type"]
     key_pair_id =  @node_info["key_pair_id"]
+    region = @node_info["region"]
 
     command = "knife openstack server create "
     command += "-a "
@@ -339,6 +340,7 @@ class OpenStackCommandBuilder < BaseCommandBuilder
     command += "-f #{instance_type} " if instance_type
     command += "-S #{key_pair_id} "
     command += "--auto-alloc-floating-ip " if Rails.configuration.openstack_auto_allocate_ip
+    command += "--region #{region} " if region
     command += build_auth_info
 
     command += super()
