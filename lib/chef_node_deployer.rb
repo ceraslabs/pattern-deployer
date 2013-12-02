@@ -126,32 +126,49 @@ class ChefNodeDeployer < BaseDeployer
     super()
     generic_prepare
 
-    if attributes.has_key?("migration")
-      if self.get_id == attributes["migration"]["source"]
-        self.services = ["migrate_from"]
-      elsif self.get_id == attributes["migration"]["destination"]
-        self.services = ["migrate_to"]
-      elsif self.get_id == attributes["migration"]["load_balancer"]
-        self.services = ["on_member_migrate"]
-      else
-        raise "Unexpected migration node #{self.get_id}"
-      end
-    end
+    #if attributes.has_key?("migration")
+    #  if self.get_id == attributes["migration"]["source"]
+    #    self.services = ["migrate_from"]
+    #  elsif self.get_id == attributes["migration"]["destination"]
+    #    self.services = ["migrate_to"]
+    #  elsif self.get_id == attributes["migration"]["load_balancer"]
+    #    self.services = ["on_member_migrate"]
+    #  else
+    #    raise "Unexpected migration node #{self.get_id}"
+    #  end
+    #end
 
     chef_node = get_chef_node
     chef_node.start_deployment if chef_node
   end
 
-  def update_deployment
+  def update_deployment(is_migrate = false)
     super()
     @worker_thread = Thread.new do
       begin
+        ensure_migrate if is_migrate
         update_deployment_helper
         on_update_success
       rescue Exception => ex
         msg = self.class.build_err_msg(ex, self)
         on_update_failed(msg)
       end
+    end
+  end
+
+  def ensure_migrate
+    unless attributes.has_key?("migration")
+      raise "Unexpected missing of migration attribute in node #{self.get_id}"
+    end
+
+    if self.get_id == attributes["migration"]["source"]
+      self.services = ["migrate_from"]
+    elsif self.get_id == attributes["migration"]["destination"]
+      self.services = ["migrate_to"]
+    elsif self.get_id == attributes["migration"]["load_balancer"]
+      self.services = ["on_member_migrate"]
+    else
+      raise "Unexpected migration node #{self.get_id}"
     end
   end
 

@@ -126,7 +126,7 @@ class MigrationDeployer < BaseDeployer
   protected
 
   def deploy_node(node_deployer)
-    node_deployer.update_deployment
+    node_deployer.update_deployment(true)
 
     timeout = 3600
     unless node_deployer.wait(timeout)
