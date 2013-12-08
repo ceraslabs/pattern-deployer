@@ -170,6 +170,8 @@ class ChefNodeDeployer < BaseDeployer
     else
       raise "Unexpected migration node #{self.get_id}"
     end
+
+    load_key_pair
   end
 
   def update_deployment_helper
