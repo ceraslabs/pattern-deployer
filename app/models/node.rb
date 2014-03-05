@@ -34,7 +34,7 @@ class Node < ActiveRecord::Base
   attr_accessible :attrs, :node_id, :templates, :services, :nested_nodes, :container_node, :parent, :owner, :id, :topology
 
   #TODO underscore in node name is deprecated
-  validates :node_id, :format => { :with => /^[[:alnum:]_]+$/,
+  validates :node_id, :format => { :with => /\A[[:alnum:]_]+\z/,
                                    :message => "%{value} doesnot match regex /^[[:alnum:]_]+$/" }
   validates_presence_of :parent, :owner
   validate :node_id_unique_within_topology

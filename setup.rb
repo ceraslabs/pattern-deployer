@@ -81,6 +81,11 @@ class SubCommand
     run_bundle_install
     puts "Depending Gems are installed"
 
+    # generate secret token
+    puts "Generating a secret token..."
+    generate_secret_token
+    puts "Secret token is generated"
+
     # setup the database for this app to use
     puts "Setting up the database..."
     setup_db
@@ -95,11 +100,6 @@ class SubCommand
     puts "Pre-compiling assets..."
     precompile_assets if self.respond_to?(:precompile_assets)
     puts "Assets are pre-compiled"
-
-    # generate secret token
-    puts "Generating a secret token..."
-    generate_secret_token
-    puts "Secret token is generated"
 
     # setup Chef for this app to use
     puts "Setting up Chef..."
@@ -158,7 +158,18 @@ class SubCommand
     unless File.exists?(secret_token_file)
       secret_token = execute_and_exit_on_fail("bundle exec rake secret", :as_user => @cli.config[:as_user])
       write_to_file(secret_token_file) do |fout|
-        fout.print "PatternDeployer::Application.config.secret_token = '#{secret_token}'"
+        fout.puts "PatternDeployer::Application.config.secret_token = '#{secret_token}'"
+        fout.puts "PatternDeployer::Application.config.secret_key_base = 'PatternDeployer'"
+      end
+    end
+
+    # write the secret token into devise initializer
+    devise_example_file = "config/initializers/devise.rb.example"
+    devise_config_file = "config/initializers/devise.rb"
+    unless File.exists?(devise_config_file)
+      write_to_file(devise_config_file) do |fout|
+        devise_configs = IO.read(devise_example_file)
+        fout.print devise_configs % {secret_token: secret_token}
       end
     end
   end

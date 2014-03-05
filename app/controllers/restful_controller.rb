@@ -33,6 +33,12 @@ class RestfulController < ApplicationController
     request_http_basic_authentication unless user_signed_in?
   end
 
+  def render_404
+    err_msg = "'#{request.method} #{params[:path]}' does not match to any resource" if params[:path]
+    exception = InvalidUrlError.new(:message => err_msg)
+    render_app_error(exception)
+  end
+
   def get_resources_readable_by_me(resources)
     resources.delete_if {|res| cannot? :read, res}
   end

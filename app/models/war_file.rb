@@ -18,6 +18,6 @@ class WarFile < UploadedFile
 
   validates :file_name, 
             :presence => true, 
-            :format => { :with => /.*\.war$/, :message => "war file must end with '.war'" }
+            :format => { :with => /.*\.war\z/, :message => "war file must end with '.war'" }
 
 end

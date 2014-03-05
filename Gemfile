@@ -1,23 +1,15 @@
 source 'https://rubygems.org'
 
-gem 'rails', '3.2.8'
+gem 'rails', '~>4.0.0'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
 
 gem 'json', '1.6.1'
 
-# Gems used only for assets and not required
-# in production environments by default.
-group :assets do
-  gem 'sass-rails',   '~> 3.2.3'
-  gem 'coffee-rails', '~> 3.2.1'
-
-  # See https://github.com/sstephenson/execjs#readme for more supported runtimes
-  # gem 'therubyracer', :platforms => :ruby
-
-  gem 'uglifier', '>= 1.0.3'
-end
+gem 'sass-rails',   '~>4.0.0'
+gem 'coffee-rails', '~>4.0.0'
+gem 'uglifier', '>=1.3.0'
 
 gem 'jquery-rails'
 
@@ -47,7 +39,7 @@ gem 'customized-knife-ec2', :git => 'git://github.com/ceraslabs/knife-ec2.git'
 gem 'customized-knife-openstack', :git => 'git://github.com/ceraslabs/knife-openstack.git'
 gem 'fog', :git => 'git://github.com/ceraslabs/fog.git'
 
-gem 'devise', '~> 3.1.0'
+gem 'devise'
 gem 'fastercsv'
 gem 'rails_admin'
 gem "cancan"
@@ -65,8 +57,15 @@ gem "customized-chef-repo", :git => "git://github.com/ceraslabs/chef-repo.git"
 
 gem "passenger", "~> 3.0"
 
-gem 'rabl', '0.9.0'
+gem 'rabl'
 
-gem 'open4'
-
-gem 'kaminari', '~> 0.14.0'
+# These gems were added when upgrading from Rails 3.2.8 to Rails 4
+#gem 'actionpack-action_caching', '~>1.0.0'
+#gem 'actionpack-page_caching', '~>1.0.0'
+gem 'actionpack-xml_parser', '~>1.0.0'
+#gem 'actionview-encoded_mail_to', '~>1.0.4'
+#gem 'activerecord-session_store', '~>0.0.1'
+#gem 'activeresource', '~>4.0.0.beta1'
+gem 'protected_attributes', '~>1.0.1'
+#gem 'rails-observers', '~>0.1.1'
+#gem 'rails-perftest', '~>0.0.2'

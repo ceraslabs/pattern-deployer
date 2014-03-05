@@ -117,7 +117,7 @@ class UploadedFile < ActiveRecord::Base
   def write_to_disk(file_io)
     temp_dir = get_temp_dir
     FileUtils.mkdir_p(temp_dir) unless File.directory?(temp_dir)
-    File.open("#{temp_dir}/#{file_name}", "w") do |out|
+    File.open("#{temp_dir}/#{file_name}", "wb") do |out|
       out.write(file_io.read)
     end
   end

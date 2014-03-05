@@ -21,7 +21,7 @@ PatternDeployer::Application.routes.draw do
 
   get "home/index"
 
-  match "api" => "api#index", :as => :api_root
+  get "/api" => "api#index", :as => :api_root
 
   scope "/api" do
     resources :topologies, :only => [:index, :show, :create, :destroy, :update] do
@@ -44,13 +44,13 @@ PatternDeployer::Application.routes.draw do
     resources :uploaded_files, :only => [:index, :show, :create, :destroy, :update]
     resources :supporting_services, :only => [:index, :show, :update]
 
-    match "*path", :controller => "api", :action => "render_404"
+    match "*path" => "api#render_404", :via => :all
   end
 
   resources :doc, :only => [:index]
 
-  match '/api_docs' => 'api_docs#index'
-  match '/api_docs/:action' => 'api_docs#:action', :defaults => {:format => :json}
+  get '/api_docs' => 'api_docs#index'
+  get '/api_docs/:action' => 'api_docs#:action', :defaults => {:format => :json}
 
   # The priority is based upon order of creation:
   # first created -> highest priority.
