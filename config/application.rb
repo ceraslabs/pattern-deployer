@@ -141,10 +141,12 @@ module PatternDeployer
     config.openstack_auto_deallocate_ip = true
 
     # Get the IP address of current server
+    require 'excon'
+    require 'ipaddr'
+    require 'ohai'
     begin
       query_url ||= "http://169.254.169.254/latest/meta-data/public-ipv4"
       public_ip = Excon.get(query_url, :connect_timeout => 5).body
-      require 'ipaddr'
       config.public_ip = IPAddr.new(public_ip).to_s
     rescue ArgumentError, Excon::Errors::Timeout
       alternative_url = "http://ifconfig.me/ip"
@@ -154,7 +156,6 @@ module PatternDeployer
       end
 
       # Use Ohai if none of above work
-      require 'ohai'
       ohai = Ohai::System.new
       ohai.all_plugins
       config.public_ip = ohai[:ipaddress]
@@ -163,11 +164,9 @@ module PatternDeployer
     begin
       query_url = "http://169.254.169.254/latest/meta-data/private-ipv4"
       private_ip = Excon.get(query_url, :connect_timeout => 5).body
-      require 'ipaddr'
       config.private_ip = IPAddr.new(private_ip).to_s
     rescue ArgumentError, Excon::Errors::Timeout
       # Use Ohai if none of above work
-      require 'ohai'
       ohai = Ohai::System.new
       ohai.all_plugins
       config.private_ip = ohai[:ipaddress]
