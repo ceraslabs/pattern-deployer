@@ -26,3 +26,4 @@ pickle-email-*.html
 /public/assets/
 /vendor/cache
 /db/data.yml
+/.chef

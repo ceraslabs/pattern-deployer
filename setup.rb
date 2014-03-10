@@ -29,6 +29,19 @@ OPTIONS_INVALID = 3
 INVALID_CWD = 4
 SETUP_ERROR = 10
 
+# chef configs
+PROJECT_DIR = File.expand_path(File.dirname(__FILE__))
+CHEF_CONFIG_DIR = [PROJECT_DIR, ".chef"].join('/')
+CHEF_CONFIG_FILE = [CHEF_CONFIG_DIR, "knife.rb"].join('/')
+CHEF_CLIENT_NAME = "PDS"
+CHEF_CLIENT_KEY = [CHEF_CONFIG_DIR, "PDS.pem"].join('/')
+CHEF_VALIDATOR = "chef-validator"
+CHEF_VALIDATION_KEY = "chef-validator.pem"
+CHEF_SYSTEM_VALIDATION_KEY_PATH = ["/etc/chef-server", CHEF_VALIDATION_KEY].join('/')
+CHEF_VALIDATION_KEY_PATH = [CHEF_CONFIG_DIR, CHEF_VALIDATION_KEY].join('/')
+CHEF_ADMIN = "chef-webui"
+CHEF_ADMIN_KEY = "/etc/chef-server/chef-webui.pem"
+
 
 module ShellUtils
   def execute_and_exit_on_fail(command, options={})
@@ -175,42 +188,65 @@ class SubCommand
   end
 
   def clean_assets
-    command = "bundle exec rake assets:clean"
+    command = "bundle exec rake assets:clean RAILS_ENV=#{@env}"
     execute_and_exit_on_fail(command, :as_user => @cli.config[:as_user])
   end
 
   def setup_chef
-    config_file = create_chef_config_file
-    upload_cookbooks(config_file)
+    init_chef_config unless chef_initialized?
+    update_chef_config
+    upload_cookbooks
   end
 
-  def create_chef_config_file
+  def chef_initialized?
+    File.directory?(CHEF_CONFIG_DIR)
+  end
+
+  def init_chef_config
+    command = %Q{bundle exec knife configure -i -y --defaults
+                      -u #{CHEF_CLIENT_NAME}
+                      -s #{@cli.config[:chef_server_url]}
+                      --admin-client-name #{CHEF_ADMIN}
+                      --admin-client-key #{CHEF_ADMIN_KEY}
+                      --validation-client-name #{CHEF_VALIDATOR}
+                      --validation-key #{CHEF_SYSTEM_VALIDATION_KEY_PATH}
+                      -r ''
+                }.gsub(/\s+/, " ").strip
+    execute_and_exit_on_fail(command)
+
+    # move the generated folder into project home.
     user_home = execute_and_exit_on_fail("echo ~", :as_user => @cli.config[:as_user])
-    config_file = [user_home, ".chef", "knife.rb"].join("/")
-    write_to_file(config_file) do |fout|
+    config_dir = [user_home, ".chef"].join('/')
+    FileUtils.mv(config_dir, CHEF_CONFIG_DIR)
+    # copy validation key
+    FileUtils.cp(CHEF_SYSTEM_VALIDATION_KEY_PATH, CHEF_VALIDATION_KEY_PATH)
+    # change owner of the folder
+    FileUtils.chown_R(@cli.config[:as_user], nil, CHEF_CONFIG_DIR)
+  end
+
+  def update_chef_config
+    write_to_file(CHEF_CONFIG_FILE) do |fout|
       fout.puts <<-EOH
 log_level               :info
 log_location            STDOUT
-node_name               '#{@cli.config[:chef_client_name]}'
-client_key              '#{@cli.config[:chef_client_key]}'
-validation_client_name  'chef-validator'
-validation_key          '#{@cli.config[:chef_validation_key]}'
+node_name               '#{CHEF_CLIENT_NAME}'
+client_key              '#{CHEF_CLIENT_KEY}'
+validation_client_name  '#{CHEF_VALIDATOR}'
+validation_key          '#{CHEF_VALIDATION_KEY_PATH}'
 chef_server_url         '#{@cli.config[:chef_server_url]}'
 cache_type              'BasicFile'
-cache_options( :path => '#{user_home}/.chef/checksums' )
+cache_options( :path => '#{CHEF_CONFIG_DIR}/checksums' )
 EOH
     end
 
     # link knife.rb
     file_link = "chef-repo/.chef/knife.rb"
     FileUtils.rm_f(file_link)
-    FileUtils.ln(config_file, file_link)
+    FileUtils.ln(CHEF_CONFIG_FILE, file_link)
     FileUtils.chown(@cli.config[:as_user], nil, file_link)
-
-    return config_file
   end
 
-  def upload_cookbooks(chef_config_file)
+  def upload_cookbooks
     cookbooks_dir = "chef-repo/cookbooks"
 
     cookbooks_to_upload = Array.new
@@ -223,7 +259,7 @@ EOH
     progress = false
     while cookbooks_to_upload.size > 0
       cookbooks_to_upload.each do |cookbook|
-        command = "bundle exec knife cookbook upload #{cookbook} -o #{cookbooks_dir} -c #{chef_config_file} 2>/dev/null"
+        command = "bundle exec knife cookbook upload #{cookbook} -o #{cookbooks_dir} -c #{CHEF_CONFIG_FILE} 2>/dev/null"
         if system(command)
           progress = true
           cookbooks_to_upload.delete(cookbook)
@@ -372,7 +408,7 @@ class ProductionCommand < SubCommand
   end
 
   def precompile_assets
-    command = "bundle exec rake assets:precompile"
+    command = "bundle exec rake assets:precompile RAILS_ENV=#{@env}"
     execute_and_exit_on_fail(command, :as_user => @cli.config[:as_user])
   end
 
@@ -526,25 +562,6 @@ class SetupCLI
       "http://#{my_ip.strip}:4000"
     end
 
-  option :chef_client_key,
-    :short        => "-k PATH",
-    :long         => "--chef-client-key PATH",
-    :description  => "Chef API client key",
-    :default      => File.expand_path("~") + "/.chef/workstation.pem",
-    :proc         => Proc.new { |path| File.expand_path(path) }
-
-  option :chef_client_name,
-    :long         => "--chef-client-name NAME",
-    :description  => "Chef API client name",
-    :default      => "workstation"
-
-  option :chef_validation_key,
-    :short        => "-v PATH",
-    :long         => "--chef-validation-key PATH",
-    :description  => "Chef validation key",
-    :default      => File.expand_path("~") + "/.chef/validation.pem",
-    :proc         => Proc.new { |path| File.expand_path(path) }
-
   option :as_user,
     :long         => "--as-user USER",
     :description  => "Setup the app for USER",
@@ -579,9 +596,6 @@ class SetupCLI
       config[:database_host]       = ask_question("Please enter the host of the database: ", :default => config[:database_host])
       config[:database_name]       = ask_question("Please enter the name of database used for this app: ", :default => config[:database_name])
       config[:chef_server_url]     = ask_question("Please enter the chef server URL: ", :default => config[:chef_server_url])
-      config[:chef_client_name]    = ask_question("Please enter a Chef clientname: ", :default => config[:chef_client_name])
-      config[:chef_client_key]     = ask_question("Please enter the location of the Chef client key: ", :default => config[:chef_client_key])
-      config[:chef_validation_key] = ask_question("Please enter the location of the Chef validation key: ", :default => config[:chef_validation_key])
     end
   end
 
