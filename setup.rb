@@ -248,30 +248,8 @@ EOH
 
   def upload_cookbooks
     cookbooks_dir = "chef-repo/cookbooks"
-
-    cookbooks_to_upload = Array.new
-    Dir.foreach(cookbooks_dir) do |file|
-      file_path = "#{cookbooks_dir}/#{file}"
-      next if !File.directory?(file_path) || file == "." || file == ".."
-      cookbooks_to_upload << file
-    end
-
-    progress = false
-    while cookbooks_to_upload.size > 0
-      cookbooks_to_upload.each do |cookbook|
-        command = "bundle exec knife cookbook upload #{cookbook} -o #{cookbooks_dir} -c #{CHEF_CONFIG_FILE} 2>/dev/null"
-        if system(command)
-          progress = true
-          cookbooks_to_upload.delete(cookbook)
-        end
-      end
-
-      if progress
-        progress = false
-      else
-        raise "failed to upload cookbooks #{cookbooks_to_upload.join(", ")}"
-      end
-    end
+    command = "bundle exec knife cookbook upload -a -o #{cookbooks_dir} -c #{CHEF_CONFIG_FILE}"
+    execute_and_exit_on_fail(command)
   end
 
   def generate_docs
