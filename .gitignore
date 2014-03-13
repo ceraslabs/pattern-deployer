@@ -17,7 +17,7 @@ pickle-email-*.html
 /config/database.yml
 /config/initializers/secret_token.rb
 /config/initializers/devise.rb
-/chef-repo/*
+/chef-repo
 .DS_Store
 /Gemfile.lock
 /uploaded_files
