@@ -19,115 +19,10 @@ require "chef_client"
 require "chef_databag"
 require "chef_node"
 require "my_errors"
-require "supporting_service_deployer"
 require "topology_deployer"
 
 
 class MainDeployer < BaseDeployer
-
-  # This class is an abstraction of mapping between topology and supporting service
-  # This mapping is many-to-many mapping, e.g. each topology can require any number of supporting service while every supporting service can be required by any number of topologies
-  # If the deployment of a topology needs supporting service, it will consume supporting service through this class
-  class MySupportingServiceDeployer < BaseDeployer
-    def initialize(service_deployer, topology)
-      id = self.class.join(self.class.get_id_prefix, "topology", topology.get_topology_id, "service", service_deployer.get_service_name)
-      super(id, topology.get_topology_id)
-
-      @deployer = service_deployer
-      @service_name = service_deployer.get_service_name
-      @topology = topology
-      @output = Queue.new
-    end
-
-    def get_id
-      deployer_id
-    end
-
-    def get_service_name
-      @service_name
-    end
-
-    def get_topology
-      @topology
-    end
-
-    def get_topology_id
-      @topology.get_topology_id
-    end
-
-    def deploy
-      super()
-      @deployer.request_service(self)
-    end
-
-    def undeploy
-      super()
-      @deployer = nil
-      @service_name = nil
-      @topology = nil
-      @output = nil
-    end
-
-    def update_deployment
-      raise "Not Implemented"
-    end
-
-    def wait(timeout)
-      state = nil
-      msg = nil
-      thread = Thread.new do
-        state, msg = @output.pop
-        if state == State::DEPLOY_SUCCESS
-          on_deploy_success
-        else
-          on_deploy_failed(msg)
-        end
-      end
-
-      if thread.join(timeout)
-        return true
-      else
-        thread.kill
-        return false
-      end
-    end
-
-    def on_service_finish(state, msg)
-      @output << [state, msg]
-    end
-  end #class MySupportingServiceDeployer
-
-
-  class MySupportingServicesDeployer < BaseDeployer
-    def initialize(name, topology_id)
-      my_id = self.class.join(self.class.get_id_prefix, "topology", topology_id, "services", name)
-      super(my_id, topology_id)
-
-      @name = name
-      @topology_id = topology_id
-    end
-
-    def get_id
-      deployer_id
-    end
-
-    def deploy
-      super()
-    end
-
-    def update_deployment
-      raise "Not Implemented"
-    end
-
-    def undeploy
-      super()
-    end
-
-    def get_services
-      @children
-    end
-  end #class MySupportingServicesDeployer
-
 
   def initialize(topology)
     my_id = self.class.join(self.class.get_id_prefix, "user", topology.owner.id, "main", topology.topology_id)
@@ -138,15 +33,13 @@ class MainDeployer < BaseDeployer
     deployer_id
   end
 
-  def prepare_deploy(topology_xml, supporting_services, resources)
+  def prepare_deploy(topology_xml, resources)
     lock_topology do
       self.reset
       self.deploy_state = State::DEPLOYING
 
       topology = TopologyWrapper.new(topology_xml)
-      initialize_deployers(topology, :supporting_services => supporting_services)
-
-      @my_services.prepare_deploy unless @my_services.empty?
+      initialize_deployers(topology)
       @topology_deployer.prepare_deploy(topology, resources)
 
       self.save
@@ -164,9 +57,6 @@ class MainDeployer < BaseDeployer
           err_msg = "The topology cannot be deployed. Make sure nodes does not have circular dependencies"
           raise DeploymentError.new(:message => err_msg)
         end
-
-        # Let certificate authoritive node to generate keys/certs for setting up openvpn
-        prepare_openvpn_credential unless @my_openvpn_service.empty?
 
         # This will do the deployment
         super()
@@ -189,12 +79,12 @@ class MainDeployer < BaseDeployer
     end
   end
 
-  def prepare_scale(topology_xml, supporting_services, resources, nodes, diff)
+  def prepare_scale(topology_xml, resources, nodes, diff)
     lock_topology do
       self.reload
 
       topology = TopologyWrapper.new(topology_xml)
-      initialize_deployers(topology, :supporting_services => supporting_services)
+      initialize_deployers(topology)
 
       prepare_update_deployment
       @topology_deployer.prepare_scale(topology, resources, nodes, diff)
@@ -227,12 +117,12 @@ class MainDeployer < BaseDeployer
     end
   end
 
-  def prepare_repair(topology_xml, supporting_services, resources)
+  def prepare_repair(topology_xml, resources)
     lock_topology do
       self.reload
 
       topology = TopologyWrapper.new(topology_xml)
-      initialize_deployers(topology, :supporting_services => supporting_services)
+      initialize_deployers(topology)
 
       prepare_update_deployment
       @topology_deployer.prepare_repair(topology, resources)
@@ -264,18 +154,12 @@ class MainDeployer < BaseDeployer
     end
   end
 
-  def undeploy(topology_xml, supporting_services, resources)
+  def undeploy(topology_xml, resources)
     lock_topology do
       self.reload
 
       topology = TopologyWrapper.new(topology_xml)
-      initialize_deployers(topology, :supporting_services => supporting_services)
-
-      @my_openvpn_service.undeploy unless @my_openvpn_service.empty?
-      @my_openvpn_service = nil
-
-      @my_services.undeploy unless @my_services.empty?
-      @my_services = nil
+      initialize_deployers(topology)
 
       @topology_deployer.undeploy(topology, resources)
       @topology_deployer = nil
@@ -334,46 +218,13 @@ class MainDeployer < BaseDeployer
     super()
   end
 
-  def prepare_openvpn_credential
-    @my_openvpn_service.prepare_deploy
-    @my_openvpn_service.deploy
-
-    timeout = 120
-    unless @my_openvpn_service.wait(timeout)
-      raise "Timeout for acquiring openvpn service" 
-    end
-
-    success = @my_openvpn_service.get_deploy_state == State::DEPLOY_SUCCESS
-    raise @my_openvpn_service.get_err_msg unless success
-
-    @topology_deployer.load_certificates(@my_openvpn_service.get_services.first)
-  end
-
   def initialize_deployers(topology, options={})
     resources = options[:resources]
-    services_deployers = options[:supporting_services]
 
     if @topology_deployer.nil?
       @topology_deployer = TopologyDeployer.new(self)
       self << @topology_deployer
     end
-
-    #TODO update @my_openvpn_service if it exists
-    if @my_openvpn_service.nil?
-      services_to_acquire = ["openvpn"]
-      @my_openvpn_service = create_my_services_deployer("openvpn", services_deployers, services_to_acquire, topology)
-    end
-
-    #TODO update @my_services if it exists
-    if @my_services.nil?
-      services_to_acquire = ["host_protection", "dns"]
-      @my_services = create_my_services_deployer("my_services", services_deployers, services_to_acquire, topology)
-      self << @my_services unless @my_services.empty?
-    end
-  end
-
-  def create_my_services_deployer(name, services_deployers, services_to_acquire, topology)
-    Array.new
   end
 
 end

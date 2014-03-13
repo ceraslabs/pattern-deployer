@@ -298,21 +298,6 @@ class TopologyDeployer < BaseDeployer
     topology.get_topology_id
   end
 
-  def load_certificates(certificates)
-    @vertice.each do |vertex_id, vertex|
-      server_cert = certificates["server_certs"].find do |cert|
-        cert["server_id"] == vertex_id
-      end
-      vertex["server_cert"] = server_cert if server_cert
-
-      vertex["client_certs"] = certificates["client_certs"].select do |cert|
-        cert["from"] == vertex_id
-      end
-
-      vertex.save
-    end
-  end
-
   def deployable?
     # check circular dependencies by using breadth first search algorithm
     has_circle = false

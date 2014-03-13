@@ -28,7 +28,6 @@ class User < ActiveRecord::Base
   has_many :credentials, :dependent => :destroy, :inverse_of => :owner
   has_many :nodes, :dependent => :destroy, :inverse_of => :owner
   has_many :services, :dependent => :destroy, :inverse_of => :owner
-  has_many :supporting_services, :dependent => :destroy, :inverse_of => :owner
   has_many :templates, :dependent => :destroy, :inverse_of => :owner
   has_many :topologies, :dependent => :destroy, :inverse_of => :owner
   has_many :uploaded_files, :dependent => :destroy, :inverse_of => :owner

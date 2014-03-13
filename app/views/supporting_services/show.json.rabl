@@ -1,2 +1,0 @@
-object @supporting_service
-extends "supporting_services/supporting_service"

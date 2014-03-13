@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20130713195831) do
+ActiveRecord::Schema.define(version: 20140313171310) do
 
   create_table "containers", force: true do |t|
     t.string   "container_id"
@@ -97,14 +97,6 @@ ActiveRecord::Schema.define(version: 20130713195831) do
   end
 
   add_index "services", ["service_id"], name: "index_services_on_service_id", using: :btree
-
-  create_table "supporting_services", force: true do |t|
-    t.string   "name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string   "state"
-    t.integer  "user_id",    null: false
-  end
 
   create_table "template_inheritances", force: true do |t|
     t.integer  "template_id"

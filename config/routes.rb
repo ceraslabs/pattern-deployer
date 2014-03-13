@@ -42,7 +42,6 @@ PatternDeployer::Application.routes.draw do
 
     resources :credentials, :only => [:index, :show, :create, :destroy, :update]
     resources :uploaded_files, :only => [:index, :show, :create, :destroy, :update]
-    resources :supporting_services, :only => [:index, :show, :update]
 
     match "*path" => "api#render_404", :via => :all
   end

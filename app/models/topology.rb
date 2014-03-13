@@ -89,7 +89,7 @@ class Topology < ActiveRecord::Base
     end
   end
 
-  def deploy(topology_xml, services, resources)
+  def deploy(topology_xml, resources)
     my_state = get_state
     if my_state == State::DEPLOY_SUCCESS
       err_msg = "The topology '#{self.topology_id}' have already been deployed"
@@ -100,14 +100,14 @@ class Topology < ActiveRecord::Base
     end
 
     deployer = get_deployer
-    deployer.prepare_deploy(topology_xml, services, resources)
+    deployer.prepare_deploy(topology_xml, resources)
     deployer.deploy
 
     self.set_state(State::DEPLOYING)
     self.register_selected_resources(resources)
   end
 
-  def scale(topology_xml, services, resources, nodes, diff)
+  def scale(topology_xml, resources, nodes, diff)
     my_state = get_state
     if my_state != State::DEPLOY_SUCCESS
       err_msg = "The status of topology '#{self.topology_id}' is not '#{State::DEPLOY_SUCCESS}'"
@@ -115,14 +115,14 @@ class Topology < ActiveRecord::Base
     end
 
     deployer = get_deployer
-    deployer.prepare_scale(topology_xml, services, resources, nodes, diff)
+    deployer.prepare_scale(topology_xml, resources, nodes, diff)
     deployer.scale
 
     self.set_state(State::DEPLOYING)
     self.register_selected_resources(resources)
   end
 
-  def repair(topology_xml, services, resources)
+  def repair(topology_xml, resources)
     my_state = get_state
     if my_state != State::DEPLOY_FAIL
       err_msg = "The status of topology '#{self.topology_id}' is not '#{State::DEPLOY_FAIL}', nothing to repair"
@@ -130,14 +130,14 @@ class Topology < ActiveRecord::Base
     end
 
     deployer = get_deployer
-    deployer.prepare_repair(topology_xml, services, resources)
+    deployer.prepare_repair(topology_xml, resources)
     deployer.repair
 
     self.set_state(State::DEPLOYING)
     self.register_selected_resources(resources)
   end
 
-  def undeploy(topology_xml, services, resources)
+  def undeploy(topology_xml, resources)
     my_state = get_state
     if my_state == State::UNDEPLOY
       err_msg = "The topology '#{self.topology_id}' is not deployed before"
@@ -146,7 +146,7 @@ class Topology < ActiveRecord::Base
 
     deployer = get_deployer
     begin
-      success, @msg = deployer.undeploy(topology_xml, services, resources)
+      success, @msg = deployer.undeploy(topology_xml, resources)
     rescue Exception => ex
       @msg ||= ""
       @msg += "[#{Time.now}] #{ex.class.name}: #{ex.message}"

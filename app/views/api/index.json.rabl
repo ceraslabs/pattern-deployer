@@ -8,7 +8,4 @@ child :links do
   node :uploaded_files do
     uploaded_files_path(:only_path => false)
   end
-  node :supporting_services do
-    supporting_services_path(:only_path => false)
-  end
 end

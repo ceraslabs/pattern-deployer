@@ -357,15 +357,14 @@ class TopologiesController < RestfulController
       @topology.save!
     when TopologyOp::DEPLOY, TopologyOp::UNDEPLOY, TopologyOp::REPAIR
       resources = get_resources(@topology)
-      services = Hash.new #TODO remove supporting services totally
       topology_xml = get_pattern(@topology)
 
       if operation == TopologyOp::DEPLOY
-        @topology.deploy(topology_xml, services, resources)
+        @topology.deploy(topology_xml, resources)
       elsif operation == TopologyOp::UNDEPLOY
-        @topology.undeploy(topology_xml, services, resources)
+        @topology.undeploy(topology_xml, resources)
       elsif operation == TopologyOp::REPAIR
-        @topology.repair(topology_xml, services, resources)
+        @topology.repair(topology_xml, resources)
       end
     else
       err_msg = "Invalid operation. Supported operations are #{get_operations(TopologyOp).join(',')}"
