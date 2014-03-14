@@ -50,8 +50,6 @@ class Ability
         can :manage, [Container, Credential, Node, Service, Template, Topology, UploadedFile], :user_id => user.id
         can [:read, :create], User
         can [:update, :destroy], User, :id => user.id
-        can :read, SupportingService
-        can [:update, :destroy], SupportingService, :user_id => user.id
       end
     end
   end
