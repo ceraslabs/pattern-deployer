@@ -14,9 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require "chef_cookbook"
+require "pattern_deployer"
 
 class UploadedFile < ActiveRecord::Base
+
+  include PatternDeployer::Errors
+  Cookbook = PatternDeployer::Chef::ChefCookbookWrapper
 
   belongs_to :owner, :autosave => true, :class_name => "User", :foreign_key => "user_id", :inverse_of => :uploaded_files
   has_and_belongs_to_many :topologies
@@ -107,7 +110,7 @@ class UploadedFile < ActiveRecord::Base
 
   def delete_cookbook_files
     cookbook_name = Rails.configuration.chef_cookbook_name
-    cookbook = ChefCookbookWrapper.create(cookbook_name)
+    cookbook = Cookbook.create(cookbook_name)
     self.topologies.each do |t|
       cookbook.delete_cookbook_file(self, t.owner.id)
     end

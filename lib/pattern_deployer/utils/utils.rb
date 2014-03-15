@@ -14,5 +14,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class ApplicationController < ActionController::Base
+module PatternDeployer
+  module Utils
+    def self.included(base)
+      base.extend(ClassMethods)
+    end
+
+    module ClassMethods
+      def join(*tokens)
+        tokens.join("-")
+      end
+    end
+
+    # instance methods
+    def to_bool(obj)
+      if obj.class == String
+        "true".casecmp(obj) == 0
+      else
+        !!obj
+      end
+    end
+
+  end
 end

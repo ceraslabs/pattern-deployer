@@ -14,8 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require "my_errors"
-require "resources_manager"
+require "pattern_deployer"
 
 ##~ @topology = source2swagger.namespace("topology")
 ##~ @topology.basePath = "<%= request.protocol + request.host_with_port %>/api"
@@ -181,7 +180,10 @@ class TopologiesController < RestfulController
 
   include RestfulHelper
   include TopologiesHelper
-  
+  include PatternDeployer::Errors
+  include PatternDeployer::Pattern
+  include PatternDeployer::Deployer::State
+
   ####
   ##~ api = @topology.apis.add
   ##~ api.path = "/topologies"
@@ -237,7 +239,7 @@ class TopologiesController < RestfulController
     if definition
       @topology = create_resource_from_xml(definition)
     else
-      @topology = Topology.new(:topology_id => params[:name], :description => params[:description], :state => State::UNDEPLOY, :owner => current_user)
+      @topology = Topology.new(:topology_id => params[:name], :description => params[:description], :state => UNDEPLOY, :owner => current_user)
       unless @topology.save
         raise ParametersValidationError.new(:ar_obj => @topology)
       end

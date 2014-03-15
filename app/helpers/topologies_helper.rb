@@ -14,11 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require 'pattern_deployer'
+
 module TopologiesHelper
+  include PatternDeployer::Deployer::State
 
   def create_topology_scaffold(element, owner)
     validate_topology_element!(element)
-    Topology.create!(:topology_id => element["id"], :owner => owner, :state => State::UNDEPLOY)
+    Topology.create!(:topology_id => element["id"], :owner => owner, :state => UNDEPLOY)
   end
 
   def validate_topology_element!(element)

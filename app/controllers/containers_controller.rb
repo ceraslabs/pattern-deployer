@@ -14,8 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require "base_deployer"
-require "my_errors"
+require "pattern_deployer"
 
 ##~ @container = source2swagger.namespace("container")
 ##~ @container.basePath = "<%= request.protocol + request.host_with_port %>/api"
@@ -68,7 +67,8 @@ class ContainersController < RestfulController
 
   include RestfulHelper
   include ContainersHelper
-
+  include PatternDeployer::Errors
+  include PatternDeployer::Deployer::State
 
   ####
   ##~ api = @container.apis.add
@@ -301,7 +301,7 @@ class ContainersController < RestfulController
   end
 
   def scale_at_runtime?
-    @topology.get_state == State::DEPLOY_SUCCESS || @topology.get_state == State::DEPLOY_FAIL
+    @topology.get_state == DEPLOY_SUCCESS || @topology.get_state == DEPLOY_FAIL
   end
 
   def get_model_name(options={})

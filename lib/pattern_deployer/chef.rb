@@ -14,5 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class ApplicationController < ActionController::Base
-end
+require 'pattern_deployer/chef/client'
+require 'pattern_deployer/chef/command'
+require 'pattern_deployer/chef/cookbook'
+require 'pattern_deployer/chef/databag'
+require 'pattern_deployer/chef/databags_manager'
+require 'pattern_deployer/chef/node'
+require 'pattern_deployer/chef/nodes_manager'

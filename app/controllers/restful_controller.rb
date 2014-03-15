@@ -14,9 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require "my_errors"
+require 'pattern_deployer'
 
 class RestfulController < ApplicationController
+  include PatternDeployer::Artifact
+  include PatternDeployer::Errors
+
   #protect_from_forgery
   before_filter :http_authenticate
   load_and_authorize_resource

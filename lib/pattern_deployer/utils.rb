@@ -14,5 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class ApplicationController < ActionController::Base
-end
+require 'pattern_deployer/utils/concurrent_hash'
+require 'pattern_deployer/utils/utils'
+require 'pattern_deployer/utils/xml'

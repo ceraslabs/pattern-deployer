@@ -14,11 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require "my_errors"
+require 'pattern_deployer'
 
 class Service < ActiveRecord::Base
 
   include ServicesHelper
+  include PatternDeployer::Errors
 
   has_many :service_to_node_refs, :dependent => :destroy
   has_many :nodes, :through => :service_to_node_refs

@@ -14,11 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require "my_errors"
+require 'pattern_deployer'
 
 class Container < ActiveRecord::Base
 
   include NodesHelper
+  include PatternDeployer::Errors
 
   belongs_to :topology, :autosave => true, :inverse_of => :containers
   belongs_to :owner, :class_name => "User", :foreign_key => "user_id", :inverse_of => :containers

@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require "my_errors"
+require 'pattern_deployer'
 
 ##~ @node = source2swagger.namespace("node")
 ##~ @node.basePath = "<%= request.protocol + request.host_with_port %>/api"
@@ -81,6 +81,7 @@ class NodesController < RestfulController
 
   include RestfulHelper
   include NodesHelper
+  include PatternDeployer::Errors
 
 
   ####

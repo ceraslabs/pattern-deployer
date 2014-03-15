@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require "my_errors"
+require 'pattern_deployer'
 
 ##~ @credential = source2swagger.namespace("credential")
 ##~ @credential.basePath = "<%= request.protocol + request.host_with_port %>/api"
@@ -70,6 +70,8 @@ require "my_errors"
 ##~ field.set :type => "List", :description => "The information of the credentials", :items => {:$ref => "Credential"}
 ##
 class CredentialsController < RestfulController
+
+  include PatternDeployer::Errors
 
   ####
   ##~ api = @credential.apis.add

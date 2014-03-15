@@ -14,5 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-class ApplicationController < ActionController::Base
-end
+require 'pattern_deployer/artifact'
+require 'pattern_deployer/chef'
+require 'pattern_deployer/deployer'
+require 'pattern_deployer/errors'
+require 'pattern_deployer/pattern'
+require 'pattern_deployer/utils'

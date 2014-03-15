@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require "my_errors"
+require 'pattern_deployer'
 
 ##~ @file = source2swagger.namespace("uploaded_file")
 ##~ @file.basePath = "<%= request.protocol + request.host_with_port %>/api"
@@ -71,6 +71,8 @@ require "my_errors"
 ##~ field.set :type => "List", :description => "The information of the uploaded files", :items => {:$ref => "UploadedFile"}
 ##
 class UploadedFilesController < RestfulController
+
+  include PatternDeployer::Errors
 
   ####
   ##~ api = @file.apis.add

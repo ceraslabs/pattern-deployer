@@ -15,8 +15,7 @@
 # limitations under the License.
 #
 require "rexml/document"
-require "my_errors"
-require "base_deployer"
+require "pattern_deployer"
 
 class Topology < ActiveRecord::Base
 
@@ -24,6 +23,8 @@ class Topology < ActiveRecord::Base
   include ContainersHelper
   include NodesHelper
   include TemplatesHelper
+  include PatternDeployer::Errors
+  include PatternDeployer::Deployer::State
 
   belongs_to :owner, :autosave => true, :class_name => "User", :foreign_key => "user_id", :inverse_of => :topologies
   has_many   :containers, :dependent => :destroy, :inverse_of => :topology
@@ -33,7 +34,7 @@ class Topology < ActiveRecord::Base
   has_and_belongs_to_many :credentials
 
   attr_accessible :description, :topology_id, :state, :owner, :containers, :nodes, :templates, :id
-  validates :state, :presence => true, :inclusion => { :in => [State::UNDEPLOY, State::DEPLOYING, State::DEPLOY_SUCCESS, State::DEPLOY_FAIL], 
+  validates :state, :presence => true, :inclusion => { :in => [UNDEPLOY, DEPLOYING, DEPLOY_SUCCESS, DEPLOY_FAIL],
                                                        :message => "%{value} is not a valid state" }
   #TODO underscore in topology name is deprecated
   validates :topology_id, :format => { :with => /\A[[:alnum:]_]+\z/,
@@ -91,10 +92,10 @@ class Topology < ActiveRecord::Base
 
   def deploy(topology_xml, resources)
     my_state = get_state
-    if my_state == State::DEPLOY_SUCCESS
+    if my_state == DEPLOY_SUCCESS
       err_msg = "The topology '#{self.topology_id}' have already been deployed"
       raise DeploymentError.new(:message => err_msg)
-    elsif my_state == State::DEPLOYING
+    elsif my_state == DEPLOYING
       err_msg = "The topology '#{self.topology_id}' is being deployed by another process"
       raise DeploymentError.new(:message => err_msg)
     end
@@ -103,14 +104,14 @@ class Topology < ActiveRecord::Base
     deployer.prepare_deploy(topology_xml, resources)
     deployer.deploy
 
-    self.set_state(State::DEPLOYING)
+    self.set_state(DEPLOYING)
     self.register_selected_resources(resources)
   end
 
   def scale(topology_xml, resources, nodes, diff)
     my_state = get_state
-    if my_state != State::DEPLOY_SUCCESS
-      err_msg = "The status of topology '#{self.topology_id}' is not '#{State::DEPLOY_SUCCESS}'"
+    if my_state != DEPLOY_SUCCESS
+      err_msg = "The status of topology '#{self.topology_id}' is not '#{DEPLOY_SUCCESS}'"
       raise DeploymentError.new(:message => err_msg)
     end
 
@@ -118,14 +119,14 @@ class Topology < ActiveRecord::Base
     deployer.prepare_scale(topology_xml, resources, nodes, diff)
     deployer.scale
 
-    self.set_state(State::DEPLOYING)
+    self.set_state(DEPLOYING)
     self.register_selected_resources(resources)
   end
 
   def repair(topology_xml, resources)
     my_state = get_state
-    if my_state != State::DEPLOY_FAIL
-      err_msg = "The status of topology '#{self.topology_id}' is not '#{State::DEPLOY_FAIL}', nothing to repair"
+    if my_state != DEPLOY_FAIL
+      err_msg = "The status of topology '#{self.topology_id}' is not '#{DEPLOY_FAIL}', nothing to repair"
       raise DeploymentError.new(:message => err_msg)
     end
 
@@ -133,13 +134,13 @@ class Topology < ActiveRecord::Base
     deployer.prepare_repair(topology_xml, resources)
     deployer.repair
 
-    self.set_state(State::DEPLOYING)
+    self.set_state(DEPLOYING)
     self.register_selected_resources(resources)
   end
 
   def undeploy(topology_xml, resources)
     my_state = get_state
-    if my_state == State::UNDEPLOY
+    if my_state == UNDEPLOY
       err_msg = "The topology '#{self.topology_id}' is not deployed before"
       raise DeploymentError.new(:message => err_msg)
     end
@@ -156,13 +157,13 @@ class Topology < ActiveRecord::Base
       #debug
       puts @msg
     ensure
-      DeployersManager.instance.delete_deployer(self.id)
-      self.set_state(State::UNDEPLOY)
+      PatternDeployer::Deployer.delete(self.id)
+      self.set_state(UNDEPLOY)
     end
   end
 
   def get_state
-    if self.state == State::DEPLOYING
+    if self.state == DEPLOYING
       self.set_state(get_deployer.get_state)
     end
 
@@ -172,7 +173,7 @@ class Topology < ActiveRecord::Base
   alias :get_deployment_status :get_state
 
   def get_deployed_nodes(topology_xml)
-    if get_state != State::UNDEPLOY
+    if get_state != UNDEPLOY
       return get_deployer.list_nodes(topology_xml)
     else
       return Array.new
@@ -181,8 +182,8 @@ class Topology < ActiveRecord::Base
 
   def get_error
     deployer = get_deployer
-    if deployer && get_state == State::DEPLOY_FAIL
-      return deployer.get_update_state == State::DEPLOY_FAIL ? deployer.get_update_error : deployer.get_deploy_error
+    if deployer && get_state == DEPLOY_FAIL
+      return deployer.get_update_state == DEPLOY_FAIL ? deployer.get_update_error : deployer.get_deploy_error
     else
       return nil
     end
@@ -202,24 +203,23 @@ class Topology < ActiveRecord::Base
   end
 
   def locked?
-    (self.state == State::DEPLOYING || self.state == State::DEPLOY_SUCCESS) && !@unlocked
+    (self.state == DEPLOYING || self.state == DEPLOY_SUCCESS) && !@unlocked
   end
 
 
   protected
 
   def get_deployer
-    deployer = DeployersManager.instance.get_deployer(self.id)
+    deployer = PatternDeployer::Deployer[self.id]
     if deployer.nil?
-      deployer = MainDeployer.new(self)
-      DeployersManager.instance.add_deployer(self.id, deployer)
+      deployer = PatternDeployer::Deployer.new(self)
     end
 
     deployer
   end
 
   def set_default_values
-    self.state ||= State::UNDEPLOY
+    self.state ||= UNDEPLOY
   end
 
   def topology_mutable

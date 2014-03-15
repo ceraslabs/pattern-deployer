@@ -14,13 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require "my_errors"
-require "xml_util"
+require "pattern_deployer"
 
 class Node < ActiveRecord::Base
-
   include ServicesHelper
-  include XmlUtil
+  include PatternDeployer::Errors
+  include PatternDeployer::Utils::Xml
 
   has_and_belongs_to_many :templates
   has_many :services, :dependent => :destroy, :as => :service_container

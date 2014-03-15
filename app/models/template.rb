@@ -14,13 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require "my_errors"
-require "xml_util"
+require 'pattern_deployer'
 
 class Template < ActiveRecord::Base
 
   include ServicesHelper
-  include XmlUtil
+  include PatternDeployer::Utils::Xml
+  include PatternDeployer::Errors
 
   belongs_to :topology, :autosave => true, :inverse_of => :templates
   belongs_to :owner, :autosave => true, :class_name => "User", :foreign_key => "user_id", :inverse_of => :templates
