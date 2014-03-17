@@ -31,8 +31,9 @@ module PatternDeployer
 
       def add_artifacts(artifact_records, artifact_type)
         artifact_records.each do |record|
-          unless artifact_added?(record)
-            @artifacts << Artifact.new(record, artifact_type, @context)
+          artifact = Artifact.new(record, artifact_type, @context)
+          unless artifact_added?(artifact)
+            @artifacts << artifact
           end
         end
       end
@@ -93,9 +94,9 @@ module PatternDeployer
 
       protected
 
-      def artifact_added?(artifact_record)
-        @artifacts.any? do |artifact|
-          artifact.get_id == artifact_record[:id]
+      def artifact_added?(artifact)
+        @artifacts.any? do |art|
+          artifact.type == art.type && artifact.get_id == art.get_id
         end
       end
 
