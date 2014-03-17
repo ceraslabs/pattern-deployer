@@ -358,15 +358,15 @@ class TopologiesController < RestfulController
       @topology.description = params[:description]
       @topology.save!
     when TopologyOp::DEPLOY, TopologyOp::UNDEPLOY, TopologyOp::REPAIR
-      resources = get_resources(@topology)
+      artifacts = get_artifacts(@topology)
       topology_xml = get_pattern(@topology)
 
       if operation == TopologyOp::DEPLOY
-        @topology.deploy(topology_xml, resources)
+        @topology.deploy(topology_xml, artifacts)
       elsif operation == TopologyOp::UNDEPLOY
-        @topology.undeploy(topology_xml, resources)
+        @topology.undeploy(topology_xml, artifacts)
       elsif operation == TopologyOp::REPAIR
-        @topology.repair(topology_xml, resources)
+        @topology.repair(topology_xml, artifacts)
       end
     else
       err_msg = "Invalid operation. Supported operations are #{get_operations(TopologyOp).join(',')}"

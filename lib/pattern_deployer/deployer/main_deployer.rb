@@ -38,14 +38,14 @@ module PatternDeployer
         deployer_id
       end
 
-      def prepare_deploy(topology_xml, resources)
+      def prepare_deploy(topology_xml, artifacts)
         lock_topology do
           self.reset
           self.deploy_state = State::DEPLOYING
 
           topology = TopologyWrapper.new(topology_xml)
           initialize_deployers(topology)
-          @topology_deployer.prepare_deploy(topology, resources)
+          @topology_deployer.prepare_deploy(topology, artifacts)
 
           self.save
         end
@@ -84,7 +84,7 @@ module PatternDeployer
         end
       end
 
-      def prepare_scale(topology_xml, resources, nodes, diff)
+      def prepare_scale(topology_xml, artifacts, nodes, diff)
         lock_topology do
           self.reload
 
@@ -92,7 +92,7 @@ module PatternDeployer
           initialize_deployers(topology)
 
           prepare_update_deployment
-          @topology_deployer.prepare_scale(topology, resources, nodes, diff)
+          @topology_deployer.prepare_scale(topology, artifacts, nodes, diff)
 
           self.save
         end
@@ -122,7 +122,7 @@ module PatternDeployer
         end
       end
 
-      def prepare_repair(topology_xml, resources)
+      def prepare_repair(topology_xml, artifacts)
         lock_topology do
           self.reload
 
@@ -130,7 +130,7 @@ module PatternDeployer
           initialize_deployers(topology)
 
           prepare_update_deployment
-          @topology_deployer.prepare_repair(topology, resources)
+          @topology_deployer.prepare_repair(topology, artifacts)
 
           self.save
         end
@@ -159,14 +159,14 @@ module PatternDeployer
         end
       end
 
-      def undeploy(topology_xml, resources)
+      def undeploy(topology_xml, artifacts)
         lock_topology do
           self.reload
 
           topology = TopologyWrapper.new(topology_xml)
           initialize_deployers(topology)
 
-          @topology_deployer.undeploy(topology, resources)
+          @topology_deployer.undeploy(topology, artifacts)
           @topology_deployer = nil
 
           self.save
@@ -223,8 +223,6 @@ module PatternDeployer
       end
 
       def initialize_deployers(topology, options={})
-        resources = options[:resources]
-
         if @topology_deployer.nil?
           @topology_deployer = TopologyDeployer.new(self)
           self << @topology_deployer

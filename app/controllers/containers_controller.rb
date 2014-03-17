@@ -245,7 +245,7 @@ class ContainersController < RestfulController
       raise ParametersValidationError.new(:message => "Parameter num_of_copies is missing") unless params[:num_of_copies]
 
       if scale_at_runtime?
-        resources = get_resources(@topology)
+        artifacts = get_artifacts(@topology)
         self.formats = [:xml]
         topology_xml = render_to_string(:partial => "topologies/topology", :locals => {:topology => @topology})
         nodes = @container.nodes.map{|node| node.node_id}
@@ -256,7 +256,7 @@ class ContainersController < RestfulController
         diff = @container.num_of_copies - @container.num_of_copies_was
         raise ParametersValidationError.new(:message => "num_of_copies unchanged") if diff == 0
 
-        @topology.scale(topology_xml, resources, nodes, diff)
+        @topology.scale(topology_xml, artifacts, nodes, diff)
         @topology.unlock{@container.save!}
       else
         @container.num_of_copies = params[:num_of_copies]

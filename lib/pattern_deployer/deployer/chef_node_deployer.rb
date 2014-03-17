@@ -26,7 +26,7 @@ module PatternDeployer
       include PatternDeployer::Chef
       include PatternDeployer::Errors
 
-      attr_accessor :short_name, :node_id, :services, :resources
+      attr_accessor :short_name, :node_id, :services, :artifacts
       deployer_attr_accessor :node_info, :database, :instance_id, :credential_id, :identity_file_id
 
       def initialize(name, parent_deployer)
@@ -37,26 +37,26 @@ module PatternDeployer
         self.node_id = deployer_id
       end
 
-      def reload(node_info, services, resources)
+      def reload(node_info, services, artifacts)
         super()
         get_chef_node.reload if get_chef_node
 
-        set_fields(node_info, services, resources)
+        set_fields(node_info, services, artifacts)
       end
 
-      def reset(node_info = nil, services = nil, resources = nil)
+      def reset(node_info = nil, services = nil, artifacts = nil)
         ChefNodesManager.instance.delete(node_id)
         ChefClientsManager.instance.delete(node_id)
 
-        return if node_info.nil? && services.nil? && resources.nil?
+        return if node_info.nil? && services.nil? && artifacts.nil?
 
         super()
-        set_fields(node_info, services, resources)
+        set_fields(node_info, services, artifacts)
       end
 
-      def set_fields(node_info, services, resources)
+      def set_fields(node_info, services, artifacts)
         self.services = services
-        self.resources = resources if resources
+        self.artifacts = artifacts if artifacts
         self.node_info = node_info
         self.node_info["node_name"] = deployer_id
       end
@@ -180,7 +180,7 @@ module PatternDeployer
 
         self.short_name = nil
         self.services = nil
-        self.resources = nil
+        self.artifacts = nil
 
         return success, msg
       end
@@ -380,14 +380,14 @@ module PatternDeployer
       end
 
       def load_key_pair
-        raise "Unexpected missing of resources" unless resources
+        raise "Unexpected missing of artifacts" unless artifacts
         if self.identity_file_id
-          identity_file = resources.find_file_by_id(self.identity_file_id)
+          identity_file = artifacts.find_file_by_id(self.identity_file_id)
           raise "Cannot find identity file with id #{self.identity_file_id}" if identity_file.nil?
           node_info["key_pair_id"] ||= identity_file.key_pair_id
         else
           if get_cloud == Rails.application.config.ec2 || get_cloud == Rails.application.config.openstack
-            node_info["key_pair_id"] ||= resources.find_keypair_id(get_cloud)
+            node_info["key_pair_id"] ||= artifacts.find_keypair_id(get_cloud)
           elsif get_cloud == Rails.application.config.notcloud
             return unless node_info.has_key?("key_pair_id") # if user doesn't specify a private key, he possibly want to use password to login
           else
@@ -396,7 +396,7 @@ module PatternDeployer
 
           keypair_id = node_info["key_pair_id"]
           raise "Cannot find any keypair for cloud #{get_cloud}" if keypair_id.nil?
-          identity_file = resources.find_identity_file(keypair_id) if keypair_id
+          identity_file = artifacts.find_identity_file(keypair_id) if keypair_id
           raise "Cannot find identity file with keypair id #{keypair_id}" if identity_file.nil?
         end
 
@@ -406,18 +406,18 @@ module PatternDeployer
       end
 
       def load_credential
-        raise "Unexpected missing of resources" unless resources
+        raise "Unexpected missing of artifacts" unless artifacts
         credential_name = node_info["use_credential"]
 
         if self.credential_id
-          credential = resources.find_credential_by_id(self.credential_id)
+          credential = artifacts.find_credential_by_id(self.credential_id)
         elsif credential_name
-          credential = resources.find_credential_by_name(credential_name, get_cloud)
+          credential = artifacts.find_credential_by_name(credential_name, get_cloud)
         else
           if get_cloud == Rails.application.config.ec2
-            credential = resources.find_ec2_credential
+            credential = artifacts.find_ec2_credential
           elsif get_cloud == Rails.application.config.openstack
-            credential = resources.find_openstack_credential
+            credential = artifacts.find_openstack_credential
           elsif get_cloud == Rails.application.config.notcloud
             return # no action is needed
           else
@@ -449,9 +449,9 @@ module PatternDeployer
           file_id = attributes["#{file_type}_id"]
           file_name = attributes[file_type]["name"]
           if file_id
-            file = resources.find_file_by_id(file_id)
+            file = artifacts.find_file_by_id(file_id)
           elsif file_name
-            file = resources.find_file_by_name(file_name)
+            file = artifacts.find_file_by_name(file_name)
           else
             raise "Unexpected missing file ID and name"
           end

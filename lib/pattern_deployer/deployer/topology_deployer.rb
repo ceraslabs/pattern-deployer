@@ -279,23 +279,23 @@ module PatternDeployer
       end #class Vertex
 
 
-      attr_accessor :topology, :resources
+      attr_accessor :topology, :artifacts
 
       def initialize(parent_deployer)
         my_id = self.class.join(self.class.get_id_prefix, "user", parent_deployer.topology_owner_id, "topology", parent_deployer.topology_id)
         super(my_id, parent_deployer)
       end
 
-      def reload(topology, resources = nil)
+      def reload(topology, artifacts = nil)
         super()
         self.topology = topology
-        self.resources = resources if resources
+        self.artifacts = artifacts if artifacts
       end
 
-      def reset(topology, resources = nil)
+      def reset(topology, artifacts = nil)
         super()
         self.topology = topology
-        self.resources = resources if resources
+        self.artifacts = artifacts if artifacts
       end
 
       def get_id
@@ -331,8 +331,8 @@ module PatternDeployer
         return has_circle
       end
 
-      def prepare_deploy(topology, resources)
-        self.reset(topology, resources)
+      def prepare_deploy(topology, artifacts)
+        self.reset(topology, artifacts)
         initialize_deployment_graph(:reset_children => true)
         load_topology_info
 
@@ -347,15 +347,15 @@ module PatternDeployer
         end
       end
 
-      def prepare_scale(topology, resources, nodes, diff)
-        self.reload(topology, resources)
+      def prepare_scale(topology, artifacts, nodes, diff)
+        self.reload(topology, artifacts)
         initialize_deployment_graph
         load_topology_info
 
         @new_vertice = Hash.new
         @dirty_vertice = Hash.new
         if diff > 0
-          @new_vertice = create_more_vertices(topology, resources, nodes, diff)
+          @new_vertice = create_more_vertices(topology, artifacts, nodes, diff)
           @new_vertice.each_value{|vertex| vertex.prepare_deploy}
           @dirty_vertice = setup_vertice(@new_vertice, nodes)
           @vertice.merge!(@new_vertice)
@@ -383,8 +383,8 @@ module PatternDeployer
         end
       end
 
-      def prepare_repair(topology, resources)
-        self.reload(topology, resources)
+      def prepare_repair(topology, artifacts)
+        self.reload(topology, artifacts)
 
         initialize_deployment_graph
         load_topology_info
@@ -424,13 +424,13 @@ module PatternDeployer
         raise "NOT IMPLEMENT"
       end
 
-      def undeploy(topology, resources)
-        self.reload(topology, resources)
+      def undeploy(topology, artifacts)
+        self.reload(topology, artifacts)
         initialize_child_deployers
 
         super()
         self.topology = nil
-        self.resources = nil
+        self.artifacts = nil
         @vertice = nil
 
         save_all
@@ -500,9 +500,9 @@ module PatternDeployer
             child = get_child_by_name(deployer_name)
             child = ChefNodeDeployer.new(deployer_name, self) if child.nil?
             if options[:reset_children]
-              child.reset(node_info.clone, services, resources)
+              child.reset(node_info.clone, services, artifacts)
             elsif reload_children
-              child.reload(node_info.clone, services, resources)
+              child.reload(node_info.clone, services, artifacts)
             else
               child.node_info ||= node_info.clone
               child.services ||= services
@@ -590,7 +590,7 @@ module PatternDeployer
         return finished, failed
       end
 
-      def create_more_vertices(topology, resources, nodes, how_many)
+      def create_more_vertices(topology, artifacts, nodes, how_many)
         new_vertice = Hash.new
         nodes.each do |node_id|
           node_info = topology.get_node_info(node_id)
@@ -599,7 +599,7 @@ module PatternDeployer
           (num_of_copies + 1 .. num_of_copies + how_many).each do |rank|
             extended_node_id = self.class.join(node_id, rank)
             node_deployer = ChefNodeDeployer.new(extended_node_id, self)
-            node_deployer.reset(node_info.clone, services, resources)
+            node_deployer.reset(node_info.clone, services, artifacts)
             self << node_deployer
             new_vertex = Vertex.new(extended_node_id, node_deployer, self)
             load_vertice_data(new_vertex)

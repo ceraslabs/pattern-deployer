@@ -16,7 +16,7 @@
 #
 module PatternDeployer
   module Artifact
-    module Resource
+    module ArtifactType
       CREDENTIAL = "credential"
       KEY_PAIR = "identity_file"
       WAR_FILE = "war_file"
@@ -24,25 +24,27 @@ module PatternDeployer
     end
 
     module FileType
-      IDENTITY_FILE = Resource::KEY_PAIR
-      WAR_FILE = Resource::WAR_FILE
-      SQL_SCRIPT_FILE = Resource::SQL_SCRIPT
+      IDENTITY_FILE = ArtifactType::KEY_PAIR
+      WAR_FILE = ArtifactType::WAR_FILE
+      SQL_SCRIPT_FILE = ArtifactType::SQL_SCRIPT
     end
 
-    class ResourceWrapper
-      def initialize(resource, type, context)
-        @resource = resource
-        @type = type
+    # Artifact is actually a wrapper of Rails Active Record that
+    # represents the artifact (UploadedFile or Credential)
+    class Artifact
+      def initialize(artifact_record, artifact_type, context)
+        @record = artifact_record
+        @type = artifact_type
         @context = context
         @selected = false
       end
 
-      def resource_type
+      def type
         @type
       end
 
       def get_id
-        @resource[:id]
+        @record[:id]
       end
 
       def select
@@ -54,12 +56,12 @@ module PatternDeployer
       end
 
       def owned_by_me?
-        @resource.owner.id == get_current_user.id
+        @record.owner.id == get_current_user.id
       end
 
       def readable_by_me?
-        resource = @resource
-        @context.instance_eval{ can? :read, resource }
+        record = @record
+        @context.instance_eval{ can? :read, record }
       end
 
       def get_current_user
@@ -67,17 +69,17 @@ module PatternDeployer
       end
 
       def respond_to?(sym)
-        @resource.respond_to?(sym) || super(sym)
+        @record.respond_to?(sym) || super(sym)
       end
 
       def method_missing(sym, *args, &block)
-        if @resource.respond_to?(sym)
-          return @resource.send(sym, *args, &block)
+        if @record.respond_to?(sym)
+          return @record.send(sym, *args, &block)
         else
           super(sym, *args, &block)
         end
       end
-    end
 
+    end
   end
 end

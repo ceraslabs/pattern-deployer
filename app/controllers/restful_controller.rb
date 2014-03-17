@@ -50,13 +50,13 @@ class RestfulController < ApplicationController
     resources.delete_if {|res| res.owner.id != current_user.id}
   end
 
-  def get_resources(topology)
-    resources = ResourcesManager.new(topology, self)
-    resources.add_resources(Credential.all, Resource::CREDENTIAL)
-    resources.add_resources(IdentityFile.all, Resource::KEY_PAIR)
-    resources.add_resources(WarFile.all, Resource::WAR_FILE)
-    resources.add_resources(SqlScriptFile.all, Resource::SQL_SCRIPT)
-    resources
+  def get_artifacts(topology)
+    artifacts = ArtifactsManager.new(topology, self)
+    artifacts.add_artifacts(Credential.all, ArtifactType::CREDENTIAL)
+    artifacts.add_artifacts(IdentityFile.all, ArtifactType::KEY_PAIR)
+    artifacts.add_artifacts(WarFile.all, ArtifactType::WAR_FILE)
+    artifacts.add_artifacts(SqlScriptFile.all, ArtifactType::SQL_SCRIPT)
+    artifacts
   end
 
   def find_resource_by_id!(resources, id)

@@ -18,20 +18,22 @@ require 'pattern_deployer/artifact/artifact'
 
 module PatternDeployer
   module Artifact
-    class ResourcesManager
-      attr_reader :topology
+    class ArtifactsManager
+      include ArtifactType
 
-      @@file_types = [Resource::KEY_PAIR, Resource::WAR_FILE, Resource::SQL_SCRIPT]
+      attr_reader :topology
 
       def initialize(topology, controller)
         @topology = topology
         @context = controller
-        @resources = Array.new
+        @artifacts = Array.new
       end
 
-      def add_resources(resources, type)
-        resources.each do |res|
-          @resources << ResourceWrapper.new(res, type, @context) unless self.include?(res, type)
+      def add_artifacts(artifact_records, artifact_type)
+        artifact_records.each do |record|
+          unless artifact_added?(record)
+            @artifacts << Artifact.new(record, artifact_type, @context)
+          end
         end
       end
 
@@ -44,96 +46,79 @@ module PatternDeployer
       end
 
       def find_credential_by_id(id)
-        @resources.find do |res|
-          res.resource_type == Resource::CREDENTIAL && res.get_id == id
+        @artifacts.find do |artifact|
+          artifact.type == CREDENTIAL && artifact.get_id == id
         end
       end
 
       def find_credential_by_name(credential_name, cloud)
-        credentials = @resources.select do |res|
-          res.resource_type == Resource::CREDENTIAL && res.credential_id == credential_name && cloud.casecmp(res.for_cloud) == 0
+        credentials = @artifacts.select do |artifact|
+          artifact.type == CREDENTIAL && artifact.credential_id == credential_name && cloud.casecmp(artifact.for_cloud) == 0
         end
-        credential = select_resource(credentials)
+        credential = select_one(credentials)
         credential
       end
 
       def find_keypair_id(cloud)
-        keypairs = @resources.select do |res|
-          res.resource_type == Resource::KEY_PAIR && cloud.casecmp(res.for_cloud) == 0
+        keypairs = @artifacts.select do |artifact|
+          artifact.type == KEY_PAIR && cloud.casecmp(artifact.for_cloud) == 0
         end
-        keypair = select_resource(keypairs)
+        keypair = select_one(keypairs)
         keypair ? keypair.key_pair_id : nil
       end
 
       def find_file_by_id(id)
-        @resources.find{ |res| @@file_types.include?(res.resource_type) && res.get_id == id }
+        @artifacts.find{ |art| is_file?(art) && art.get_id == id }
       end
 
       def find_identity_file(key_pair_id)
-        id_files = @resources.select do |res|
-          res.resource_type == Resource::KEY_PAIR && res.key_pair_id == key_pair_id
+        id_files = @artifacts.select do |artifact|
+          artifact.type == KEY_PAIR && artifact.key_pair_id == key_pair_id
         end
-        id_file = select_resource(id_files)
+        id_file = select_one(id_files)
         id_file
       end
 
       def find_file_by_name(file_name)
-        files = @resources.select do |res|
-          @@file_types.include?(res.resource_type) && res.file_name == file_name
+        files = @artifacts.select do |artifact|
+          is_file?(artifact) && artifact.file_name == file_name
         end
-        file = select_resource(files)
+        file = select_one(files)
         file
       end
 
       def each(&block)
-        @resources.each(&block)
+        @artifacts.each(&block)
       end
 
       protected
 
-      def include?(resource, type)
-        @resources.any? do |my_resource|
-          my_resource.resource_type == type && my_resource.get_id == resource[:id]
+      def artifact_added?(artifact_record)
+        @artifacts.any? do |artifact|
+          artifact.get_id == artifact_record[:id]
         end
       end
 
       def find_credential(cloud)
-        credentials = @resources.select do |res|
-          res.resource_type == Resource::CREDENTIAL && cloud.casecmp(res.for_cloud) == 0
+        credentials = @artifacts.select do |artifact|
+          artifact.type == CREDENTIAL && cloud.casecmp(artifact.for_cloud) == 0
         end
-        credential = select_resource(credentials)
+        credential = select_one(credentials)
         credential
       end
 
-      def select_resource(resources)
-        resource = resources.find{ |res| res.owner.id == self.topology.owner.id && res.readable_by_me? }
-        resource = resources.find{ |res| res.owned_by_me? } if resource.nil?
-        resource = resources.find{ |res| res.readable_by_me? } if resource.nil?
-        resource
+      def select_one(artifacts)
+        arifact = artifacts.find{ |art| art.owner.id == self.topology.owner.id && art.readable_by_me? }
+        arifact = artifacts.find{ |art| art.owned_by_me? } if arifact.nil?
+        arifact = artifacts.find{ |art| art.readable_by_me? } if arifact.nil?
+        arifact
       end
 
-      #def get_file_path(file_name)
-      #  file_types = [FileType::IDENTITY_FILE, FileType::WAR_FILE, FileType::SQL_SCRIPT_FILE]
-      #  file_types.each do |type|
-      #    get_resources(type).each do |file|
-      #      return file.file_path if file.file_name == file_name
-      #    end
-      #  end
+      def is_file?(artifact)
+        all_types = FileType.constants.map{ |c| FileType.const_get(c) }
+        all_types.include?(artifact.type)
+      end
 
-      #  return nil
-      #end
-
-      #def get_resources(type)
-      #  resources = Array.new
-      #  @resources.each do |resource|
-      #    if type == resource.get_type
-      #      resources << resource.get_resource
-      #    end
-      #  end
-
-      #  resources
-      #end
     end
-
   end
 end
