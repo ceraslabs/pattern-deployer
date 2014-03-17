@@ -456,9 +456,12 @@ module PatternDeployer
             raise "Unexpected missing file ID and name"
           end
 
-          if file.nil? || !File.exists?(file.get_file_path)
-            err_msg = "The file #{file_name} does not exist. Please upload that file before deploy"
+          if file.nil?
+            err_msg = "The file #{file_name} cannot be found. Please ensure that file has been uploaded before deploy"
             raise DeploymentError.new(:message => err_msg)
+          elsif not File.exists?(file.get_file_path)
+            err_msg = "The file #{file_name} cannot be found in path #{file.get_file_path}"
+            raise InternalServerError.new(:message => err_msg)
           end
           file.select
           cookbook.add_cookbook_file(file, get_owner_id)
