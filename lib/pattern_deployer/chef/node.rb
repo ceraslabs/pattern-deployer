@@ -14,14 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require 'chef/knife'
-require 'chef/knife/node_delete'
-require 'chef/shef/ext'
-require 'weakref'
+require 'pattern_deployer/chef/context'
+require 'pattern_deployer/utils'
 
 module PatternDeployer
   module Chef
     class ChefNodeWrapper
+      include PatternDeployer::Utils
+
       def initialize(node_name, node)
         @node_name = node_name
         @node = node
@@ -51,14 +51,14 @@ module PatternDeployer
         @node.save
       end
 
-      def start_deployment
+      def clear_prev_deployment
         %w{ is_success is_failed exception formatted_exception backtrace }.each do |key|
           self.delete_key(key) if self.has_key?(key)
         end
         self.save
       end
 
-      def deployment_show_up?
+      def deployment_published?
         self.has_key?("is_success")
       end
 
@@ -86,24 +86,46 @@ module PatternDeployer
         end
       end
 
+      def get_db_admin_pwd(db_system)
+        case db_system
+        when "mysql"
+          if self["mysql"]
+            return self["mysql"]["server_root_password"]
+          end
+        when "postgresql"
+          if self["postgresql"] && self["postgresql"]["password"]
+            return self["postgresql"]["password"]["postgres"]
+          end
+        else
+          raise "Unexpected DBMS #{db_system}. Only 'mysql' or 'postgresql' is allowed"
+        end
+
+        nil
+      end
+
+      def get_instance_id(cloud)
+        case cloud
+        when Rails.application.config.ec2
+          return self["ec2"]["instance_id"] if self["ec2"]
+        when Rails.application.config.openstack
+          return self["openstack"]["instance_id"] if self["openstack"]
+        when Rails.application.config.notcloud
+          # nothing
+        else
+          raise "unexpected cloud #{cloud}"
+        end
+
+        nil
+      end
+
       def get_err_msg
         if self["formatted_exception"]
           msg = self["formatted_exception"]
-          if self["backtrace"]
-            msg += "\nTrace: "
-            msg += self["backtrace"][0..10].join("\n")
-            msg += "\n............"
-          end
+          trace = backtrack_to_s(self["backtrace"])
+          "#{msg}\n#{trace}"
+        else
+          nil
         end
-
-        msg
-      end
-
-      def reload
-        ::Chef::Config.from_file(Rails.configuration.chef_config_file)
-        Shef::Extensions.extend_context_object(self)
-        @node = nodes.search("name:#{@node_name}").first
-        raise "Cannot reload node #{@node_name}, since the node doesn't exist" if @node.nil?
       end
 
       def delete

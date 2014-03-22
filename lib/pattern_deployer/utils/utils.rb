@@ -35,5 +35,26 @@ module PatternDeployer
       end
     end
 
+    def log(msg, trace = nil)
+      output = "[#{Time.now}] #{msg}"
+      output += "\n#{backtrace_to_s(trace)}" if trace
+      Rails.logger.info(output)
+    end
+
+    def backtrace_to_s(trace)
+      if trace.kind_of?(Array)
+        output = ""
+        if trace.size <= 10
+          output += trace.join("\n")
+        else
+          output += trace[0..20].join("\n")
+          output += "\n............"
+        end
+        output
+      else
+        nil
+      end
+    end
+
   end
 end

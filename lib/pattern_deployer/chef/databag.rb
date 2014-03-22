@@ -14,24 +14,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require 'chef/shef/ext'
+require 'chef'
 
 module PatternDeployer
   module Chef
-    class DatabagWrapper
-      def initialize(name, manager, data = Hash.new)
+    class Databag
+      attr_reader :name, :data
+
+      def initialize(name)
         @name = name
-        @manager = manager
-        @data = data
+        @data = Hash.new
         @data["id"] = name
+        self.extend(Chef::Context)
       end
 
-      def get_name
-        return @name
+      def self.create(name)
+        databag = new(name)
+        databag.create_in_server
+        databag
       end
 
-      def get_data
-        @data
+      def self.get(name)
+        databag = new(name)
+        databag.load_data_from_server
+        databag
       end
 
       def set_data(data)
@@ -43,47 +49,34 @@ module PatternDeployer
         databag = ::Chef::DataBag.new
         databag.name(@name)
         databag.destroy
-      rescue Net::HTTPServerException => e
-        @manager.reload
-        #debug
-        puts "[#{Time.now}]INFO: Failed to delete chef client #{@name}: #{e.message}"
-        puts e.backtrace[0..20].join("\n")
-      ensure
         @data = nil
-        @manager.deregister_databag(@name)
+      end
+
+      def create_in_server
+        databag = ::Chef::DataBag.new
+        databag.name(@name)
+        databag.create
       end
 
       def save
-        @manager.reload_and_retry_if_failed do
-          databag_item = get_databag_item
-          databag_item.raw_data = @data
-          databag_item.save
-        end
-        @manager.register_databag(@name)
+        write_data_to_server
       end
 
       def reload
+        load_data_from_server
+      end
+
+      def load_data_from_server
         @data = data_bag_item(@name, @name).raw_data
       end
 
       protected
 
-      def get_databag_item
-        if @manager.databag_exist?(@name) && @manager.databag_item_exist?(@name)
-          return data_bag_item(@name, @name)
-        end
-
-        if @manager.databag_exist?(@name)
-          databag = ::Chef::DataBag.new
-          databag.name(@name)
-          databag.destroy
-        end
-        databag = ::Chef::DataBag.new
-        databag.name(@name)
-        databag.save
+      def write_data_to_server
         databag_item = ::Chef::DataBagItem.new
         databag_item.data_bag(@name)
-        databag_item
+        databag_item.raw_data = @data
+        databag_item.save
       end
 
     end

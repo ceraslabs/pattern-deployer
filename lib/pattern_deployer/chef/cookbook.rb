@@ -14,11 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require 'chef/cookbook_uploader'
-require 'chef/knife'
 require 'chef/knife/cookbook_upload'
-require 'chef/shef/ext'
 require 'fileutils'
+require 'pattern_deployer/chef/context'
 
 module PatternDeployer
   module Chef
@@ -28,39 +26,50 @@ module PatternDeployer
       end
 
       def self.create(name)
-        cookbook_path = [Rails.configuration.chef_repo_dir, "cookbooks", name].join("/")
+        cookbook_path = get_cookbook_folder(name)
         if File.directory?(cookbook_path)
           cookbook = new(name)
-          ::Chef::Config.from_file(Rails.configuration.chef_config_file)
-          Shef::Extensions.extend_context_object(cookbook)
-
-          return cookbook
+          cookbook.extend(Chef::Context)
+          cookbook
         else
-          return nil
+          nil
         end
       end
 
-      def add_cookbook_file(file, user_id)
+      def add_or_update_file(file, user_id)
         self.lock do
-          existing_file = get_cookbook_file(file, user_id)
+          old_file = get_cookbook_file(file, user_id)
           new_file = file.get_file_path
-          if existing_file.nil? || !FileUtils.compare_file(new_file, existing_file)
-            destination = get_cookbook_file_folder(user_id)
+          if old_file.nil? || !FileUtils.compare_file(new_file, old_file)
+            destination = get_cookbook_files_folder(user_id)
             FileUtils.mkdir_p(destination)
             FileUtils.cp(file.get_file_path, destination)
           end
         end
       end
 
-      def delete_cookbook_file(file, user_id)
+      def delete_file(file, user_id)
         self.lock do
           file_path = get_cookbook_file(file, user_id)
           File.delete(file_path) if file_path
         end
       end
 
+      def save
+        self.lock do
+          uploader_class = ::Chef::Knife::CookbookUpload
+          uploader_class.load_deps
+          uploader = uploader_class.new
+          uploader.name_args = [@name]
+          uploader.config[:cookbook_path] = "#{Rails.application.config.chef_repo_dir}/cookbooks"
+          uploader.run
+        end
+      end
+
+      protected
+
       def get_cookbook_file(file, user_id)
-        file_path = [get_cookbook_file_folder(user_id), file.file_name].join("/")
+        file_path = [get_cookbook_files_folder(user_id), file.file_name].join("/")
         if File.exists?(file_path)
           return file_path
         else
@@ -68,19 +77,18 @@ module PatternDeployer
         end
       end
 
-      def get_cookbook_file_folder(user_id = nil)
-        path = [Rails.application.config.chef_repo_dir, "cookbooks", @name, "files", "default"]
+      def get_cookbook_files_folder(user_id = nil)
+        path = [get_cookbook_folder, "files", "default"]
         path << "user#{user_id}" if user_id
         path.join("/")
       end
 
-      def save
-        self.lock do
-          uploader = ::Chef::Knife::CookbookUpload.new
-          uploader.name_args = [@name]
-          uploader.config[:cookbook_path] = "#{Rails.application.config.chef_repo_dir}/cookbooks"
-          uploader.run
-        end
+      def get_cookbook_folder
+        self.class.get_cookbook_folder(@name)
+      end
+
+      def self.get_cookbook_folder(name)
+        [Rails.configuration.chef_repo_dir, "cookbooks", name].join("/")
       end
 
       def lock

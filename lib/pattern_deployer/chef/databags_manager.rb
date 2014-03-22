@@ -14,109 +14,102 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require 'chef/shef/ext'
+require 'pattern_deployer/chef/context'
 require 'pattern_deployer/chef/databag'
+require 'pattern_deployer/utils'
+require 'singleton'
 
 module PatternDeployer
   module Chef
     class DatabagsManager
-      def sync_list
-        @list_of_databags = ::Chef::DataBag.list.keys
-        @cache.each_key do |name|
-          @cache.delete(name) unless @list_of_databags.include?(name)
-        end
-      end
+      include PatternDeployer::Utils
+      include Singleton
 
       def initialize
-        ::Chef::Config.from_file(Rails.configuration.chef_config_file)
-        Shef::Extensions.extend_context_object(self)
-
-        @cache = Hash.new
-        sync_list
+        self.extend(Chef::Context)
+        @list_of_databags = pull_list_of_databags_from_server
       end
 
-      @@instance = new
-
-      def self.instance
-        return @@instance
-      end
-
-      def get_or_create_databag(name)
-        self.reload_and_retry_if_failed do
-          databag = get_databag(name)
-          if databag.nil?
-            databag = create_databag(name)
-            databag.save
-          end
-
-          databag
+      def read(name)
+        if databag_exist?(name)
+          databag = Databag.get(name)
+          databag.data
+        else
+          nil
         end
+      rescue Net::HTTPServerException => e
+        # log exception
+        msg = "Failed to update databag #{name}: #{e.message}"
+        log(msg, e.backtrace)
+        # try to fix inconsistency
+        self.reload
+        nil
       end
 
-      def databag_exist?(name)
-        @list_of_databags.any? do |databag|
-          databag == name
+      def write(name, data)
+        retried ||= false
+
+        if databag_exist?(name)
+          databag = Databag.new(name)
+        else
+          databag = Databag.create(name)
+          register(databag)
         end
-      end
-
-      def databag_item_exist?(name)
-        search(name.to_sym, "id:#{name}").first
-      end
-
-      def register_databag(name)
-        @list_of_databags << name unless @list_of_databags.include?(name)
-      end
-
-      def deregister_databag(name)
-        @list_of_databags.delete(name)
-      end
-
-      def reload_and_retry_if_failed
-        raise "unexpected missing of block" unless block_given?
-        retried = false
-
-        begin
-          yield
-        rescue Net::HTTPServerException => e
-          raise e if retried
-          self.reload
+        databag.set_data(data)
+        databag.save
+      rescue Net::HTTPServerException => e
+        if retried
+          raise
+        else
           retried = true
-          retry
         end
+        # log exception
+        msg = "Failed to update databag #{name}: #{e.message}"
+        log(msg, e.backtrace)
+
+        # try to recover
+        self.reload
+        retry
+      end
+
+      def delete(name)
+        databag = Databag.new(name)
+        databag.delete
+      rescue Net::HTTPServerException => e
+        msg = "Failed to delete databag #{name}: #{e.message}"
+        log(msg, e.backtrace)
+      ensure
+        deregister(databag)
       end
 
       def reload
-        sync_list
+        @list_of_databags = pull_list_of_databags_from_server
       end
 
       protected
 
-      def create_databag(name)
-        if databag_exist?(name)
-          raise "Cannot create databag #{name} since the name has been taken"
-        end
-
-        databag = DatabagWrapper.new(name, self)
-        Shef::Extensions.extend_context_object(databag)
-        @cache[name] = databag
-
-        databag
+      def databag_exist?(name)
+        databags = @list_of_databags
+        databags.include?(name)
       end
 
-      def get_databag(name)
-        return nil unless databag_exist?(name)
-
-        if not @cache.has_key?(name)
-          data = data_bag_item(name, name).raw_data
-          databag = DatabagWrapper.new(name, self, data)
-          Shef::Extensions.extend_context_object(databag)
-          @cache[name] = databag
-        end
-
-        return @cache[name]
+      def databag_item_exist?(name)
+        !!search(name.to_sym, "id:#{name}").first
       end
 
-      private_class_method :new
+      def pull_list_of_databags_from_server
+        ::Chef::DataBag.list.keys
+      end
+
+      def register(databag)
+        unless @list_of_databags.include?(databag.name)
+          @list_of_databags << databag.name
+        end
+      end
+
+      def deregister(databag)
+        @list_of_databags.delete(databag.name)
+      end
 
     end
   end

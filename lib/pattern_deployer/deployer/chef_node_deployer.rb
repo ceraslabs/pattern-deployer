@@ -39,8 +39,6 @@ module PatternDeployer
 
       def reload(node_info, services, artifacts)
         super()
-        get_chef_node.reload if get_chef_node
-
         set_fields(node_info, services, artifacts)
       end
 
@@ -126,7 +124,8 @@ module PatternDeployer
       def prepare_update_deployment
         super()
         generic_prepare
-        get_chef_node.start_deployment if get_chef_node
+        chef_node = get_chef_node
+        chef_node.clear_prev_deployment if chef_node
       end
 
       def update_deployment
@@ -195,26 +194,27 @@ module PatternDeployer
           raise "Chef command haven't been executed or it is not finished"
         end
 
+        chef_node = nil
         for i in 1..timeout
-          if get_chef_node
-            get_chef_node.reload
-            break if get_chef_node.deployment_show_up?
+          chef_node = get_chef_node
+          if chef_node && chef_node.deployment_published?
+            break
           end
 
           sleep 1
         end
 
-        if (chef_command.failed? || get_chef_node.nil? ||
-            !get_chef_node.deployment_show_up? ||
-            get_chef_node.deployment_failed?)
+        if (chef_command.failed? || chef_node.nil? ||
+            !chef_node.deployment_published? ||
+            chef_node.deployment_failed?)
           #debug
-          puts "Chef command failed? #{chef_command.failed?}"
-          puts "Chef node is nil? #{get_chef_node.nil?}"
-          puts "Chef node didn't show up? #{get_chef_node.deployment_show_up?}" if get_chef_node
-          puts "Chef node indicate failed? #{get_chef_node.deployment_failed?}" if get_chef_node
+          log "Chef command failed? #{chef_command.failed?}"
+          log "Chef node was nil? #{chef_node.nil?}"
+          log "Chef node didn't publish deployment? #{chef_node.deployment_published?}" if chef_node
+          log "Chef node indicated deployment failure? #{chef_node.deployment_failed?}" if chef_node
 
           msg = chef_command.get_err_msg
-          inner_msg = get_chef_node.get_err_msg if get_chef_node
+          inner_msg = chef_node.get_err_msg if chef_node
           raise DeploymentError.new(:message => msg, :inner_message => inner_msg)
         end
       end
@@ -282,26 +282,7 @@ module PatternDeployer
 
       def get_db_admin_pwd
         return nil if database.nil?
-        return database["admin_password"] if database["admin_password"]
-
-        case get_db_system
-        when "mysql"
-          if self.primary_deployer? && get_chef_node && get_chef_node["mysql"] &&
-                                       get_chef_node["mysql"]["server_root_password"]
-            database["admin_password"] = get_chef_node["mysql"]["server_root_password"]
-            save
-          end
-        when "postgresql"
-          if self.primary_deployer? && get_chef_node && get_chef_node["postgresql"] &&
-                                       get_chef_node["postgresql"]["password"] && get_chef_node["postgresql"]["password"]["postgres"]
-            database["admin_password"] = get_chef_node["postgresql"]["password"]["postgres"]
-            save
-          end
-        else
-          raise "Unexpected DBMS #{get_db_system}. Only 'mysql' or 'postgresql' is allowed"
-        end
-
-        database["admin_password"]
+        return database["admin_password"]
       end
 
       def monitoring_server?
@@ -336,7 +317,6 @@ module PatternDeployer
         end
       end
 
-
       protected
 
       def generic_prepare
@@ -352,19 +332,12 @@ module PatternDeployer
       def get_instance_id
         return self.instance_id if self.instance_id
 
-        cloud = get_cloud
-        if cloud == Rails.application.config.ec2
-          self.instance_id = get_chef_node["ec2"]["instance_id"] if get_chef_node && get_chef_node.has_key?("ec2") && get_chef_node["ec2"].has_key?("instance_id")
-        elsif cloud == Rails.application.config.openstack
-          self.instance_id = get_chef_node["openstack"]["instance_id"] if get_chef_node && get_chef_node.has_key?("openstack") && get_chef_node["openstack"].has_key?("instance_id")
-        elsif cloud == Rails.application.config.notcloud
-          # don't need to do anything
+        chef_node = get_chef_node
+        if chef_node
+          chef_node.get_instance_id(get_cloud)
         else
-          raise "unexpected cloud #{cloud}"
+          nil
         end
-
-        self.save if self.instance_id
-        self.instance_id
       end
 
       def delete_instance
@@ -464,7 +437,7 @@ module PatternDeployer
             raise InternalServerError.new(:message => err_msg)
           end
           file.select
-          cookbook.add_cookbook_file(file, get_owner_id)
+          cookbook.add_or_update_file(file, get_owner_id)
           attributes["#{file_type}_id"] ||= file.get_id
         end
       end
@@ -502,24 +475,29 @@ module PatternDeployer
       end
 
       def on_deploy_finish
-        load_output
-        if get_chef_node
-          get_chef_node.reload
-          attributes["public_ip"] ||= get_chef_node.get_server_ip if get_chef_node.get_server_ip
-          attributes["private_ip"] ||= get_chef_node.get_private_ip if get_chef_node.get_private_ip
-        end
+        load_chef_node_data
       end
 
       def on_update_finish
-        load_output
+        load_chef_node_data
       end
 
-      def load_output
-        if get_chef_node && get_chef_node.has_key?("output")
-          get_chef_node["output"].each do |key, value|
+      def load_chef_node_data
+        chef_node = get_chef_node
+        return if chef_node.nil?
+
+        # The attribute 'output' is optionally set by individual node to pass message back to PDS.
+        # The data stored in this attribute should be of the Hash format.
+        if chef_node.has_key?("output")
+          chef_node["output"].each do |key, value|
             attributes[key] = value
           end
         end
+
+        attributes["public_ip"] ||= chef_node.get_server_ip if chef_node.get_server_ip
+        attributes["private_ip"] ||= chef_node.get_private_ip if chef_node.get_private_ip
+        database["admin_password"] ||= chef_node.get_db_admin_pwd(get_db_system)
+        instance_id ||= chef_node.get_instance_id(get_cloud)
       end
 
       def get_cloud

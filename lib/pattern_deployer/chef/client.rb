@@ -14,55 +14,45 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require 'chef/knife'
-require 'chef/knife/client_delete'
-require 'chef/shef/ext'
+require 'pattern_deployer/chef/context'
+require 'pattern_deployer/utils'
+require 'singleton'
 
 module PatternDeployer
   module Chef
     class ChefClientsManager
+      include PatternDeployer::Utils
+      include Singleton
+
       def initialize
-        ::Chef::Config.from_file(Rails.configuration.chef_config_file)
-        Shef::Extensions.extend_context_object(self)
-
-        @list_of_clients = load_clients_list
-      end
-
-      def load_clients_list
-        ::Chef::ApiClient.list.keys
-      end
-
-      @@instance = new
-
-      def self.instance
-        return @@instance
+        self.extend(Chef::Context)
+        @list_of_clients = pull_list_of_clients_from_server
       end
 
       def delete(client_name)
         return if not @list_of_clients.include?(client_name)
 
-        delete_client = ::Chef::Knife::ClientDelete.new
-        delete_client.name_args = [client_name]
-        delete_client.config[:yes] = true
-        delete_client.run
+        client = ::Chef::ApiClient.new
+        client.name(client_name)
+        client.destroy
       rescue Net::HTTPServerException => e
         self.reload
         #debug
-        puts "[#{Time.now}]INFO: Failed to delete chef client #{client_name}: #{e.message}"
-        puts e.backtrace[0..20].join("\n")
+        msg = "Failed to delete chef client #{client_name}: #{e.message}"
+        log(msg, e.backtrace)
       ensure
         @list_of_clients.delete(client_name)
       end
 
-      #def deregister(client_name)
-      #  @list_of_clients.delete(client_name)
-      #end
-
       def reload
-        @list_of_clients = load_clients_list
+        @list_of_clients = pull_list_of_clients_from_server
       end
 
-      private_class_method :new
+      protected
+
+      def pull_list_of_clients_from_server
+        ::Chef::ApiClient.list.keys
+      end
 
     end
   end

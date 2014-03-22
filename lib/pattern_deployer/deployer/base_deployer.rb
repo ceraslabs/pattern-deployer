@@ -40,6 +40,8 @@ module PatternDeployer
       include PatternDeployer::Utils
 
       attr_accessor :deployer_id, :attributes, :topology_id, :topology_owner_id
+      alias :databag_name :deployer_id
+
       deployer_attr_accessor :deploy_state, :deploy_error, :update_state, :update_error
 
       def initialize(deployer_id, parent_deployer = nil, topology_id = nil, topology_owner_id = nil)
@@ -54,8 +56,8 @@ module PatternDeployer
       end
 
       def reload
-        get_databag.reload
-        self.attributes = get_databag.get_data
+        data = @databag_manager.read(databag_name)
+        self.attributes = data if data
       end
 
       def reset
@@ -120,7 +122,7 @@ module PatternDeployer
         @worker_thread.kill if @worker_thread
         @worker_thread = nil
 
-        get_databag.delete
+        @databag_manager.delete(databag_name)
         self.attributes.clear
 
         success = self.class.summarize_successes(successes)
@@ -238,9 +240,7 @@ module PatternDeployer
 
       def save
         raise "Cannot save" unless self.primary_deployer?
-
-        get_databag.set_data(attributes)
-        get_databag.save
+        @databag_manager.write(databag_name, self.attributes)
       end
 
       def self.summarize_successes(successes)
@@ -317,10 +317,6 @@ module PatternDeployer
 
       def pid_file
         Rails.root.join("tmp", "deployers", "#{topology_id}-#{topology_owner_id}.pid") if topology_id
-      end
-
-      def get_databag
-        @databag_manager.get_or_create_databag(deployer_id)
       end
 
       def get_state_by_type(type_of_state)

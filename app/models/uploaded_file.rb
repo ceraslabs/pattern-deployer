@@ -112,7 +112,7 @@ class UploadedFile < ActiveRecord::Base
     cookbook_name = Rails.configuration.chef_cookbook_name
     cookbook = Cookbook.create(cookbook_name)
     self.topologies.each do |t|
-      cookbook.delete_cookbook_file(self, t.owner.id)
+      cookbook.delete_file(self, t.owner.id)
     end
     true
   end
