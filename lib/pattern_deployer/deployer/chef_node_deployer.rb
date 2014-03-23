@@ -281,8 +281,7 @@ module PatternDeployer
       end
 
       def get_db_admin_pwd
-        return nil if database.nil?
-        return database["admin_password"]
+        database ? database["admin_password"] : nil
       end
 
       def monitoring_server?
@@ -496,7 +495,7 @@ module PatternDeployer
 
         attributes["public_ip"] ||= chef_node.get_server_ip if chef_node.get_server_ip
         attributes["private_ip"] ||= chef_node.get_private_ip if chef_node.get_private_ip
-        database["admin_password"] ||= chef_node.get_db_admin_pwd(get_db_system)
+        database["admin_password"] ||= chef_node.get_db_admin_pwd(get_db_system) if database
         instance_id ||= chef_node.get_instance_id(get_cloud)
       end
 
