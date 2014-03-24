@@ -37,7 +37,7 @@ module PatternDeployer
 
     def log(msg, trace = nil)
       @logger ||= Logger.new(STDOUT)
-      output = "[#{Time.now}] #{msg}"
+      output = "#{msg}"
       output += "\n#{backtrace_to_s(trace)}" if trace
       @logger.info(output)
     end
