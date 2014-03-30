@@ -233,6 +233,7 @@ module PatternDeployer
           msg += "or at least one of them has just one copy"
           raise XmlValidationError.new(:message => msg)
         end
+        connections
       end
 
       def get_extended_templates(source_template)
