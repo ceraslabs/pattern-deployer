@@ -90,25 +90,23 @@ module PatternDeployer
       end
 
       def get_web_server_configs(node)
-        configs = Hash.new
         get_service_elements(node).each do |service_element|
           # assume at most one web server per node
           if web_server?(service_element)
-            configs = WebServerConfig.get(service_element)
+            return WebServerConfig.get(service_element)
           end
         end
-        configs
+        nil
       end
 
       def get_database_configs(node)
-        configs = Hash.new
         get_service_elements(node).each do |service_element|
           # assume at most one database server per node
           if database_server?(service_element)
-            configs = DatabaseConfig.get(service_element)
+            return DatabaseConfig.get(service_element)
           end
         end
-        configs
+        nil
       end
 
       def get_services(node)
