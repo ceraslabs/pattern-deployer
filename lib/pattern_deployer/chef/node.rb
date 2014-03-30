@@ -121,7 +121,7 @@ module PatternDeployer
       def get_err_msg
         if self["formatted_exception"]
           msg = self["formatted_exception"]
-          trace = backtrack_to_s(self["backtrace"])
+          trace = backtrace_to_s(self["backtrace"])
           "#{msg}\n#{trace}"
         else
           nil
