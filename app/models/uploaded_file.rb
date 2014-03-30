@@ -17,7 +17,7 @@
 require "pattern_deployer"
 
 class UploadedFile < ActiveRecord::Base
-
+  include PatternDeployer::Deployer::State
   include PatternDeployer::Errors
   Cookbook = PatternDeployer::Chef::ChefCookbookWrapper
 
@@ -138,7 +138,7 @@ class UploadedFile < ActiveRecord::Base
   end
 
   def file_mutable
-    if self.topologies.any?{ |t| t.state != State::UNDEPLOY }
+    if self.topologies.any?{ |t| t.state != UNDEPLOY }
       msg = "Uploaded file #{file_name} cannot be modified. Please make sure it is not being used by any topology"
       raise ParametersValidationError.new(:message => msg)
     end
