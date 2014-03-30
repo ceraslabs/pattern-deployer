@@ -14,4 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require 'pattern_deployer/pattern/topology_wrapper'
+require 'pattern_deployer/pattern/connection'
+require 'pattern_deployer/pattern/config'
+require 'pattern_deployer/pattern/database_config'
+require 'pattern_deployer/pattern/pattern'
+require 'pattern_deployer/pattern/reference'
+require 'pattern_deployer/pattern/web_server_config'

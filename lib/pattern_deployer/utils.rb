@@ -15,5 +15,50 @@
 # limitations under the License.
 #
 require 'pattern_deployer/utils/concurrent_hash'
-require 'pattern_deployer/utils/utils'
 require 'pattern_deployer/utils/xml'
+
+module PatternDeployer
+  module Utils
+    def self.included(base)
+      base.extend(ClassMethods)
+    end
+
+    module ClassMethods
+      def join(*tokens)
+        tokens.join("-")
+      end
+    end
+
+    # instance methods
+    def to_bool(obj)
+      if obj.class == String
+        "true".casecmp(obj) == 0
+      else
+        !!obj
+      end
+    end
+
+    def log(msg, trace = nil)
+      @logger ||= Logger.new(STDOUT)
+      output = "#{msg}"
+      output += "\n#{backtrace_to_s(trace)}" if trace
+      @logger.info(output)
+    end
+
+    def backtrace_to_s(trace)
+      if trace.kind_of?(Array)
+        output = ""
+        if trace.size <= 10
+          output += trace.join("\n")
+        else
+          output += trace[0..20].join("\n")
+          output += "\n............"
+        end
+        output
+      else
+        nil
+      end
+    end
+
+  end
+end

@@ -247,7 +247,7 @@ class TopologiesController < RestfulController
 
     @pattern = get_pattern(@topology)
     begin
-      TopologyWrapper.validate_xml(@pattern, Rails.application.config.schema_file)
+      Pattern.validate_xml(@pattern, Rails.application.config.schema_file)
       render :action => "show", :formats => "json"
     rescue LibXML::XML::Error => ex
       @topology.destroy

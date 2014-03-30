@@ -77,7 +77,6 @@ module PatternDeployer
         generic_prepare
 
         attributes["timeout_waiting_ip"] = Rails.configuration.chef_wait_ip_timeout
-        attributes["timeout_waiting_vpnip"] = Rails.configuration.chef_wait_vpnip_timeout
         attributes["timeout_waiting_members"] = Rails.configuration.chef_wait_balancer_members_timeout
         if @parent.class == TopologyDeployer
           attributes["topology_id"] = @parent.get_topology_id
@@ -294,6 +293,20 @@ module PatternDeployer
 
       def server_created?
         attributes.has_key?("public_ip")
+      end
+
+      def set_web_server_configs(configs)
+        attributes.merge!(configs.to_hash)
+        if configs.war_file
+          self[FileType::WAR_FILE] = configs.war_file
+        end
+      end
+
+      def set_database_configs(configs)
+        attributes.merge!(configs.to_hash)
+        if configs.db_script_file
+          self[FileType::SQL_SCRIPT_FILE] = configs.db_script_file
+        end
       end
 
       # This method is called to update the databag whenever interesting data print is print to console

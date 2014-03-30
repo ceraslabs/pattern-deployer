@@ -14,47 +14,51 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require 'pattern_deployer/errors'
+
 module PatternDeployer
   module Utils
     module Xml
-      def attribute_element?(element)
-        raise "Unexpected node type for element #{element}" unless element.element?
+      def hash_format?(element)
+        unless element.element?
+          msg = "Unexpected element: #{element}"
+          raise InternalServerError.new(:message => msg)
+        end
+
         return false if element.attributes?
 
-        if not has_element_children?(element)
-          if element.children.size == 0 || (element.children.size == 1 && element.child.text?)
-            return true
-          else
-            return false
+        if has_child_element?(element)
+          element.each_element do |child_element|
+            return false if not hash_format?(child_element)
           end
+          true
+        else
+          key_value_format?(element)
         end
-
-        element.each_element do |child_element|
-          return false if not attribute_element?(child_element)
-        end
-        true
       end
 
-      def to_attribute(element)
+      def xml_element_to_hash(element)
         hash = Hash.new
-        if element.children.size == 0
-          hash[element.name] = true
-        elsif element.children.size == 1 && element.child.text?
+        if key_value_format?(element)
           hash[element.name] = element.content
         else
           sub_hash = Hash.new
           element.each_element do |child_element|
-            sub_hash[child_element.name] = child_element.content
+            sub_hash[child_element.name] = xml_element_to_hash(child_element)
           end
           hash[element.name]= sub_hash
         end
         hash
       end
 
-      def has_element_children?(element)
+      def has_child_element?(element)
         element.children.any? do |child_element|
           child_element.element?
         end
+      end
+
+      def key_value_format?(element)
+        element.children.size == 1 && element.child.text?
       end
 
     end

@@ -82,8 +82,8 @@ class Template < ActiveRecord::Base
         service.update_service_attributes(element)
       elsif element.name == "extend"
         next
-      elsif attribute_element?(element)
-        template_attr = to_attribute(element)
+      elsif hash_format?(element)
+        template_attr = xml_element_to_hash(element)
         self.attrs.merge!(template_attr)
       else
         err_msg = "Invalid template element: #{element.to_s}"

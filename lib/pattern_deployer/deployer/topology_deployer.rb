@@ -76,9 +76,7 @@ module PatternDeployer
 
         protected
 
-        @@valid_types = [:vpn_servers, :container_node, :vpn_connected_nodes, :vpn_clients,
-                         :snort_pairs, :snort_nodes, :database_node, :balancer_members,
-                         :chef_server, :monitor_clients]
+        @@valid_types = [:database_node, :balancer_members, :chef_server, :monitor_clients]
 
         def validate_type!(type)
           raise "Unexpected type of edge #{type}" unless @@valid_types.include?(type)
@@ -230,15 +228,9 @@ module PatternDeployer
           end
         end
 
-        def on_vpn_client_ip(vpn_server_id, vpnip)
-          self.each_edge(:vpn_servers) do |edge|
-            edge.notify(:vpnip, vpnip) if edge.get_destination.get_id == vpn_server_id
-          end
-        end
-
         def get_depending_vertice
           # list of types of edges that indicate dependencies between vertice
-          target_types = [:container_node, :chef_server]
+          target_types = [:chef_server]
 
           vertice = Array.new
           @topology_deployer.all_vertice.each do |vertex|
@@ -248,16 +240,6 @@ module PatternDeployer
             end
           end
           vertice
-        end
-
-        def vpn_connected?(vertex)
-          self.get_vpn_connected_vertice.include?(vertex)
-        end
-
-        def get_vpn_connected_vertice
-          self.get_edges(:vpn_connected_nodes).map do |edge|
-            edge.get_destination
-          end
         end
 
         def prepare_update_deployment
@@ -279,22 +261,22 @@ module PatternDeployer
       end #class Vertex
 
 
-      attr_accessor :topology, :artifacts
+      attr_accessor :pattern, :artifacts
 
       def initialize(parent_deployer)
         my_id = self.class.join(self.class.get_id_prefix, "user", parent_deployer.topology_owner_id, "topology", parent_deployer.topology_id)
         super(my_id, parent_deployer)
       end
 
-      def reload(topology, artifacts = nil)
+      def reload(pattern, artifacts = nil)
         super()
-        self.topology = topology
+        self.pattern = pattern
         self.artifacts = artifacts if artifacts
       end
 
-      def reset(topology, artifacts = nil)
+      def reset(pattern, artifacts = nil)
         super()
-        self.topology = topology
+        self.pattern = pattern
         self.artifacts = artifacts if artifacts
       end
 
@@ -303,7 +285,7 @@ module PatternDeployer
       end
 
       def get_topology_id
-        topology.get_topology_id
+        pattern.get_topology_id
       end
 
       def deployable?
@@ -331,10 +313,10 @@ module PatternDeployer
         return has_circle
       end
 
-      def prepare_deploy(topology, artifacts)
-        self.reset(topology, artifacts)
+      def prepare_deploy(pattern, artifacts)
+        self.reset(pattern, artifacts)
         initialize_deployment_graph(:reset_children => true)
-        load_topology_info
+        establish_connection
 
         super()
 
@@ -347,20 +329,20 @@ module PatternDeployer
         end
       end
 
-      def prepare_scale(topology, artifacts, nodes, diff)
-        self.reload(topology, artifacts)
+      def prepare_scale(pattern, artifacts, nodes, diff)
+        self.reload(pattern, artifacts)
         initialize_deployment_graph
-        load_topology_info
+        establish_connection
 
         @new_vertice = Hash.new
         @dirty_vertice = Hash.new
         if diff > 0
-          @new_vertice = create_more_vertices(topology, artifacts, nodes, diff)
+          @new_vertice = create_more_vertices(pattern, artifacts, nodes, diff)
           @new_vertice.each_value{|vertex| vertex.prepare_deploy}
           @dirty_vertice = setup_vertice(@new_vertice, nodes)
           @vertice.merge!(@new_vertice)
         elsif diff < 0
-          vertice_to_delete = get_vertice_to_delete(topology, nodes, -diff)
+          vertice_to_delete = get_vertice_to_delete(pattern, nodes, -diff)
           @dirty_vertice = delete_vertice(vertice_to_delete, nodes)
           vertice_to_delete.each_value{|vertex| vertex.undeploy}
         else
@@ -383,11 +365,11 @@ module PatternDeployer
         end
       end
 
-      def prepare_repair(topology, artifacts)
-        self.reload(topology, artifacts)
+      def prepare_repair(pattern, artifacts)
+        self.reload(pattern, artifacts)
 
         initialize_deployment_graph
-        load_topology_info
+        establish_connection
 
         @new_vertice = Hash.new
         @dirty_vertice = Hash.new
@@ -424,20 +406,20 @@ module PatternDeployer
         raise "NOT IMPLEMENT"
       end
 
-      def undeploy(topology, artifacts)
-        self.reload(topology, artifacts)
+      def undeploy(pattern, artifacts)
+        self.reload(pattern, artifacts)
         initialize_child_deployers
 
         super()
-        self.topology = nil
+        self.pattern = nil
         self.artifacts = nil
         @vertice = nil
 
         save_all
       end
 
-      def list_nodes(topology)
-        self.primary_deployer? ? self.reload(topology) : self.topology = topology
+      def list_nodes(pattern)
+        self.primary_deployer? ? self.reload(pattern) : self.pattern = pattern
 
         initialize_child_deployers(:reload_children => !self.primary_deployer?)
 
@@ -466,10 +448,6 @@ module PatternDeployer
         vertex = @vertice[vertex_name]
         if key == :public_ip || key == :private_ip
           vertex.notify_adjacent_vertice(key, value)
-        elsif key == :vpn_client_ip
-          vertex.on_vpn_client_ip(value[:vpn_server], value[:vpnip])
-        elsif key == :vpn_server_ip
-          vertex.notify_adjacent_vertice(:vpnip, value, :vpn_connected_nodes)
         end
       end
 
@@ -492,11 +470,13 @@ module PatternDeployer
         reload_children = options.has_key?(:reload_children) ? options[:reload_children] : true
 
         child_deployers = Array.new
-        topology.get_nodes.each do |node_id|
-          node_info = topology.get_node_info(node_id)
-          services = topology.get_services(node_id)
+        pattern.get_nodes.each do |node_id|
+          node_info = pattern.get_node_info(node_id)
+          services = pattern.get_services(node_id)
+          web_server_configs = pattern.get_web_server_configs(node_id)
+          database_configs = pattern.get_database_configs(node_id)
 
-          topology.get_all_copies(node_id).each do |deployer_name|
+          pattern.get_all_copies(node_id).each do |deployer_name|
             child = get_child_by_name(deployer_name)
             child = ChefNodeDeployer.new(deployer_name, self) if child.nil?
             if options[:reset_children]
@@ -506,6 +486,8 @@ module PatternDeployer
             else
               child.node_info ||= node_info.clone
               child.services ||= services
+              child.set_web_server_configs(web_server_configs)
+              child.set_database_configs(database_configs)
             end
 
             child_deployers << child
@@ -590,12 +572,12 @@ module PatternDeployer
         return finished, failed
       end
 
-      def create_more_vertices(topology, artifacts, nodes, how_many)
+      def create_more_vertices(pattern, artifacts, nodes, how_many)
         new_vertice = Hash.new
         nodes.each do |node_id|
-          node_info = topology.get_node_info(node_id)
-          services = topology.get_services(node_id)
-          num_of_copies = topology.get_num_of_copies(node_id)
+          node_info = pattern.get_node_info(node_id)
+          services = pattern.get_services(node_id)
+          num_of_copies = pattern.get_num_of_copies(node_id)
           (num_of_copies + 1 .. num_of_copies + how_many).each do |rank|
             extended_node_id = self.class.join(node_id, rank)
             node_deployer = ChefNodeDeployer.new(extended_node_id, self)
@@ -667,7 +649,6 @@ module PatternDeployer
 
       def load_vertice_data(new_vertex)
         sample_vertex = get_sample_vertex(new_vertex)
-        #TODO VPNIP
         ["port_redir", FileType::WAR_FILE, "database", FileType::SQL_SCRIPT_FILE, "credential_id",
          "war_file_id", "sql_script_file_id", "identity_file_id"].each do |attr_key|
           next if not sample_vertex.has_key?(attr_key)
@@ -684,10 +665,10 @@ module PatternDeployer
         @vertice[name]
       end
 
-      def get_vertice_to_delete(topology, nodes, how_many)
+      def get_vertice_to_delete(pattern, nodes, how_many)
         vertice_to_delete = Hash.new
         nodes.each do |node_id|
-          num_of_copies = topology.get_num_of_copies(node_id)
+          num_of_copies = pattern.get_num_of_copies(node_id)
           (num_of_copies - how_many + 1 .. num_of_copies).each do |rank|
             vertex_name = self.class.join(node_id, rank)
             vertice_to_delete[vertex_name] = @vertice[vertex_name]
@@ -730,125 +711,33 @@ module PatternDeployer
         vertice
       end
 
-      def load_topology_info
-        establish_connection
-        set_vpnips
-        set_port_redirs
-        set_web_server_info
-        set_database_info
-      end
-
       def establish_connection
-        # load nested instance, outer instance dependencies
-        topology.get_nested_node_refs.each do |ref|
-          nested_instance = @vertice[ref['from']]
-          container = @vertice[ref['to']]
-          container.connect(nested_instance, :container_node)
-        end
-
-        # load openvpn client-server relationships
-        topology.get_openvpn_client_server_refs.each do |ref|
-          openvpn_client = @vertice[ref['from']]
-          openvpn_server = @vertice[ref['to']]
-          openvpn_server.connect(openvpn_client, :vpn_clients)
-          openvpn_client.connect(openvpn_server, :vpn_servers)
-          vpn_connect(openvpn_client, openvpn_server)
-        end
-
-        # load snort pair
-        topology.get_snort_pairs.each do |pair|
-          snort = @vertice[pair['snort_node']]
-          snort_pair1 = @vertice[pair['pair1']]
-          snort_pair2 = @vertice[pair['pair2']]
-
-          snort.connect(snort_pair1, :snort_pairs)
-          snort.connect(snort_pair2, :snort_pairs)
-          snort_pair1.connect(snort, :snort_nodes)
-          snort_pair2.connect(snort, :snort_nodes)
-          vpn_connect(snort_pair1, snort_pair2) if snort_pair1.vpn_connected?(snort)
-        end
-
-        # The vpn connectivity of nested instance should be the same as its container.
-        # Therefore, we need to sync the vpn connection
-        topology.get_nested_node_refs.each do |ref|
-          nested_instance = @vertice[ref['from']]
-          container = @vertice[ref['to']]
-          sync_vpn_connection(nested_instance, container)
-        end
-
         #load appserver-database relationships
-        topology.get_webserver_database_refs.each do |ref|
-          web_server = @vertice[ref['from']]
-          database = @vertice[ref['to']]
+        pattern.get_database_connections.each do |conn|
+          web_server = @vertice[conn.web_server]
+          database = @vertice[conn.database]
           database.connect(web_server, :database_node)
         end
 
         #load balancer-member relationships
-        topology.get_load_balancer_memeber_refs.each do |ref|
-          balancer = @vertice[ref['from']]
-          member = @vertice[ref['to']]
+        pattern.get_balancer_memeber_connections.each do |conn|
+          balancer = @vertice[conn.load_balancer]
+          member = @vertice[conn.member]
           member.connect(balancer, :balancer_members)
         end
 
         #load chef_client-chef_server relationships
-        topology.get_chef_server_refs.each do |ref|
-          chef_client = @vertice[ref['from']]
-          chef_server = @vertice[ref['to']]
+        pattern.get_chef_server_connections.each do |conn|
+          chef_client = @vertice[conn.chef_client]
+          chef_server = @vertice[conn.chef_server]
           chef_server.connect(chef_client, :chef_server)
         end
 
         #load push metric relationships
-        topology.get_minotor_server_client_refs.each do |ref|
-          monitor_client = @vertice[ref['from']]
-          monitor_server = @vertice[ref['to']]
+        pattern.get_mon_server_connections.each do |conn|
+          monitor_client = @vertice[conn.monitoring_client]
+          monitor_server = @vertice[conn.monitoring_server]
           monitor_client.connect(monitor_server, :monitor_clients)
-        end
-      end
-
-      def vpn_connect(vertex1, vertex2)
-        vertex1.connect(vertex2, :vpn_connected_nodes)
-        vertex2.connect(vertex1, :vpn_connected_nodes)
-      end
-
-      def sync_vpn_connection(vertex1, vertex2)
-        vertex1.get_adjacent_vertice(:vpn_connected_nodes).each do |v1|
-          vertex2.get_adjacent_vertice(:vpn_connected_nodes).each do |v2|
-            vpn_connect(v1, v2) if v1 != v2
-          end
-        end
-      end
-
-      def set_vpnips
-        # load vpnips into databag
-        topology.get_vpnips.each do |vertex_id, vpnip|
-          vertex = @vertice[vertex_id]
-          vertex[:vpn_server_ip] = vpnip
-          on_data(:vpn_server_ip, vpnip, vertex_id)
-        end
-      end
-
-      def set_port_redirs
-        # load port redirections into databag
-        topology.get_port_redirs.each do |vertex_id, redir|
-          target = @vertice[vertex_id]
-          target["port_redir"] = redir
-        end
-      end
-
-      def set_web_server_info
-        topology.get_war_files.each do |vertex_id, file|
-          vertex = @vertice[vertex_id]
-          vertex[FileType::WAR_FILE] = file #TODO support multiple war files
-        end
-      end
-
-      def set_database_info
-        topology.get_databases.each do |vertex_id, database_info|
-          vertex = @vertice[vertex_id]
-          vertex["database"] = database_info
-          if database_info.has_key?("script")
-            vertex[FileType::SQL_SCRIPT_FILE] = {"name" => database_info["script"]}
-          end
         end
       end
 

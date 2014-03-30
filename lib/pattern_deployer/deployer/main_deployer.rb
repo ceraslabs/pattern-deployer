@@ -27,7 +27,7 @@ module PatternDeployer
     class MainDeployer < PatternDeployer::Deployer::BaseDeployer
       include PatternDeployer::Chef
       include PatternDeployer::Errors
-      include PatternDeployer::Pattern
+      Pattern = PatternDeployer::Pattern::Pattern
 
       def initialize(topology)
         my_id = self.class.join(self.class.get_id_prefix, "user", topology.owner.id, "main", topology.topology_id)
@@ -43,9 +43,9 @@ module PatternDeployer
           self.reset
           self.deploy_state = State::DEPLOYING
 
-          topology = TopologyWrapper.new(topology_xml)
-          initialize_deployers(topology)
-          @topology_deployer.prepare_deploy(topology, artifacts)
+          initialize_deployers
+          pattern = Pattern.new(topology_xml)
+          @topology_deployer.prepare_deploy(pattern, artifacts)
 
           self.save
         end
@@ -88,11 +88,10 @@ module PatternDeployer
         lock_topology do
           self.reload
 
-          topology = TopologyWrapper.new(topology_xml)
-          initialize_deployers(topology)
-
+          initialize_deployers
           prepare_update_deployment
-          @topology_deployer.prepare_scale(topology, artifacts, nodes, diff)
+          pattern = Pattern.new(topology_xml)
+          @topology_deployer.prepare_scale(pattern, artifacts, nodes, diff)
 
           self.save
         end
@@ -126,11 +125,10 @@ module PatternDeployer
         lock_topology do
           self.reload
 
-          topology = TopologyWrapper.new(topology_xml)
-          initialize_deployers(topology)
-
+          initialize_deployers
           prepare_update_deployment
-          @topology_deployer.prepare_repair(topology, artifacts)
+          pattern = Pattern.new(topology_xml)
+          @topology_deployer.prepare_repair(pattern, artifacts)
 
           self.save
         end
@@ -163,10 +161,9 @@ module PatternDeployer
         lock_topology do
           self.reload
 
-          topology = TopologyWrapper.new(topology_xml)
-          initialize_deployers(topology)
-
-          @topology_deployer.undeploy(topology, artifacts)
+          initialize_deployers
+          pattern = Pattern.new(topology_xml)
+          @topology_deployer.undeploy(pattern, artifacts)
           @topology_deployer = nil
 
           self.save
@@ -178,10 +175,9 @@ module PatternDeployer
           self.reload unless self.primary_deployer?
 
           if get_deploy_state != State::UNDEPLOY
-            topology = TopologyWrapper.new(topology_xml)
-            initialize_deployers(topology)
-            raise "Unexpected missing of topology deployer" unless @topology_deployer
-            return @topology_deployer.list_nodes(topology)
+            initialize_deployers
+            pattern = Pattern.new(topology_xml)
+            return @topology_deployer.list_nodes(pattern)
           else
             return Array.new
           end
@@ -222,7 +218,7 @@ module PatternDeployer
         super()
       end
 
-      def initialize_deployers(topology, options={})
+      def initialize_deployers
         if @topology_deployer.nil?
           @topology_deployer = TopologyDeployer.new(self)
           self << @topology_deployer

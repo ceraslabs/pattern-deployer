@@ -92,8 +92,8 @@ class Node < ActiveRecord::Base
         service.update_service_attributes(element)
       elsif element.name == "nest_within" || element.name == "use_template"
         next
-      elsif attribute_element?(element)
-        node_attr = to_attribute(element)
+      elsif hash_format?(element)
+        node_attr = xml_element_to_hash(element)
         self.attrs.merge!(node_attr)
       else
         err_msg = "Invalid node element: #{element.to_s}"

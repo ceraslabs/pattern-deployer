@@ -29,22 +29,6 @@
       <xs:selector xpath=".//node"/>
       <xs:field xpath="@id"/>
     </xs:key>
-    <xs:keyref name="openvpn_server_ref" refer="my_node">
-      <xs:selector xpath=".//openvpn_server"/>
-      <xs:field xpath="@node"/>
-    </xs:keyref>
-    <xs:keyref name="nested_instance_ref" refer="my_node">
-      <xs:selector xpath=".//nest_within"/>
-      <xs:field xpath="@node"/>
-    </xs:keyref>
-    <xs:keyref name="snort_pair_node1" refer="my_node">
-      <xs:selector xpath=".//snort_pair_first"/>
-      <xs:field xpath="@node"/>
-    </xs:keyref>
-    <xs:keyref name="snort_pair_node2" refer="my_node">
-      <xs:selector xpath=".//snort_pair_second"/>
-      <xs:field xpath="@node"/>
-    </xs:keyref>
     <xs:keyref name="lb_member_node" refer="my_node">
       <xs:selector xpath=".//member"/>
       <xs:field xpath="@node"/>
@@ -61,12 +45,6 @@
       <xs:selector xpath=".//monitoring_server"/>
       <xs:field xpath="@node"/>
     </xs:keyref>
-
-    <!-- vpnip must be unique -->
-    <xs:unique name="unique_vpnip">
-      <xs:selector xpath=".//vpnip"/>
-      <xs:field xpath="."/>
-    </xs:unique>
   </xs:element>
 
   <xs:element name="description" type="xs:string"/>
@@ -92,21 +70,11 @@
       <xs:attribute name="id" type="xs:string" use="required"/>
     </xs:complexType>
   </xs:element>
-  <xs:group name="snort_pair_group">
-    <xs:sequence>
-      <xs:element ref="snort_pair_first"/>
-      <xs:element ref="snort_pair_second"/>
-    </xs:sequence>
-  </xs:group>
   <xs:group name="service_elements">
     <xs:choice>
-      <xs:element ref="vpnip"/>
       <xs:element ref="war_file"/>
       <xs:element ref="script"/>
-      <xs:element ref="openvpn_server"/>
-      <xs:group ref ="snort_pair_group"/>
       <xs:element ref="member"/>
-      <xs:element ref="port_redirection"/>
       <xs:element ref="database_connection"/>
       <xs:group ref="database_elements"/>
       <xs:element ref="chef_server"/>
@@ -122,17 +90,10 @@
         <xs:simpleType>
           <!-- A list of supported services -->
           <xs:restriction base="xs:string">
-            <xs:enumeration value="openvpn_server"/>
-            <xs:enumeration value="openvpn_client"/>
             <xs:enumeration value="database_server"/>
             <xs:enumeration value="web_balancer"/>
             <xs:enumeration value="web_server"/>
-            <xs:enumeration value="snort_prepost"/>
-            <xs:enumeration value="snort"/>
             <xs:enumeration value="front_end_balancer"/>
-            <xs:enumeration value="ossec_client"/>
-            <xs:enumeration value="virsh"/>
-            <xs:enumeration value="dns_client"/>
             <xs:enumeration value="server_installation"/>
             <xs:enumeration value="standalone_installation"/>
             <xs:enumeration value="client_installation"/>
@@ -169,13 +130,6 @@
       <xs:element ref="openstack_hints"/>
     </xs:choice>
   </xs:group>
-  <xs:element name="port_redirection">
-    <xs:complexType>
-      <xs:attribute name="protocol" type="xs:string" use="required"/>
-      <xs:attribute name="from" type="xs:string" use="required"/>
-      <xs:attribute name="to" type="xs:string" use="required"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="cloud" type="xs:string"/>
   <xs:element name="security_groups" type="xs:string"/>
   <xs:element name="image_id" type="xs:string"/>
@@ -227,7 +181,6 @@
     <xs:choice>
       <xs:element ref="use_template"/>
       <xs:element ref="service"/>
-      <xs:element ref="nest_within"/>
       <xs:group ref="instance_attributes" minOccurs="0" maxOccurs="unbounded"/>
     </xs:choice>
   </xs:group>
@@ -244,15 +197,6 @@
       <xs:attribute name="name" type="xs:string" use="required"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="vpnip">
-    <xs:complexType>
-      <xs:simpleContent>
-        <xs:extension base="xs:string">
-          <xs:attribute name="index" type="xs:integer" use="optional"/>
-        </xs:extension>
-      </xs:simpleContent>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="war_file">
     <xs:complexType>
       <xs:sequence>
@@ -264,17 +208,7 @@
   <xs:element name="file_name" type="xs:string"/>
   <xs:element name="datasource" type="xs:string"/>
   <xs:element name="script" type="xs:string"/>
-  <xs:element name="nest_within">
-    <xs:complexType>
-      <xs:attribute name="node" type="xs:string" use="required"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="member">
-    <xs:complexType>
-      <xs:attribute name="node" type="xs:string" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="openvpn_server">
     <xs:complexType>
       <xs:attribute name="node" type="xs:string" use="required"/>
     </xs:complexType>
@@ -298,16 +232,6 @@
       <xs:element name="database_port" type="xs:string"/>
     </xs:choice>
   </xs:group>
-  <xs:element name="snort_pair_first">
-    <xs:complexType>
-      <xs:attribute name="node" type="xs:string" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="snort_pair_second">
-    <xs:complexType>
-      <xs:attribute name="node" type="xs:string" use="required"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="monitoring_server">
     <xs:complexType>
       <xs:attribute name="node" type="xs:string" use="required"/>
