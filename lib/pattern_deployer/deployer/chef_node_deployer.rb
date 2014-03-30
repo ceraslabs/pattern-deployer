@@ -429,16 +429,14 @@ module PatternDeployer
         cookbook_name = Rails.configuration.chef_cookbook_name
         cookbook = ChefCookbookWrapper.create(cookbook_name)
         [FileType::WAR_FILE, FileType::SQL_SCRIPT_FILE].each do |file_type|
-          next if not attributes.has_key?(file_type)
-
           file_id = attributes["#{file_type}_id"]
-          file_name = attributes[file_type]["name"]
+          file_name = attributes[file_type]["name"] if attributes[file_type]
           if file_id
             file = artifacts.find_file_by_id(file_id)
           elsif file_name
             file = artifacts.find_file_by_name(file_name)
           else
-            raise "Unexpected missing file ID and name"
+            next # no file needs to be processed
           end
 
           if file.nil?

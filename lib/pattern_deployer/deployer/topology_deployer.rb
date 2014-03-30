@@ -486,9 +486,9 @@ module PatternDeployer
             else
               child.node_info ||= node_info.clone
               child.services ||= services
-              child.set_web_server_configs(web_server_configs)
-              child.set_database_configs(database_configs)
             end
+            child.set_web_server_configs(web_server_configs)
+            child.set_database_configs(database_configs)
 
             child_deployers << child
           end
