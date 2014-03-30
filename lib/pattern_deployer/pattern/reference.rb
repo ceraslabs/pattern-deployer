@@ -80,7 +80,7 @@ module PatternDeployer
         if metadata
           @metadata = metadata
         else
-          @metadata = get_metadata(:element => ref_element.name)
+          @metadata = self.class.get_metadata(:element => ref_element.name)
         end
       end
 
