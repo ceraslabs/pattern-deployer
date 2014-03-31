@@ -95,6 +95,17 @@ module PatternDeployer
       end
     end
 
+    class DeploymentTimeOutError < PatternDeployerError
+      DEFAULT_MSG = 'Deployment timeout'
+
+      def initialize(options = {})
+        message = DEFAULT_MSG
+        message = options[:message] if options[:message]
+
+        super(message, self.class.name.demodulize, 400, options[:inner_exception])
+      end
+    end
+
     class AccessDeniedError < PatternDeployerError
       DEFAULT_MSG = "Permission denied, please contact the site admin to grant you permissions"
 

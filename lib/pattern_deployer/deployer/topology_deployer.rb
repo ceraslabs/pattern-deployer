@@ -268,7 +268,7 @@ module PatternDeployer
         super(my_id, parent_deployer)
       end
 
-      def reload(pattern, artifacts = nil)
+      def update(pattern, artifacts = nil)
         super()
         self.pattern = pattern
         self.artifacts = artifacts if artifacts
@@ -288,7 +288,14 @@ module PatternDeployer
         pattern.get_topology_id
       end
 
-      def deployable?
+      def validate_deployment!
+        if circular_dependency?
+          msg = "The topology cannot be deployed. Make sure nodes does not have circular dependencies"
+          raise XmlValidationError.new(:message => msg)
+        end
+      end
+
+      def circular_dependency?
         # check circular dependencies by using breadth first search algorithm
         has_circle = false
         @vertice.each do |vertex_name, vertex|
@@ -310,13 +317,15 @@ module PatternDeployer
             end
           end
         end
-        return has_circle
+
+        has_circle
       end
 
       def prepare_deploy(pattern, artifacts)
         self.reset(pattern, artifacts)
         initialize_deployment_graph(:reset_children => true)
         establish_connection
+        validate_deployment!
 
         super()
 
@@ -330,7 +339,7 @@ module PatternDeployer
       end
 
       def prepare_scale(pattern, artifacts, nodes, diff)
-        self.reload(pattern, artifacts)
+        self.update(pattern, artifacts)
         initialize_deployment_graph
         establish_connection
 
@@ -366,7 +375,7 @@ module PatternDeployer
       end
 
       def prepare_repair(pattern, artifacts)
-        self.reload(pattern, artifacts)
+        self.update(pattern, artifacts)
 
         initialize_deployment_graph
         establish_connection
@@ -407,7 +416,7 @@ module PatternDeployer
       end
 
       def undeploy(pattern, artifacts)
-        self.reload(pattern, artifacts)
+        self.update(pattern, artifacts)
         initialize_child_deployers
 
         super()
@@ -419,9 +428,9 @@ module PatternDeployer
       end
 
       def list_nodes(pattern)
-        self.primary_deployer? ? self.reload(pattern) : self.pattern = pattern
+        self.primary_deployer? ? self.update(pattern) : self.pattern = pattern
 
-        initialize_child_deployers(:reload_children => !self.primary_deployer?)
+        initialize_child_deployers(:update_children => !self.primary_deployer?)
 
         get_children.map do |child|
           node = OpenStruct.new
@@ -467,7 +476,7 @@ module PatternDeployer
       end
 
       def initialize_child_deployers(options={})
-        reload_children = options.has_key?(:reload_children) ? options[:reload_children] : true
+        update_children = options.has_key?(:update_children) ? options[:update_children] : true
 
         child_deployers = Array.new
         pattern.get_nodes.each do |node_id|
@@ -481,8 +490,8 @@ module PatternDeployer
             child = ChefNodeDeployer.new(deployer_name, self) if child.nil?
             if options[:reset_children]
               child.reset(node_info.clone, services, artifacts)
-            elsif reload_children
-              child.reload(node_info.clone, services, artifacts)
+            elsif update_children
+              child.update(node_info.clone, services, artifacts)
             else
               child.node_info ||= node_info.clone
               child.services ||= services

@@ -37,7 +37,7 @@ module PatternDeployer
         self.node_id = deployer_id
       end
 
-      def reload(node_info, services, artifacts)
+      def update(node_info, services, artifacts)
         super()
         set_fields(node_info, services, artifacts)
       end

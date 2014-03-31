@@ -55,7 +55,7 @@ module PatternDeployer
         @databag_manager = DatabagsManager.instance
       end
 
-      def reload
+      def update
         data = @databag_manager.read(databag_name)
         self.attributes = data if data
       end
@@ -84,11 +84,11 @@ module PatternDeployer
         @children.find{ |child| child.get_name == name }
       end
 
-      def prepare_deploy
+      def prepare_deploy(*args)
         self.deploy_state = State::DEPLOYING
 
         @children.each do |child|
-          child.prepare_deploy
+          child.prepare_deploy(*args)
         end
       end
 
@@ -128,14 +128,6 @@ module PatternDeployer
         success = self.class.summarize_successes(successes)
         msg = self.class.summarize_errors(msgs)
         return success, msg
-      end
-
-      def wait(timeout = Rails.configuration.chef_max_deploy_time)
-        if @worker_thread
-          @worker_thread.join(timeout)
-        else
-          true
-        end
       end
 
       def worker_thread_running?

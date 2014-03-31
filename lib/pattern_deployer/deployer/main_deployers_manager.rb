@@ -49,7 +49,7 @@ module PatternDeployer
         @@deployers.delete(key)
       end
 
-      def add_active_deployer(key, deployer)
+      def add_active_deployer(deployer)
         deployer.instance_eval do
           def start_time
             @start_time
@@ -61,10 +61,12 @@ module PatternDeployer
         end
 
         deployer.start_time = Time.now
+        key = deployer.deployer_id
         @@active_deployers[key] = deployer
       end
 
-      def delete_active_deployer(key)
+      def delete_active_deployer(deployer)
+        key = deployer.deployer_id
         @@active_deployers.delete(key)
       end
 

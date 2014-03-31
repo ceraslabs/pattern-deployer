@@ -30,7 +30,7 @@ module PatternDeployer
       Pattern = PatternDeployer::Pattern::Pattern
 
       def initialize(topology)
-        my_id = self.class.join(self.class.get_id_prefix, "user", topology.owner.id, "main", topology.topology_id)
+        my_id = get_deployer_id(topology)
         super(my_id, nil, topology.topology_id, topology.owner.id)
       end
 
@@ -41,54 +41,27 @@ module PatternDeployer
       def prepare_deploy(topology_xml, artifacts)
         lock_topology do
           self.reset
-          self.deploy_state = State::DEPLOYING
-
-          initialize_deployers
+          self.initialize_child_deployers
           pattern = Pattern.new(topology_xml)
-          @topology_deployer.prepare_deploy(pattern, artifacts)
+          # This will set the state of current deployer to 'DEPLOYING',
+          # and call 'prepare_deployer' of each child deployer.
+          super(pattern, artifacts)
 
           self.save
         end
       end
 
       def deploy
-        MainDeployersManager.instance.add_active_deployer(self.deployer_id, self)
-
         # start a new thread to do the deployment
         @worker_thread = Thread.new do
-          begin
-            # Check if the topology is deployable
-            if @topology_deployer.deployable?
-              err_msg = "The topology cannot be deployed. Make sure nodes does not have circular dependencies"
-              raise DeploymentError.new(:message => err_msg)
-            end
-
-            # This will do the deployment
-            super()
-
-            # wait for deployment finish and do error checking
-            unless wait
-              raise "Deployment timeout"
-            end
-
-            raise get_children_error if get_children_state == State::DEPLOY_FAIL
-            on_deploy_success
-          rescue Exception => ex
-            on_deploy_failed(ex.message)
-            #debug
-            puts ex.message
-            puts ex.backtrace[0..10].join("\n")
-          ensure
-            MainDeployersManager.instance.delete_active_deployer(self.deployer_id)
-          end
+          run(METHOD::DEPLOY)
         end
       end
 
       def prepare_scale(topology_xml, artifacts, nodes, diff)
         lock_topology do
-          self.reload
-
-          initialize_deployers
+          self.update
+          initialize_child_deployers
           prepare_update_deployment
           pattern = Pattern.new(topology_xml)
           @topology_deployer.prepare_scale(pattern, artifacts, nodes, diff)
@@ -98,34 +71,17 @@ module PatternDeployer
       end
 
       def scale
-        MainDeployersManager.instance.add_active_deployer(self.deployer_id, self)
-
         # start a new thread to do the deployment
         @worker_thread.kill if @worker_thread
         @worker_thread = Thread.new do
-          begin
-            @topology_deployer.scale
-            unless wait
-              raise "Deployment timeout"
-            end
-            raise get_children_error if get_children_state == State::DEPLOY_FAIL
-            on_update_success
-          rescue Exception => ex
-            on_update_failed(ex.message)
-            #debug
-            puts ex.message
-            puts ex.backtrace[0..10].join("\n")
-          ensure
-            MainDeployersManager.instance.delete_active_deployer(self.deployer_id)
-          end
+          run(METHOD::SCALE)
         end
       end
 
       def prepare_repair(topology_xml, artifacts)
         lock_topology do
-          self.reload
-
-          initialize_deployers
+          self.update
+          initialize_child_deployers
           prepare_update_deployment
           pattern = Pattern.new(topology_xml)
           @topology_deployer.prepare_repair(pattern, artifacts)
@@ -135,33 +91,16 @@ module PatternDeployer
       end
 
       def repair
-        MainDeployersManager.instance.add_active_deployer(self.deployer_id, self)
-
         @worker_thread.kill if @worker_thread
         @worker_thread = Thread.new do
-          begin
-            @topology_deployer.repair
-            unless wait
-              raise "Deployment timeout"
-            end
-            raise get_children_error if get_children_state == State::DEPLOY_FAIL
-            on_update_success
-          rescue Exception => ex
-            on_update_failed(ex.message)
-            #debug
-            puts ex.message
-            puts ex.backtrace[0..10].join("\n")
-          ensure
-            MainDeployersManager.instance.delete_active_deployer(self.deployer_id)
-          end
+          run(METHOD::REPAIR)
         end
       end
 
       def undeploy(topology_xml, artifacts)
         lock_topology do
-          self.reload
-
-          initialize_deployers
+          self.update
+          initialize_child_deployers
           pattern = Pattern.new(topology_xml)
           @topology_deployer.undeploy(pattern, artifacts)
           @topology_deployer = nil
@@ -172,10 +111,10 @@ module PatternDeployer
 
       def list_nodes(topology_xml)
         lock_topology(:read_only => true) do
-          self.reload unless self.primary_deployer?
+          self.update unless self.primary_deployer?
 
           if get_deploy_state != State::UNDEPLOY
-            initialize_deployers
+            initialize_child_deployers
             pattern = Pattern.new(topology_xml)
             return @topology_deployer.list_nodes(pattern)
           else
@@ -186,17 +125,75 @@ module PatternDeployer
 
       def get_state
         lock_topology(:read_only => true) do
-          self.reload unless self.primary_deployer?
+          self.update unless self.primary_deployer?
           self.get_update_state == State::UNDEPLOY ? self.get_deploy_state : self.get_update_state
         end
       end
 
-      def wait(timeout = Rails.configuration.chef_max_deploy_time)
+      protected
+
+      module METHOD
+        DEPLOY = :deploy
+        SCALE = :scale
+        REPAIR = :repair
+      end
+
+      def run(method)
+        case method
+        when METHOD::DEPLOY
+          is_deploy = true
+        when METHOD::SCALE, METHOD::REPAIR
+          is_deploy = false
+        else
+          msg = "unexpected method #{method}"
+          raise InternalServerError.new(:message => msg)
+        end
+        MainDeployersManager.instance.add_active_deployer(self)
+
+        # This does the actual 'run'.
+        @topology_deployer.send(method)
+
+        # wait for deployment finish and do error checking
+        unless wait_to_finish
+          raise DeploymentTimeoutError.new
+        end
+        raise get_children_error if failed?
+        is_deploy ? on_deploy_success : on_update_success
+      rescue Exception => ex
+        is_deploy ? on_deploy_failed(ex.message) : on_update_failed(ex.message)
+        # debug
+        log ex.message, ex.backtrace
+      ensure
+        MainDeployersManager.instance.delete_active_deployer(self)
+      end
+
+      def wait_to_finish(timeout = Rails.configuration.chef_max_deploy_time)
         start_time = Time.now
         while running? && !timeout?(start_time, timeout)
           sleep 60
         end
         timeout?(start_time, timeout) ? false : true
+      end
+
+      def get_deployer_id(topology)
+        prefix = self.class.get_id_prefix
+        user_id = topology.owner.id
+        topology_id = topology.topology_id
+        self.class.join(prefix, 'user', user_id, 'main', topology_id)
+      end
+
+      def initialize_child_deployers
+        if @topology_deployer.nil?
+          @topology_deployer = TopologyDeployer.new(self)
+          self << @topology_deployer
+        end
+      end
+
+      def update
+        ChefNodesManager.instance.reload
+        ChefClientsManager.instance.reload
+        DatabagsManager.instance.reload
+        super()
       end
 
       def running?
@@ -209,20 +206,8 @@ module PatternDeployer
         Time.now - start_time > timeout
       end
 
-      protected
-
-      def reload
-        ChefNodesManager.instance.reload
-        ChefClientsManager.instance.reload
-        DatabagsManager.instance.reload
-        super()
-      end
-
-      def initialize_deployers
-        if @topology_deployer.nil?
-          @topology_deployer = TopologyDeployer.new(self)
-          self << @topology_deployer
-        end
+      def failed?
+        get_children_state == State::DEPLOY_FAIL
       end
 
     end
