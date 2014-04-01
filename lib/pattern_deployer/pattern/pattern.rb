@@ -42,10 +42,6 @@ module PatternDeployer
         doc
       end
 
-      def get_topology_id
-        @doc.find_first("/topology")["id"]
-      end
-
       def get_nodes
         @doc.find("//node").map do |node|
           node["id"]

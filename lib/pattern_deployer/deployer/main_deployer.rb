@@ -18,7 +18,7 @@ require 'pattern_deployer/chef'
 require 'pattern_deployer/deployer/base_deployer'
 require 'pattern_deployer/deployer/topology_deployer'
 require 'pattern_deployer/deployer/main_deployers_manager'
-require 'pattern_deployer/deployer/deployer_state'
+require 'pattern_deployer/deployer/state'
 require 'pattern_deployer/errors'
 require 'pattern_deployer/pattern'
 

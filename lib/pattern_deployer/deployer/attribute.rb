@@ -14,27 +14,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require 'pattern_deployer/deployer/base_deployer'
-require 'pattern_deployer/deployer/chef_node_deployer'
-require 'pattern_deployer/deployer/main_deployer'
-require 'pattern_deployer/deployer/main_deployers_manager'
-require 'pattern_deployer/deployer/state'
-require 'pattern_deployer/deployer/topology_deployer'
-
 module PatternDeployer
   module Deployer
-    def self.[](id)
-      MainDeployersManager.instance.get_deployer(id)
-    end
+    module Attribute
+      attr_accessor :attributes
 
-    def self.new(topology)
-      deployer = MainDeployer.new(topology)
-      MainDeployersManager.instance.add_deployer(topology.id, deployer)
-    end
+      def self.included(base)
+        base.extend(ClassMethods)
+      end
 
-    def self.delete(id)
-      MainDeployersManager.instance.delete_deployer(id)
-    end
+      module ClassMethods
+        def attribute_accessor(*accessors)
+          accessors.each do |name|
+            name = name.to_s
 
+            define_method(name) do
+              self.attributes ? self.attributes[name] : nil
+            end
+
+            define_method("#{name}=") do |value|
+              self.attributes ||= Hash.new
+              value.nil? ? self.attributes.delete(name) : self.attributes[name] = value
+            end
+          end
+        end
+      end
+
+    end
   end
 end

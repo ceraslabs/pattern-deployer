@@ -17,10 +17,10 @@
 module PatternDeployer
   module Deployer
     module State
-      UNDEPLOY = "undeployed"
-      DEPLOYING = "deploying"
-      DEPLOY_SUCCESS = "deployed"
-      DEPLOY_FAIL = "failed"
+      UNDEPLOY = 'undeployed'
+      DEPLOYING = 'deploying'
+      DEPLOY_SUCCESS = 'deployed'
+      DEPLOY_FAIL = 'failed'
     end
   end
 end

@@ -16,7 +16,7 @@
 #
 require 'pattern_deployer/artifact'
 require 'pattern_deployer/chef'
-require 'pattern_deployer/deployer/deployer_state'
+require 'pattern_deployer/deployer/state'
 require 'pattern_deployer/pattern'
 
 module PatternDeployer
@@ -27,7 +27,9 @@ module PatternDeployer
       include PatternDeployer::Errors
 
       attr_accessor :short_name, :node_id, :services, :artifacts
-      deployer_attr_accessor :node_info, :database, :instance_id, :credential_id, :identity_file_id
+
+      # these attributes persist in Chef Databag
+      attribute_accessor :node_info, :database, :instance_id, :credential_id, :identity_file_id
 
       def initialize(name, parent_deployer)
         my_id = self.class.join(parent_deployer.deployer_id, "node", name)
@@ -56,7 +58,7 @@ module PatternDeployer
         self.services = services
         self.artifacts = artifacts if artifacts
         self.node_info = node_info
-        self.node_info["node_name"] = deployer_id
+        self.node_info['node_name'] = deployer_id if node_info
       end
 
       def get_id
@@ -78,9 +80,6 @@ module PatternDeployer
 
         attributes["timeout_waiting_ip"] = Rails.configuration.chef_wait_ip_timeout
         attributes["timeout_waiting_members"] = Rails.configuration.chef_wait_balancer_members_timeout
-        if @parent.class == TopologyDeployer
-          attributes["topology_id"] = @parent.get_topology_id
-        end
         attributes["public_ip"] ||= node_info["server_ip"] if node_info["server_ip"]
       end
 
@@ -447,7 +446,7 @@ module PatternDeployer
             raise InternalServerError.new(:message => err_msg)
           end
           file.select
-          cookbook.add_or_update_file(file, get_owner_id)
+          cookbook.add_or_update_file(file, topology_owner_id)
           attributes["#{file_type}_id"] ||= file.get_id
         end
       end

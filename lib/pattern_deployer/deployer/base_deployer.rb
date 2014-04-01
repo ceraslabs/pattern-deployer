@@ -15,40 +15,28 @@
 # limitations under the License.
 #
 require 'pattern_deployer/chef'
-require 'pattern_deployer/deployer/deployer_state'
+require 'pattern_deployer/deployer/attribute'
+require 'pattern_deployer/deployer/state'
 require 'pattern_deployer/utils'
 
 module PatternDeployer
   module Deployer
     class BaseDeployer
-      def self.deployer_attr_accessor(*my_accessors)
-        my_accessors.each do |name|
-          name = name.to_s
-
-          define_method(name) do
-            attributes[name]
-          end
-
-          define_method("#{name}=") do |value|
-            value.nil? ? attributes.delete(name) : attributes[name] = value
-          end
-        end
-      end
-
       include PatternDeployer::Chef
+      include PatternDeployer::Deployer::Attribute
       include PatternDeployer::Errors
       include PatternDeployer::Utils
 
-      attr_accessor :deployer_id, :attributes, :topology_id, :topology_owner_id
+      attr_accessor :deployer_id, :topology_id, :topology_owner_id
       alias :databag_name :deployer_id
 
-      deployer_attr_accessor :deploy_state, :deploy_error, :update_state, :update_error
+      # these attributes persist in Chef Databag
+      attribute_accessor :deploy_state, :deploy_error, :update_state, :update_error
 
       def initialize(deployer_id, parent_deployer = nil, topology_id = nil, topology_owner_id = nil)
         self.deployer_id = deployer_id
         self.topology_id = topology_id || parent_deployer.topology_id
         self.topology_owner_id = topology_owner_id || parent_deployer.topology_owner_id
-        self.attributes = Hash.new
 
         @parent = parent_deployer if parent_deployer
         @children = Array.new
@@ -61,7 +49,7 @@ module PatternDeployer
       end
 
       def reset
-        self.attributes.clear
+        attributes.clear if attributes
       end
 
       def get_id
@@ -69,15 +57,11 @@ module PatternDeployer
       end
 
       def self.get_id_prefix
-        "PatternDeployer"
-      end
-
-      def get_owner_id
-        /-user-(\d+)-topology-/.match(self.deployer_id)[1]
+        'PatternDeployer'
       end
 
       def get_children
-        @children || Hash.new
+        @children
       end
 
       def get_child_by_name(name)
@@ -151,24 +135,26 @@ module PatternDeployer
         end
       end
 
-      def set_state(state)
-        set_deploy_state(state)
+      module TypeOfState
+        DEPLOY_STATE = 'deploy_state'
+        UPDATE_STATE = 'update_state'
       end
+      include TypeOfState
 
       def get_deploy_state
-        get_state_by_type("deploy_state")
+        get_state_by_type(DEPLOY_STATE)
       end
 
       def set_deploy_state(state)
-        set_state_by_type("deploy_state", state)
+        set_state_by_type(DEPLOY_STATE, state)
       end
 
       def get_update_state
-        get_state_by_type("update_state")
+        get_state_by_type(UPDATE_STATE)
       end
 
       def set_update_state(state)
-        set_state_by_type("update_state", state)
+        set_state_by_type(UPDATE_STATE, state)
       end
 
       def get_err_msg
@@ -179,8 +165,14 @@ module PatternDeployer
         set_deploy_error
       end
 
+      module TypeOfError
+        DEPLOY_ERROR = 'deploy_error'
+        UPDATE_ERROR = 'update_error'
+      end
+      include TypeOfError
+
       def get_deploy_error
-        get_error_by_type("deploy_error")
+        get_error_by_type(DEPLOY_ERROR)
       end
 
       def set_deploy_error(msg)
@@ -189,7 +181,7 @@ module PatternDeployer
       end
 
       def get_update_error
-        get_error_by_type("update_error")
+        get_error_by_type(UPDATE_ERROR)
       end
 
       def set_update_error(msg)
@@ -198,8 +190,11 @@ module PatternDeployer
       end
 
       def ==(deployer)
-        raise "Unexpected type of deployer: #{deployer.class.name}" unless deployer.kind_of?(self.class)
-        return self.get_id == deployer.get_id
+        unless deployer.kind_of?(self.class)
+          msg = "Unexpected type of deployer: #{deployer.class.name}"
+          raise InternalServerError.new(:message => msg)
+        end
+        self.get_id == deployer.get_id
       end
 
       def <<(child_deployer)
@@ -231,7 +226,10 @@ module PatternDeployer
       end
 
       def save
-        raise "Cannot save" unless self.primary_deployer?
+        unless self.primary_deployer?
+          msg = "Unexpected call to save method"
+          raise InternalServerError.new(:message => msg)
+        end
         @databag_manager.write(databag_name, self.attributes)
       end
 
@@ -264,32 +262,29 @@ module PatternDeployer
       end
 
       def self.build_err_msg(exception, deployer)
-        msg = "On deploying '#{deployer.get_id}':"
-        msg += "\nError: #{exception.message}"
-        msg += "\nTrace: "
-        msg += exception.backtrace[0..10].join("\n")
-        msg += "\n............"
+        lines = Array.new
+        lines << "An error occurred when deploying '#{deployer.get_id}': #{exception.message}"
+        lines << backtrace_to_s(exception.backtrace)
         if exception.class == DeploymentError
           inner_msg = exception.get_inner_message
           if inner_msg
-            msg += "\nCaused by:\n"
-            msg += inner_msg
+            lines << "Caused by:"
+            lines << inner_msg
           end
         end
-        msg
+        lines.join("\n")
       end
-
 
       protected
 
       def lock_topology(options={})
-        raise "Unexpected missing of block" unless block_given?
+        raise InternalServerError.new unless block_given?
 
         FileUtils.mkdir_p(File.dirname(lock_file))
-        File.open(lock_file, "w") do |file|
+        File.open(lock_file, 'w') do |file|
           file.flock(File::LOCK_EX)
           unless options[:read_only]
-            File.open(pid_file, "w"){ |file| file.write(Process.pid) }
+            File.open(pid_file, 'w'){ |file| file.write(Process.pid) }
           end
 
           yield
@@ -298,6 +293,7 @@ module PatternDeployer
 
       def primary_deployer?
         return false if not File.exists?(pid_file)
+
         File.open(pid_file, "r") do |file|
           file.read == Process.pid.to_s
         end
@@ -323,18 +319,19 @@ module PatternDeployer
       end
 
       def get_error_by_type(error_type)
-        if error_type == "deploy_error"
-          type_of_state = "deploy_state"
-        elsif error_type == "update_error"
-          type_of_state = "update_state"
+        if error_type == DEPLOY_ERROR
+          type_of_state = DEPLOY_STATE
+        elsif error_type == UPDATE_ERROR
+          type_of_state = UPDATE_STATE
         else
-          raise "unexpected error_type #{error_type}"
+          msg = "unexpected error_type #{error_type}"
+          raise InternalServerError(:message => msg)
         end
 
         if get_state_by_type(type_of_state) != State::DEPLOY_FAIL
-          return ""
+          ''
         else
-          return attributes[error_type] || ""
+          attributes[error_type] || ''
         end
       end
 

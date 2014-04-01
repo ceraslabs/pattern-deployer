@@ -18,7 +18,7 @@ require 'pattern_deployer/artifact'
 require 'pattern_deployer/chef'
 require 'pattern_deployer/deployer/base_deployer'
 require 'pattern_deployer/deployer/chef_node_deployer'
-require 'pattern_deployer/deployer/deployer_state'
+require 'pattern_deployer/deployer/state'
 require 'pattern_deployer/pattern'
 require 'ostruct'
 
@@ -154,10 +154,6 @@ module PatternDeployer
           @state
         end
 
-        def set_state(state)
-          @state = state
-        end
-
         def get_deployer
           @deployer
         end
@@ -282,10 +278,6 @@ module PatternDeployer
 
       def get_id
         deployer_id
-      end
-
-      def get_topology_id
-        pattern.get_topology_id
       end
 
       def validate_deployment!
