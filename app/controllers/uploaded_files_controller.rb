@@ -143,7 +143,7 @@ class UploadedFilesController < RestfulController
     if file_type == "identity_file"
       @file = IdentityFile.new(:file_name => params[:file_name] || default_file_name,
                                :key_pair_id => params[:key_pair_id],
-                               :for_cloud => params[:for_cloud],
+                               :for_cloud => params[:for_cloud] && params[:for_cloud].downcase,
                                :owner => current_user)
     elsif file_type == "war_file"
       @file = WarFile.new(:file_name => params[:file_name] || default_file_name,

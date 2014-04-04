@@ -33,7 +33,7 @@ module PatternDeployer
         ssh_password = @node_info["ssh_password"]
         port = @node_info["port"]
         timeout = Float(@node_info["timeout"] || "0")
-        cloud = @node_info["cloud"] || Rails.application.config.notcloud
+        cloud = @node_info["cloud"]
         verbose = to_bool(@node_info["verbose"])
 
         command = ""
@@ -92,7 +92,7 @@ module PatternDeployer
         command += build_auth_info
       end
 
-	  protected
+      protected
 
       def build_auth_info
         access_key_id = @node_info["aws_access_key_id"]
@@ -151,7 +151,7 @@ module PatternDeployer
         command += build_auth_info
       end
 
-	  protected
+      protected
 
       def build_auth_info
         username = @node_info["openstack_username"]
@@ -178,6 +178,11 @@ module PatternDeployer
       end
 
       def build_create_command
+        if @server_ip.nil?
+          msg = "Cannot update node #{@node_name}, since its ip is not available"
+          raise ParametersValidationError.new(:message => msg)
+        end
+
         command = "knife bootstrap "
         command += "#{@server_ip} "
         command += "--sudo "

@@ -17,27 +17,27 @@
 module PatternDeployer
   module Deployer
     module Attribute
-      attr_accessor :attributes
-
-      def self.included(base)
-        base.extend(ClassMethods)
-      end
-
       module ClassMethods
         def attribute_accessor(*accessors)
           accessors.each do |name|
             name = name.to_s
 
             define_method(name) do
-              self.attributes ? self.attributes[name] : nil
+              attributes ? attributes[name] : nil
             end
 
             define_method("#{name}=") do |value|
               self.attributes ||= Hash.new
-              value.nil? ? self.attributes.delete(name) : self.attributes[name] = value
+              value.nil? ? attributes.delete(name) : attributes[name] = value
             end
           end
         end
+      end
+
+      attr_accessor :attributes
+
+      def self.included(base)
+        base.extend(ClassMethods)
       end
 
     end

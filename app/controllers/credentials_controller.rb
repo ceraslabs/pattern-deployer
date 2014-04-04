@@ -70,7 +70,7 @@ require 'pattern_deployer'
 ##~ field.set :type => "List", :description => "The information of the credentials", :items => {:$ref => "Credential"}
 ##
 class CredentialsController < RestfulController
-
+  include PatternDeployer::Cloud
   include PatternDeployer::Errors
 
   ####
@@ -137,20 +137,15 @@ class CredentialsController < RestfulController
   ##
   def create
     for_cloud = params[:for_cloud]
-    if for_cloud.class != String
-      err_msg = "The request doesnot container parameter 'for_cloud'"
-      raise ParametersValidationError.new(:message => err_msg)
-    else
-      for_cloud = for_cloud.downcase
-    end
+    for_cloud &&= for_cloud.downcase
 
-    if for_cloud == Rails.application.config.ec2
+    if self.class.ec2?(for_cloud)
       @credential = Ec2Credential.new(:credential_id => params[:name], 
                                       :for_cloud => params[:for_cloud],
                                       :owner => current_user,
                                       :aws_access_key_id => params[:access_key_id],
                                       :aws_secret_access_key => params[:secret_access_key])
-    elsif for_cloud == Rails.application.config.openstack
+    elsif self.class.openstack?(for_cloud)
       @credential = OpenstackCredential.new(:credential_id => params[:name], 
                                             :for_cloud => params[:for_cloud],
                                             :owner => current_user,
@@ -159,8 +154,9 @@ class CredentialsController < RestfulController
                                             :openstack_tenant => params[:tenant],
                                             :openstack_endpoint => params[:auth_url])
     else
-      err_msg = "The cloud #{cloud} is not supported. Only #{SUPPORTED_CLOUD.join(', ')} are supported"
-      raise ParametersValidationError.new(:message => err_msg)
+      msg = "The cloud '#{for_cloud}' is not supported. "
+      msg << "List of supported clouds #{Rails.application.config.supported_clouds.inspect}"
+      raise ParametersValidationError.new(:message => msg)
     end
 
     if @credential.save

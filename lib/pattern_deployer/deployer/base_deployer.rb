@@ -27,11 +27,16 @@ module PatternDeployer
       include PatternDeployer::Errors
       include PatternDeployer::Utils
 
-      attr_accessor :deployer_id, :topology_id, :topology_owner_id
-      alias :databag_name :deployer_id
+      DEPLOY_STATE = "deploy_state"
+      UPDATE_STATE = "update_state"
+      DEPLOY_ERROR = "deploy_error"
+      UPDATE_ERROR = "update_error"
 
+      attr_accessor :deployer_id, :topology_id, :topology_owner_id
       # these attributes persist in Chef Databag
       attribute_accessor :deploy_state, :deploy_error, :update_state, :update_error
+
+      alias :databag_name :deployer_id
 
       def initialize(deployer_id, parent_deployer = nil, topology_id = nil, topology_owner_id = nil)
         self.deployer_id = deployer_id
@@ -49,7 +54,7 @@ module PatternDeployer
       end
 
       def reset
-        attributes.clear if attributes
+        attributes && attributes.clear
       end
 
       def get_id
@@ -57,7 +62,7 @@ module PatternDeployer
       end
 
       def self.get_id_prefix
-        'PatternDeployer'
+        "PatternDeployer"
       end
 
       def get_children
@@ -92,26 +97,17 @@ module PatternDeployer
         end
       end
 
-      def undeploy
-        successes = Array.new
-        msgs = Array.new
-
-        @children.each do |child|
-          success, msg = child.undeploy
-          successes << success
-          msgs << msg
-        end
+      def undeploy(*args)
+        @children.each { |child| child.undeploy(*args) }
+        @children.clear
         @children = nil
 
-        @worker_thread.kill if @worker_thread
+        @worker_thread && @worker_thread.kill
         @worker_thread = nil
 
         @databag_manager.delete(databag_name)
-        self.attributes.clear
-
-        success = self.class.summarize_successes(successes)
-        msg = self.class.summarize_errors(msgs)
-        return success, msg
+        attributes.clear
+        self.attributes = nil
       end
 
       def worker_thread_running?
@@ -126,20 +122,14 @@ module PatternDeployer
           @worker_thread.kill
         end
 
-        if self.update_state == State::DEPLOYING
+        if update_state == State::DEPLOYING
           set_update_state(State::DEPLOY_FAIL)
-        elsif self.deploy_state == State::DEPLOYING
+        elsif deploy_state == State::DEPLOYING
           set_deploy_state(State::DEPLOY_FAIL)
         else
           # nothing
         end
       end
-
-      module TypeOfState
-        DEPLOY_STATE = 'deploy_state'
-        UPDATE_STATE = 'update_state'
-      end
-      include TypeOfState
 
       def get_deploy_state
         get_state_by_type(DEPLOY_STATE)
@@ -165,19 +155,13 @@ module PatternDeployer
         set_deploy_error
       end
 
-      module TypeOfError
-        DEPLOY_ERROR = 'deploy_error'
-        UPDATE_ERROR = 'update_error'
-      end
-      include TypeOfError
-
       def get_deploy_error
         get_error_by_type(DEPLOY_ERROR)
       end
 
       def set_deploy_error(msg)
         self.deploy_error = msg
-        self.save
+        save
       end
 
       def get_update_error
@@ -186,7 +170,7 @@ module PatternDeployer
 
       def set_update_error(msg)
         self.update_error = msg
-        self.save
+        save
       end
 
       def ==(deployer)
@@ -194,7 +178,7 @@ module PatternDeployer
           msg = "Unexpected type of deployer: #{deployer.class.name}"
           raise InternalServerError.new(:message => msg)
         end
-        self.get_id == deployer.get_id
+        get_id == deployer.get_id
       end
 
       def <<(child_deployer)
@@ -209,8 +193,8 @@ module PatternDeployer
         @children.empty?
       end
 
-      def has_key?(key)
-        attributes.has_key?(key.to_s)
+      def key?(key)
+        attributes.key?(key.to_s)
       end
 
       def [](key)
@@ -226,12 +210,14 @@ module PatternDeployer
       end
 
       def save
-        unless self.primary_deployer?
+        unless primary_deployer?
           msg = "Unexpected call to save method"
           raise InternalServerError.new(:message => msg)
         end
-        @databag_manager.write(databag_name, self.attributes)
+        @databag_manager.write(databag_name, attributes)
       end
+
+      protected
 
       def self.summarize_successes(successes)
         successes.all?
@@ -275,16 +261,14 @@ module PatternDeployer
         lines.join("\n")
       end
 
-      protected
-
       def lock_topology(options={})
         raise InternalServerError.new unless block_given?
 
         FileUtils.mkdir_p(File.dirname(lock_file))
-        File.open(lock_file, 'w') do |file|
+        File.open(lock_file, "w") do |file|
           file.flock(File::LOCK_EX)
           unless options[:read_only]
-            File.open(pid_file, 'w'){ |file| file.write(Process.pid) }
+            File.open(pid_file, "w"){ |file| file.write(Process.pid) }
           end
 
           yield
@@ -292,7 +276,7 @@ module PatternDeployer
       end
 
       def primary_deployer?
-        return false if not File.exists?(pid_file)
+        return false unless File.exists?(pid_file)
 
         File.open(pid_file, "r") do |file|
           file.read == Process.pid.to_s
@@ -329,9 +313,9 @@ module PatternDeployer
         end
 
         if get_state_by_type(type_of_state) != State::DEPLOY_FAIL
-          ''
+          ""
         else
-          attributes[error_type] || ''
+          attributes[error_type] || ""
         end
       end
 

@@ -43,7 +43,7 @@ module PatternDeployer
           if old_file.nil? || !FileUtils.compare_file(new_file, old_file)
             destination = get_cookbook_files_folder(user_id)
             FileUtils.mkdir_p(destination)
-            FileUtils.cp(file.get_file_path, destination)
+            FileUtils.cp(new_file, destination)
           end
         end
       end

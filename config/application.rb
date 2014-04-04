@@ -99,7 +99,7 @@ module PatternDeployer
     config.openstack = "openstack"
 
     # The deployment is not on any cloud
-    config.notcloud = "none"
+    config.cloud_unspecified = "unspecified"
 
     # The cloud provider this application support
     config.supported_clouds = [config.ec2, config.openstack]

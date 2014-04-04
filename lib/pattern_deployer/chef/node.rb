@@ -15,11 +15,13 @@
 # limitations under the License.
 #
 require 'pattern_deployer/chef/context'
+require 'pattern_deployer/cloud'
 require 'pattern_deployer/utils'
 
 module PatternDeployer
   module Chef
     class ChefNodeWrapper
+      include PatternDeployer::Cloud
       include PatternDeployer::Utils
 
       def initialize(node_name, node)
@@ -35,52 +37,40 @@ module PatternDeployer
         return @node[key]
       end
 
-      #def []=(key, value)
-      #  @node[key] = value
-      #end
-
-      def has_key?(key)
-        @node.has_key?(key)
-      end
-
-      def delete_key(key)
-        @node.delete(key)
-      end
-
       def save
         @node.save
       end
 
       def clear_prev_deployment
         %w{ is_success is_failed exception formatted_exception backtrace }.each do |key|
-          self.delete_key(key) if self.has_key?(key)
+          @node.delete(key)
         end
-        self.save
+        save
       end
 
       def deployment_published?
-        self.has_key?("is_success")
+        @node.key?("is_success")
       end
 
       def deployment_failed?
-        self.has_key?("is_failed") && self["is_failed"]
+        @node.key?("is_failed") && @node["is_failed"]
       end
 
       def get_server_ip
-        if self.has_key?("cloud")
-          return self["cloud"]["public_ipv4"]
-        elsif self.has_key?("ipaddress")
-          return self["ipaddress"]
+        if @node.key?("cloud")
+          @node["cloud"]["public_ipv4"]
+        elsif @node.key?("ipaddress")
+          @node["ipaddress"]
         else
           #nothing
         end
       end
 
       def get_private_ip
-        if self.has_key?("cloud")
-          return self["cloud"]["private_ipv4"]
-        elsif self.has_key?("ipaddress")
-          return self["ipaddress"]
+        if @node.key?("cloud")
+          @node["cloud"]["private_ipv4"]
+        elsif @node.key?("ipaddress")
+          @node["ipaddress"]
         else
           #nothing
         end
@@ -89,39 +79,28 @@ module PatternDeployer
       def get_db_admin_pwd(db_system)
         case db_system
         when "mysql"
-          if self["mysql"]
-            return self["mysql"]["server_root_password"]
-          end
+          @node["mysql"] && @node["mysql"]["server_root_password"]
         when "postgresql"
-          if self["postgresql"] && self["postgresql"]["password"]
-            return self["postgresql"]["password"]["postgres"]
-          end
+          @node["postgresql"] && @node["postgresql"]["password"] && @node["postgresql"]["password"]["postgres"]
         else
-          raise "Unexpected DBMS #{db_system}. Only 'mysql' or 'postgresql' is allowed"
+          nil
         end
-
-        nil
       end
 
       def get_instance_id(cloud)
-        case cloud
-        when Rails.application.config.ec2
-          return self["ec2"]["instance_id"] if self["ec2"]
-        when Rails.application.config.openstack
-          return self["openstack"]["instance_id"] if self["openstack"]
-        when Rails.application.config.notcloud
-          # nothing
+        if self.class.ec2?(cloud)
+          @node["ec2"] && @node["ec2"]["instance_id"]
+        elsif self.class.openstack?(cloud)
+          @node["openstack"] && @node["openstack"]["instance_id"]
         else
-          raise "unexpected cloud #{cloud}"
+          nil
         end
-
-        nil
       end
 
       def get_err_msg
-        if self["formatted_exception"]
-          msg = self["formatted_exception"]
-          trace = backtrace_to_s(self["backtrace"])
+        if @node["formatted_exception"]
+          msg = @node["formatted_exception"]
+          trace = backtrace_to_s(@node["backtrace"])
           "#{msg}\n#{trace}"
         else
           nil

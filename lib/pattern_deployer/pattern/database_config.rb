@@ -61,8 +61,10 @@ module PatternDeployer
         case configs['database']['system']
         when 'mysql'
           configs['database']['port'] ||= '3306'
+          configs['database']['admin_user'] = 'root'
         when 'postgresql'
           configs['database']['port'] ||= '5432'
+          configs['database']['admin_user'] = 'postgres'
         else
           # should not be reached
         end

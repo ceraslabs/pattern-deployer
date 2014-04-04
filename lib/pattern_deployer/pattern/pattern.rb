@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require 'pattern_deployer/cloud'
 require 'pattern_deployer/errors'
 require 'pattern_deployer/utils'
 require 'pattern_deployer/pattern/connection'
@@ -26,9 +27,10 @@ require 'xml'
 module PatternDeployer
   module Pattern
     class Pattern
+      include PatternDeployer::Cloud
+      include PatternDeployer::Errors
       include PatternDeployer::Utils
       include PatternDeployer::Utils::Xml
-      include PatternDeployer::Errors
 
       def initialize(topology_xml)
         @doc = self.class.validate_xml(topology_xml, Rails.application.config.schema_file)
@@ -60,13 +62,9 @@ module PatternDeployer
             raise XmlValidationError.new(:message => msg)
           end
         end
-        node_info
-      end
 
-      def get_provider(node)
-        provider = get_node_info(node)["cloud"]
-        provider ||= Rails.application.config.notcloud
-        provider
+        validate_node_info(node_info)
+        node_info
       end
 
       def get_database_connections
@@ -299,15 +297,15 @@ module PatternDeployer
       end
 
       def node_element?(element)
-        element.name == 'node'
+        element.name == "node"
       end
 
       def template_element?(element)
-        element.name == 'template'
+        element.name == "template"
       end
 
       def service_element?(element)
-        element.name == 'service'
+        element.name == "service"
       end
 
       def all_references(type)
@@ -324,6 +322,10 @@ module PatternDeployer
 
       def database_server?(element)
         element["name"] == "database_server"
+      end
+
+      def validate_node_info(node_info)
+        self.class.validate_cloud!(node_info["cloud"])
       end
 
     end

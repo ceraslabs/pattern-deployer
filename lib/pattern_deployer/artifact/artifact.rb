@@ -47,7 +47,7 @@ module PatternDeployer
         @record[:id]
       end
 
-      def select
+      def mark_selected
         @selected = true
       end
 

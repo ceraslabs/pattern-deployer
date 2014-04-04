@@ -24,6 +24,7 @@ class Topology < ActiveRecord::Base
   include NodesHelper
   include TemplatesHelper
   include PatternDeployer::Errors
+  include PatternDeployer::Utils
   include PatternDeployer::Deployer::State
 
   belongs_to :owner, :autosave => true, :class_name => "User", :foreign_key => "user_id", :inverse_of => :topologies
@@ -147,15 +148,9 @@ class Topology < ActiveRecord::Base
 
     deployer = get_deployer
     begin
-      success, @msg = deployer.undeploy(topology_xml, resources)
-    rescue Exception => ex
-      @msg ||= ""
-      @msg += "[#{Time.now}] #{ex.class.name}: #{ex.message}"
-      @msg += "Trace:\n"
-      @msg += ex.backtrace.join("\n")
-
-      #debug
-      puts @msg
+      deployer.undeploy(topology_xml, resources)
+    rescue StandardError => e
+      log e.message, e.backtrace
     ensure
       PatternDeployer::Deployer.delete(self.id)
       self.set_state(UNDEPLOY)

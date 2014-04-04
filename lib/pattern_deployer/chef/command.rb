@@ -14,8 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require 'pattern_deployer/utils'
 require 'pattern_deployer/chef/command_builder'
+require 'pattern_deployer/cloud'
+require 'pattern_deployer/utils'
 
 module PatternDeployer
   module Chef
@@ -27,6 +28,7 @@ module PatternDeployer
 
     class ChefCommand
       include CommandType
+      include PatternDeployer::Cloud
       include PatternDeployer::Utils
 
       def initialize(command_type, node_info, options = {})
@@ -180,7 +182,7 @@ module PatternDeployer
 
       def notify_observers(key, value)
         @observers.each do |observer|
-          observer.on_data(key, value)
+          observer.on_data(key, value) if observer.respond_to?(:on_data)
         end
       end
 
@@ -200,15 +202,15 @@ module PatternDeployer
       end
 
       def ec2?
-        @node_info["cloud"].downcase == Rails.application.config.ec2
+        self.class.ec2?(@node_info["cloud"])
       end
 
       def openstack?
-        @node_info["cloud"].downcase == Rails.application.config.openstack
+        self.class.openstack?(@node_info["cloud"])
       end
 
       def cloud_unspecified?
-        @node_info["cloud"].nil? || @node_info["cloud"].downcase == Rails.application.config.notcloud
+        self.class.cloud_unspecified?(@node_info["cloud"])
       end
 
       def command_output

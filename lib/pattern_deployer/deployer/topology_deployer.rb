@@ -66,8 +66,8 @@ module PatternDeployer
         end
 
         def delete
-          @to[get_type].delete(@from.get_id) if @to.has_key?(get_type) && @to[get_type].include?(@from.get_id)
-          @to.delete_key(@from.get_id) if @to.has_key?(@from.get_id)
+          @to[get_type].delete(@from.get_id) if @to.key?(get_type) && @to[get_type].include?(@from.get_id)
+          @to.delete_key(@from.get_id) if @to.key?(@from.get_id)
         end
 
         def self.types
@@ -264,14 +264,7 @@ module PatternDeployer
         super(my_id, parent_deployer)
       end
 
-      def update(pattern, artifacts = nil)
-        super()
-        self.pattern = pattern
-        self.artifacts = artifacts if artifacts
-      end
-
-      def reset(pattern, artifacts = nil)
-        super()
+      def set_fields(pattern, artifacts = nil)
         self.pattern = pattern
         self.artifacts = artifacts if artifacts
       end
@@ -314,7 +307,8 @@ module PatternDeployer
       end
 
       def prepare_deploy(pattern, artifacts)
-        self.reset(pattern, artifacts)
+        reset
+        set_fields(pattern, artifacts)
         initialize_deployment_graph(:reset_children => true)
         establish_connection
         validate_deployment!
@@ -331,7 +325,8 @@ module PatternDeployer
       end
 
       def prepare_scale(pattern, artifacts, nodes, diff)
-        self.update(pattern, artifacts)
+        update
+        set_fields(pattern, artifacts)
         initialize_deployment_graph
         establish_connection
 
@@ -367,8 +362,8 @@ module PatternDeployer
       end
 
       def prepare_repair(pattern, artifacts)
-        self.update(pattern, artifacts)
-
+        update
+        set_fields(pattern, artifacts)
         initialize_deployment_graph
         establish_connection
 
@@ -408,21 +403,20 @@ module PatternDeployer
       end
 
       def undeploy(pattern, artifacts)
-        self.update(pattern, artifacts)
+        update
+        set_fields(pattern, artifacts)
         initialize_child_deployers
 
         super()
         self.pattern = nil
         self.artifacts = nil
         @vertice = nil
-
-        save_all
       end
 
       def list_nodes(pattern)
-        self.primary_deployer? ? self.update(pattern) : self.pattern = pattern
-
-        initialize_child_deployers(:update_children => !self.primary_deployer?)
+        update unless primary_deployer?
+        set_fields(pattern)
+        initialize_child_deployers(:update_children => !primary_deployer?)
 
         get_children.map do |child|
           node = OpenStruct.new
@@ -468,7 +462,8 @@ module PatternDeployer
       end
 
       def initialize_child_deployers(options={})
-        update_children = options.has_key?(:update_children) ? options[:update_children] : true
+        reset_children = options.key?(:reset_children) ? options[:reset_children] : false
+        update_children = options.key?(:update_children) ? options[:update_children] : true
 
         child_deployers = Array.new
         pattern.get_nodes.each do |node_id|
@@ -480,13 +475,14 @@ module PatternDeployer
           pattern.get_all_copies(node_id).each do |deployer_name|
             child = get_child_by_name(deployer_name)
             child = ChefNodeDeployer.new(deployer_name, self) if child.nil?
-            if options[:reset_children]
-              child.reset(node_info.clone, services, artifacts)
+            if reset_children
+              child.reset
+              child.set_fields(node_info, services, artifacts)
             elsif update_children
-              child.update(node_info.clone, services, artifacts)
+              child.update
+              child.set_fields(node_info, services, artifacts)
             else
-              child.node_info ||= node_info.clone
-              child.services ||= services
+              child.set_fields_if_not_before(node_info, services, artifacts)
             end
             child.set_web_server_configs(web_server_configs) if web_server_configs
             child.set_database_configs(database_configs) if database_configs
@@ -582,7 +578,8 @@ module PatternDeployer
           (num_of_copies + 1 .. num_of_copies + how_many).each do |rank|
             extended_node_id = self.class.join(node_id, rank)
             node_deployer = ChefNodeDeployer.new(extended_node_id, self)
-            node_deployer.reset(node_info.clone, services, artifacts)
+            node_deployer.reset
+            node_deployer.set_fields(node_info, services, artifacts)
             self << node_deployer
             new_vertex = Vertex.new(extended_node_id, node_deployer, self)
             load_vertice_data(new_vertex)
@@ -652,9 +649,9 @@ module PatternDeployer
         sample_vertex = get_sample_vertex(new_vertex)
         ["port_redir", FileType::WAR_FILE, "database", FileType::SQL_SCRIPT_FILE, "credential_id",
          "war_file_id", "sql_script_file_id", "identity_file_id"].each do |attr_key|
-          next if not sample_vertex.has_key?(attr_key)
+          next if not sample_vertex.key?(attr_key)
           begin
-            new_vertex[attr_key] = sample_vertex[attr_key].clone
+            new_vertex[attr_key] = sample_vertex[attr_key].deep_dup
           rescue TypeError
             new_vertex[attr_key] = sample_vertex[attr_key]
           end

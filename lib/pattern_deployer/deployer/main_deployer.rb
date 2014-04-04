@@ -40,14 +40,14 @@ module PatternDeployer
 
       def prepare_deploy(topology_xml, artifacts)
         lock_topology do
-          self.reset
-          self.initialize_child_deployers
+          reset
+          initialize_child_deployers
           pattern = Pattern.new(topology_xml)
           # This will set the state of current deployer to 'DEPLOYING',
           # and call 'prepare_deployer' of each child deployer.
           super(pattern, artifacts)
 
-          self.save
+          save
         end
       end
 
@@ -60,13 +60,13 @@ module PatternDeployer
 
       def prepare_scale(topology_xml, artifacts, nodes, diff)
         lock_topology do
-          self.update
+          update
           initialize_child_deployers
           prepare_update_deployment
           pattern = Pattern.new(topology_xml)
           @topology_deployer.prepare_scale(pattern, artifacts, nodes, diff)
 
-          self.save
+          save
         end
       end
 
@@ -80,13 +80,13 @@ module PatternDeployer
 
       def prepare_repair(topology_xml, artifacts)
         lock_topology do
-          self.update
+          update
           initialize_child_deployers
           prepare_update_deployment
           pattern = Pattern.new(topology_xml)
           @topology_deployer.prepare_repair(pattern, artifacts)
 
-          self.save
+          save
         end
       end
 
@@ -99,34 +99,31 @@ module PatternDeployer
 
       def undeploy(topology_xml, artifacts)
         lock_topology do
-          self.update
+          update
           initialize_child_deployers
           pattern = Pattern.new(topology_xml)
-          @topology_deployer.undeploy(pattern, artifacts)
-          @topology_deployer = nil
-
-          self.save
+          super(pattern, artifacts)
         end
       end
 
       def list_nodes(topology_xml)
         lock_topology(:read_only => true) do
-          self.update unless self.primary_deployer?
+          update unless primary_deployer?
 
           if get_deploy_state != State::UNDEPLOY
             initialize_child_deployers
             pattern = Pattern.new(topology_xml)
-            return @topology_deployer.list_nodes(pattern)
+            @topology_deployer.list_nodes(pattern)
           else
-            return Array.new
+            Array.new
           end
         end
       end
 
       def get_state
         lock_topology(:read_only => true) do
-          self.update unless self.primary_deployer?
-          self.get_update_state == State::UNDEPLOY ? self.get_deploy_state : self.get_update_state
+          update unless primary_deployer?
+          get_update_state == State::UNDEPLOY ? get_deploy_state : get_update_state
         end
       end
 
@@ -139,30 +136,26 @@ module PatternDeployer
       end
 
       def run(method)
-        case method
-        when METHOD::DEPLOY
-          is_deploy = true
-        when METHOD::SCALE, METHOD::REPAIR
-          is_deploy = false
-        else
-          msg = "unexpected method #{method}"
-          raise InternalServerError.new(:message => msg)
-        end
+        is_deploy = case method
+                    when METHOD::DEPLOY then true
+                    when METHOD::SCALE, METHOD::REPAIR then false
+                    else
+                      msg = "unexpected method #{method}"
+                      raise InternalServerError.new(:message => msg)
+                    end
         MainDeployersManager.instance.add_active_deployer(self)
 
-        # This does the actual 'run'.
+        # Performs the actual 'run'.
         @topology_deployer.send(method)
 
-        # wait for deployment finish and do error checking
-        unless wait_to_finish
-          raise DeploymentTimeoutError.new
-        end
+        # Wait for completion of running and do error checking.
+        raise DeploymentTimeoutError.new unless wait_to_finish
         raise get_children_error if failed?
         is_deploy ? on_deploy_success : on_update_success
-      rescue Exception => ex
-        is_deploy ? on_deploy_failed(ex.message) : on_update_failed(ex.message)
-        # debug
-        log ex.message, ex.backtrace
+      rescue Exception => e
+        is_deploy ? on_deploy_failed(e.message) : on_update_failed(e.message)
+        log e.message, e.backtrace #DEBUG
+        raise e
       ensure
         MainDeployersManager.instance.delete_active_deployer(self)
       end
@@ -179,7 +172,7 @@ module PatternDeployer
         prefix = self.class.get_id_prefix
         user_id = topology.owner.id
         topology_id = topology.topology_id
-        self.class.join(prefix, 'user', user_id, 'main', topology_id)
+        self.class.join(prefix, "user", user_id, "main", topology_id)
       end
 
       def initialize_child_deployers

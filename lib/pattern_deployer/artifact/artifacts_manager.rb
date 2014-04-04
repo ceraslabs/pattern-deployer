@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 require 'pattern_deployer/artifact/artifact'
+require 'pattern_deployer/cloud'
 
 module PatternDeployer
   module Artifact
@@ -39,11 +40,11 @@ module PatternDeployer
       end
 
       def find_ec2_credential
-        find_credential(Rails.application.config.ec2)
+        find_credential(Cloud::EC2)
       end
 
       def find_openstack_credential
-        find_credential(Rails.application.config.openstack)
+        find_credential(Cloud::OPENSTACK)
       end
 
       def find_credential_by_id(id)
@@ -65,7 +66,7 @@ module PatternDeployer
           artifact.type == KEY_PAIR && cloud.casecmp(artifact.for_cloud) == 0
         end
         keypair = select_one(keypairs)
-        keypair ? keypair.key_pair_id : nil
+        keypair && keypair.key_pair_id
       end
 
       def find_file_by_id(id)
