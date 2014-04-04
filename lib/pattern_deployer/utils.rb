@@ -27,37 +27,49 @@ module PatternDeployer
       def join(*tokens)
         tokens.join("-")
       end
+
+      def to_bool(obj)
+        if obj.class == String
+          "true".casecmp(obj) == 0
+        else
+          !!obj
+        end
+      end
+
+      def log(msg, trace = nil)
+        @logger ||= Logger.new(STDOUT)
+        output = "#{msg}"
+        output << "\n#{backtrace_to_s(trace)}" if trace
+        @logger.info(output)
+      end
+
+      def backtrace_to_s(trace)
+        if trace.kind_of?(Array)
+          output = ""
+          if trace.size <= 10
+            output << trace.join("\n")
+          else
+            output << trace[0..20].join("\n")
+            output << "\n............"
+          end
+          output
+        else
+          nil
+        end
+      end
     end
 
     # instance methods
     def to_bool(obj)
-      if obj.class == String
-        "true".casecmp(obj) == 0
-      else
-        !!obj
-      end
+      self.class.to_bool(obj)
     end
 
     def log(msg, trace = nil)
-      @logger ||= Logger.new(STDOUT)
-      output = "#{msg}"
-      output += "\n#{backtrace_to_s(trace)}" if trace
-      @logger.info(output)
+      self.class.log(msg, trace)
     end
 
     def backtrace_to_s(trace)
-      if trace.kind_of?(Array)
-        output = ""
-        if trace.size <= 10
-          output += trace.join("\n")
-        else
-          output += trace[0..20].join("\n")
-          output += "\n............"
-        end
-        output
-      else
-        nil
-      end
+      self.class.backtrace_to_s(trace)
     end
 
   end
