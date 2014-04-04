@@ -30,11 +30,15 @@ module PatternDeployer
       end
 
       def get_name
-        return @node_name
+        @node_name
       end
 
       def [](key)
-        return @node[key]
+        @node[key]
+      end
+
+      def key?(key)
+        @node.key?(key)
       end
 
       def save
