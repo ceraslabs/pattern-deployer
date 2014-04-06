@@ -55,9 +55,9 @@ class Credential < ActiveRecord::Base
   protected
 
   def credential_mutable
-    if self.topologies.any?{ |t| t.state != State::UNDEPLOY }
-      msg = "Credential #{credential_id} cannot be modified. Please make sure it is not being used by any topology"
-      raise ParametersValidationError.new(:message => msg)
+    if self.topologies.any? { |t| t.state != State::UNDEPLOY }
+      msg = "Credential #{credential_id} cannot be modified. Please make sure it is not being used by any topology."
+      fail InvalidOperationError, msg
     end
   end
 

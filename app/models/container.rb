@@ -34,7 +34,7 @@ class Container < ActiveRecord::Base
   validate :container_mutable
 
   after_initialize :set_default_values
-  before_destroy :container_destroyable!
+  before_destroy :container_destroyable
 
 
   def update_container_attributes(container_element)
@@ -45,7 +45,8 @@ class Container < ActiveRecord::Base
         node = create_node_scaffold(element, self, self.owner)
         node.update_node_attributes(element)
       else
-        raise XmlValidationError.new(:message => "unexpect element '#{element.to_s}', only element of name 'node' can be child element of container")
+        msg = "Only element of name 'node' can be child element of container. Invalid element: #{element}."
+        fail PatternValidationError, msg
       end
     end
 
@@ -89,10 +90,10 @@ class Container < ActiveRecord::Base
     end
   end
 
-  def container_destroyable!
+  def container_destroyable
     if get_topology.locked?
-      msg = "Container #{container_id} cannot be destroyed. Please make sure its topology is not deployed or deploying"
-      raise ParametersValidationError.new(:message => msg)
+      msg = "Container #{container_id} cannot be destroyed. Please make sure its topology is not deployed or deploying."
+      fail InvalidOperationError, msg
     end
   end
 

@@ -39,7 +39,7 @@ class Template < ActiveRecord::Base
 
   serialize :attrs, Hash
 
-  before_destroy :template_destroyable!
+  before_destroy :template_destroyable
   before_destroy :delete_templates_inherit_from_this
 
   def rename(name)
@@ -49,7 +49,8 @@ class Template < ActiveRecord::Base
   def extend(template_id)
     can_extend = self.base_templates.find_all_by_template_id(template_id).empty?
     unless can_extend
-      raise ParametersValidationError.new(:message => "The base template have already been extended by current template")
+      msg = "The base template have already been extended by current template."
+      fail ParametersValidationError, msg
     end
 
     base_template = topology.templates.find_by_template_id!(template_id)
@@ -59,7 +60,8 @@ class Template < ActiveRecord::Base
   def unextend(template_id)
     can_unextend = !!self.base_templates.find_by_template_id(template_id)
     unless can_unextend
-      raise ParametersValidationError.new(:message => "The base template is not extended by current template before")
+      msg = "The base template is not extended by current template before."
+      fail ParametersValidationError, msg
     end
 
     self.base_templates.delete topology.templates.find_by_template_id!(template_id)
@@ -70,7 +72,7 @@ class Template < ActiveRecord::Base
   end
 
   def remove_attr(key)
-    raise ParametersValidationError.new(:message => "The attribute key doesnot exist") unless self.attrs.has_key?(key)
+    fail ParametersValidationError, "The attribute key doesnot exist." unless self.attrs.has_key?(key)
     self.attrs.delete key
   end
 
@@ -86,8 +88,8 @@ class Template < ActiveRecord::Base
         template_attr = xml_element_to_hash(element)
         self.attrs.merge!(template_attr)
       else
-        err_msg = "Invalid template element: #{element.to_s}"
-        raise XmlValidationError.new(:message => err_msg)
+        err_msg = "Invalid template element: #{element}."
+        fail PatternValidationError, err_msg
       end
     end
 
@@ -99,26 +101,26 @@ class Template < ActiveRecord::Base
       if element.name == "extend"
         base_template_name = element["template"]
         unless base_template_name
-          err_msg = "The element #{element.to_s} does not contain attribute 'template'"
-          raise XmlValidationError.new(:message => err_msg)
+          err_msg = "The element #{element} does not contain attribute 'template'."
+          fail PatternValidationError, err_msg
         end
 
         if base_template_name == self.template_id
-          err_msg = "The template #{base_template_name} extend itself"
-          raise XmlValidationError.new(:message => err_msg)
+          err_msg = "The template #{base_template_name} extend itself."
+          fail PatternValidationError, err_msg
         end
 
         self.base_templates.each do |my_base_template|
           if my_base_template.template_id == base_template_name
-            err_msg = "The template #{base_template_name} have already been extended"
-            raise XmlValidationError.new(:message => err_msg)
+            err_msg = "The template #{base_template_name} have already been extended."
+            fail PatternValidationError, err_msg
           end
         end
 
         base_template = Template.where(:topology_id => topology.id, :template_id => base_template_name).first
         unless base_template
-          err_msg = "Cannot find template #{base_template_name} within topology #{topology.topology_id}"
-          raise XmlValidationError.new(:message => err_msg)
+          err_msg = "Cannot find template #{base_template_name} within topology #{topology.topology_id}."
+          fail PatternValidationError, err_msg
         end
 
         self.base_templates << base_template
@@ -156,10 +158,10 @@ class Template < ActiveRecord::Base
     end
   end
 
-  def template_destroyable!
+  def template_destroyable
     if get_topology.locked?
-      msg = "Template #{template_id} cannot be destroyed. Please make sure its topology is not deployed or deploying"
-      raise ParametersValidationError.new(:message => msg)
+      msg = "Template #{template_id} cannot be destroyed. Please make sure its topology is not deployed or deploying."
+      fail InvalidOperationError, msg
     end
   end
 

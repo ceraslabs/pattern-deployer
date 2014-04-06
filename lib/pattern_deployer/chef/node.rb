@@ -16,12 +16,14 @@
 #
 require 'pattern_deployer/chef/context'
 require 'pattern_deployer/cloud'
+require 'pattern_deployer/errors'
 require 'pattern_deployer/utils'
 
 module PatternDeployer
   module Chef
     class ChefNodeWrapper
       include PatternDeployer::Cloud
+      include PatternDeployer::Errors
       include PatternDeployer::Utils
 
       def initialize(node_name, node)
@@ -101,11 +103,13 @@ module PatternDeployer
         end
       end
 
-      def get_err_msg
-        if @node["formatted_exception"]
-          msg = @node["formatted_exception"]
-          trace = backtrace_to_s(@node["backtrace"])
-          "#{msg}\n#{trace}"
+      def get_remote_exception
+        msg = @node["formatted_exception"]
+        backtrace = @node["backtrace"]
+        if msg
+          exception = RemoteError.new(msg)
+          exception.set_backtrace(backtrace) if backtrace
+          exception
         else
           nil
         end

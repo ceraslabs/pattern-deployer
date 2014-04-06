@@ -23,13 +23,13 @@ module ContainersHelper
 
   def validate_container_element!(element)
     unless element.name == "container"
-      err_msg = "The root element is not of name 'container'. The invalid XML documnet is: #{element.to_s}"
-      raise XmlValidationError.new(:message => err_msg)
+      err_msg = "The root element is not of name 'container'. The invalid XML documnet is: #{element}."
+      fail PatternValidationError, err_msg
     end
 
     unless element["id"]
-      err_msg = "The container element doesnot have attribute 'id'. The invalid XML documnet is: #{element.to_s}"
-      raise XmlValidationError.new(:message => err_msg)
+      err_msg = "The container element doesnot have attribute 'id'. The invalid XML documnet is: #{element}."
+      fail PatternValidationError, err_msg
     end
   end
 

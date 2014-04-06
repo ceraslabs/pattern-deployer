@@ -129,15 +129,15 @@ class UploadedFilesController < RestfulController
     if file_type = params[:file_type]
       file_type = file_type.downcase
     else
-      err_msg = "The request doesnot container parameter 'file_type'"
-      raise ParametersValidationError.new(:message => err_msg)
+      err_msg = "The request doesnot container parameter 'file_type'."
+      fail ParametersValidationError, err_msg
     end
 
     if file_io = params[:file]
       default_file_name = file_io.original_filename
     else
-      err_msg = "The request doesnot container parameter 'file'"
-      raise ParametersValidationError.new(:message => err_msg)
+      err_msg = "The request doesnot container parameter 'file'."
+      fail ParametersValidationError, err_msg
     end
 
     if file_type == "identity_file"
@@ -152,8 +152,8 @@ class UploadedFilesController < RestfulController
       @file = SqlScriptFile.new(:file_name => params[:file_name] || default_file_name,
                                 :owner => current_user)
     else
-      err_msg = "Unsupported type of file #{file_type}, only 'identity_file', 'war_file', or 'sql_script_file' is supported"
-      raise ParametersValidationError.new(:message => err_msg)
+      err_msg = "Unsupported type of file #{file_type}, only 'identity_file', 'war_file', or 'sql_script_file' is supported."
+      fail ParametersValidationError, err_msg
     end
 
     @file.upload(file_io)
@@ -161,7 +161,9 @@ class UploadedFilesController < RestfulController
     if @file.save
       render :formats => "json", :action => "show"
     else
-      raise ParametersValidationError.new(:ar_obj => @file)
+      error = ParametersValidationError.new
+      error.active_recrod = @file
+      fail error
     end
   end
 
@@ -249,22 +251,22 @@ class UploadedFilesController < RestfulController
   def update
     operation = params[:operation]
     if operation.nil?
-      err_msg = "Parameter 'operation' is missing"
-      raise ParametersValidationError.new(:message => err_msg)
+      err_msg = "Parameter 'operation' is missing."
+      fail ParametersValidationError, err_msg
     end
 
     @file = UploadedFile.find(params[:id])
 
     case operation
     when FileOp::RENAME
-      raise ParametersValidationError.new(:message => "parameter 'file_name' is missing") unless params[:file_name]
+      fail ParametersValidationError, "parameter 'file_name' is missing." unless params[:file_name]
       @file.rename(params[:file_name])
     when FileOp::REUPLOAD
-      raise ParametersValidationError.new(:message => "parameter 'file' is missing") unless params[:file]
+      fail ParametersValidationError, "parameter 'file' is missing." unless params[:file]
       @file.reupload(params[:file])
     else
-      err_msg = "Invalid operation. Supported operations are #{get_operations(FileOp).join(',')}"
-      raise ParametersValidationError.new(:message => err_msg)
+      err_msg = "Invalid operation. Supported operations are #{get_operations(FileOp).join(',')}."
+      fail ParametersValidationError, err_msg
     end
 
     render :formats => "json", :action => "show"

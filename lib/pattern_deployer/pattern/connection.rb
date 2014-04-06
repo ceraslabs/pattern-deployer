@@ -43,8 +43,7 @@ module PatternDeployer
             monitoring_client: sink_node
           }
         else
-          msg = "The reference type '#{ref_type}' is invalid or not defined"
-          raise InternalServerError.new(:message => msg)
+          fail "The reference type '#{ref_type}' is invalid or undefined."
         end
 
         OpenStruct.new(connection)

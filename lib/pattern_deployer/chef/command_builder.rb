@@ -81,7 +81,7 @@ module PatternDeployer
         command += "--region #{region} " if region
         command += build_auth_info
 
-        command += super()
+        command += super
         command
       end
 
@@ -98,7 +98,8 @@ module PatternDeployer
         access_key_id = @node_info["aws_access_key_id"]
         secret_access_key = @node_info["aws_secret_access_key"]
         if access_key_id.nil? || secret_access_key.nil?
-          raise ParametersValidationError.new(:message => "EC2 auth info missing")
+          msg = "Unexpected missing of EC2 credential for node '#{@node_name}'."
+          fail msg
         end
 
         command = "-A #{access_key_id} "
@@ -139,7 +140,7 @@ module PatternDeployer
           command += "--openstack-hints '#{str_hints}' "
         end
 
-        command += super()
+        command += super
         command
       end
 
@@ -158,9 +159,9 @@ module PatternDeployer
         password = @node_info["openstack_password"]
         tenant   = @node_info["openstack_tenant"]
         endpoint = @node_info["openstack_endpoint"]
-        if [username, password, tenant, endpoint].any?{|v| v.nil?}
-          raise ParametersValidationError.new(:message => "openstack auth info missing")
-        end
+
+        missing = [username, password, tenant, endpoint].any? { |v| v.nil? }
+        fail "Unexpected missing of openstack credential for node '#{@node_name}'." if missing
 
         command = "-A #{username} "
         command += "-K #{password} "
@@ -178,15 +179,12 @@ module PatternDeployer
       end
 
       def build_create_command
-        if @server_ip.nil?
-          msg = "Cannot update node #{@node_name}, since its ip is not available"
-          raise ParametersValidationError.new(:message => msg)
-        end
+        fail "Unexpected missing of server's IP for node '#{@node_name}'." if @server_ip.nil?
 
         command = "knife bootstrap "
         command += "#{@server_ip} "
         command += "--sudo "
-        command += super()
+        command += super
         command
       end
 

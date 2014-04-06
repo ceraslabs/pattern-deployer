@@ -215,9 +215,7 @@ module PatternDeployer
         is_deploy = case command
                     when ChefCommand::DEPLOY then true
                     when ChefCommand::UPDATE then false
-                    else
-                      msg = "Unexpected chef command #{command}"
-                      raise InternalServerError.new(msg)
+                    else fail "Unexpected chef command #{command}."
                     end
         if node_info["server_ip"].nil? && get_server_ip
           node_info["server_ip"] = get_server_ip
@@ -231,17 +229,14 @@ module PatternDeployer
         assert_execution_success
         is_deploy ? on_deploy_success : on_update_success
       rescue Exception => e
+        log e.message, e.backtrace # DEBUG
         msg = self.class.build_err_msg(e, self)
         is_deploy ? on_deploy_failed(msg) : on_update_failed(msg)
-        log e.message, e.backtrace # DEBUG
         raise e
       end
 
       def assert_execution_success(timeout = 60)
-        unless @chef_command.finished?
-          msg = "Chef command haven't been executed or it is not finished"
-          raise DeploymentError.new(:message => msg)
-        end
+        fail "Chef command is not finished." unless @chef_command.finished?
 
         for i in 1..timeout
           chef_node = get_chef_node
@@ -260,9 +255,9 @@ module PatternDeployer
           log "Chef node didn't publish deployment? #{chef_node.deployment_published?}" if chef_node
           log "Chef node indicated deployment failure? #{chef_node.deployment_failed?}" if chef_node
 
-          msg = @chef_command.get_err_msg
-          inner_msg = chef_node && chef_node.get_err_msg
-          raise DeploymentError.new(:message => msg, :inner_message => inner_msg)
+          error = DeploymentError.new(@chef_command.get_err_msg)
+          error.remote_exception = chef_node && chef_node.get_remote_exception
+          fail error
         end
       end
 
@@ -311,8 +306,8 @@ module PatternDeployer
           identity_file["id"] ||= file.get_id
         else
           if ec2? || openstack?
-            msg = "No identity file for authenticating '#{deployer_id}' with cloud '#{cloud}'"
-            raise DeploymentError.new(:message => msg)
+            msg = "No identity file for authenticating '#{deployer_id}' with cloud '#{cloud}'."
+            fail NotFoundError, msg
           else
             # no action needed
           end
@@ -347,8 +342,8 @@ module PatternDeployer
           cloud_credential["id"] ||= credential.get_id
         else
           if ec2? || openstack?
-            err_msg = "Cannot find any credential to authenticate to #{cloud}, please upload your credential first."
-            raise DeploymentError.new(:message => msg)
+            msg = "Cannot find any credential to authenticate to #{cloud}, please upload your credential first."
+            fail NotFoundError, msg
           else
             # no action needed
           end
@@ -385,8 +380,7 @@ module PatternDeployer
             cookbook.add_or_update_file(file, topology_owner_id)
             attributes[file_type]["id"] ||= file.get_id
           else
-            err_msg = "Cannot file of type #{file_type}. Please upload one before deploy"
-            raise DeploymentError.new(:message => err_msg)
+            fail NotFoundError, "Cannot file of type #{file_type}. Please upload one before deploy."
           end
         end
       end

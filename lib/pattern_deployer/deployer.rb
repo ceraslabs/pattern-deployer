@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require 'pattern_deployer/deployer/attribute'
 require 'pattern_deployer/deployer/base_deployer'
 require 'pattern_deployer/deployer/chef_node_deployer'
 require 'pattern_deployer/deployer/main_deployer'

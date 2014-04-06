@@ -20,19 +20,19 @@ module TopologiesHelper
   include PatternDeployer::Deployer::State
 
   def create_topology_scaffold(element, owner)
-    validate_topology_element!(element)
+    validate_topology_element(element)
     Topology.create!(:topology_id => element["id"], :owner => owner, :state => UNDEPLOY)
   end
 
-  def validate_topology_element!(element)
+  def validate_topology_element(element)
     unless element.name == "topology"
-      err_msg = "The root element is not of name 'topology'. The invalid XML documnet is: #{element.to_s}"
-      raise XmlValidationError.new(:message => err_msg)
+      err_msg = "The root element is not of name 'topology'. The invalid XML documnet is: #{element}."
+      fail PatternValidationError, err_msg
     end
 
     unless element["id"]
-      err_msg = "The topology element doesnot have attribute 'id'. The invalid XML documnet is: #{element.to_s}"
-      raise XmlValidationError.new(:message => err_msg)
+      err_msg = "The topology element doesnot have attribute 'id'. The invalid XML documnet is: #{element}."
+      fail PatternValidationError, err_msg
     end
   end
 

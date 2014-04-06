@@ -385,29 +385,29 @@ class NodesController < RestfulController
 
     operation = params[:operation]
     if operation.nil?
-      err_msg = "Parameter 'operation' is missing"
-      raise ParametersValidationError.new(:message => err_msg)
+      err_msg = "Parameter 'operation' is missing."
+      fail ParametersValidationError, err_msg
     end
 
     case operation
     when NodeOp::RENAME
-      raise ParametersValidationError.new(:message => "Parameter name is missing") unless params[:name]
+      fail ParametersValidationError, "Parameter name is missing." unless params[:name]
       @node.rename(params[:name])
     when NodeOp::ADD_TEMPLATE
-      raise ParametersValidationError.new(:message => "Parameter template is missing") unless params[:template]
+      fail ParametersValidationError, "Parameter template is missing." unless params[:template]
       @node.add_template(params[:template])
     when NodeOp::REMOVE_TEMPLATE
-      raise ParametersValidationError.new(:message => "Parameter template is missing") unless params[:template]
+      fail ParametersValidationError, "Parameter template is missing." unless params[:template]
       @node.remove_template(params[:template])
     when NodeOp::SET_ATTR
-      raise ParametersValidationError.new(:message => "Cannot find attribute's key or value to set") unless params[:attribute_key] && params[:attribute_value]
+      fail ParametersValidationError, "Cannot find attribute's key or value to set." unless params[:attribute_key] && params[:attribute_value]
       @node.set_attr(params[:attribute_key], params[:attribute_value])
     when NodeOp::REMOVE_ATTR
-      raise ParametersValidationError.new(:message => "Cannot find attribute's key to remove") unless params[:attribute_key]
+      fail ParametersValidationError, "Cannot find attribute's key to remove." unless params[:attribute_key]
       @node.remove_attr(params[:attribute_key])
     else
-      err_msg = "Invalid operation. Supported operations are #{get_operations(NodeOp).join(',')}"
-      raise ParametersValidationError.new(:message => err_msg)
+      err_msg = "Invalid operation. Supported operations are #{get_operations(NodeOp).join(',')}."
+      fail ParametersValidationError, err_msg
     end
 
     @pattern = get_pattern(@node)
@@ -428,8 +428,8 @@ class NodesController < RestfulController
     end
 
     node
-  rescue ActiveRecord::RecordInvalid => ex
-    raise XmlValidationError.new(:message => ex.message, :inner_exception => ex)
+  rescue ActiveRecord::RecordInvalid => e
+    fail PatternValidationError, e.message, e.backtrace
   end
 
   def get_list_resources(topology_id, container_id)
@@ -445,8 +445,8 @@ class NodesController < RestfulController
   end
 
   def get_resource(topology_id, container_id, node_id)
-    topology, container, nodes = get_list_resources topology_id, container_id
-    node = find_resource_by_id! nodes, node_id
+    topology, container, nodes = get_list_resources(topology_id, container_id)
+    node = find_resource_by_id!(nodes, node_id)
 
     return topology, container, node
   end

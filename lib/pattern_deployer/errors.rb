@@ -16,117 +16,91 @@
 #
 module PatternDeployer
   module Errors
-    class PatternDeployerError < StandardError
-      def initialize(message, error_type, http_error_code, inner_exception = nil)
+    class PatternDeployerError < StandardError; end
+
+    class ApiError < PatternDeployerError
+      attr_accessor :error_type, :http_error_code
+
+      def initialize(message, http_error_code)
         super(message)
-        @error_type = error_type
-        @http_error_code = http_error_code
-        @inner_exception = inner_exception
+        self.http_error_code = http_error_code
+        self.error_type = self.class.name.demodulize
       end
 
-      def error_type
-        @error_type
-      end
-
-      def http_error_code
-        @http_error_code
-      end
-
-      def get_inner_exception
-        @inner_exception
+      def self.create(error)
+        bad_request = new(error.message)
+        bad_request.set_backtrace(error.backtrace)
+        bad_request.error_type = error.class.name.demodulize if error.kind_of?(PatternDeployerError)
+        bad_request
       end
     end
 
-    class ParametersValidationError < PatternDeployerError
-      DEFAULT_MSG = "The request parameter(s) is/are invalid"
-
-      def initialize(options = {})
-        message = DEFAULT_MSG
-        message = options[:message] if options[:message]
-        message = options[:ar_obj].errors.full_messages.join(";") if options[:ar_obj]
-
-        super(message, self.class.name.demodulize, 400, options[:inner_exception])
+    class BadRequestError < ApiError
+      def initialize(message)
+        super(message, 400)
       end
     end
 
-    class InvalidUrlError < PatternDeployerError
-      DEFAULT_MSG = "The request url doesnot match to any resources"
-
-      def initialize(options = {})
-        message = DEFAULT_MSG
-        message = options[:message] if options[:message]
-        super(message, self.class.name.demodulize, 404, options[:inner_exception])
+    class AccessDeniedError < ApiError
+      def initialize(message)
+        super(message, 403)
       end
     end
 
-    class XmlValidationError < PatternDeployerError
-      DEFAULT_MSG = "The request xml document is invalid"
+    class InvalidUrlError < ApiError
+      def initialize(message)
+        super(message, 404)
+      end
+    end
 
-      def initialize(options = {})
-        message = DEFAULT_MSG
-        message = options[:message] if options[:message]
-        message = options[:ar_obj].errors.full_messages.join(";") if options[:ar_obj]
-
-        super(message, self.class.name.demodulize, 400, options[:inner_exception])
+    class InternalServerError < ApiError
+      def initialize(message)
+        super(message, 500)
       end
     end
 
     class DeploymentError < PatternDeployerError
-      DEFAULT_MSG = "Deployment failed, please check the logs for details"
+      attr_accessor :remote_exception
 
-      def initialize(options = {})
-        message = DEFAULT_MSG
-        message = options[:message] if options[:message]
+      DEFAULT_MSG = "Deployment failed."
 
-        if options[:std_err]
-          message += "Capture output:"
-          message += "\n=================================================\n"
-          message += options[:std_err]
-          message += "\n=================================================\n"
-        end
-
-        @inner_message = options[:inner_message]
-
-        super(message, self.class.name.demodulize, 400, options[:inner_exception])
-      end
-
-      def get_inner_message
-        @inner_message
+      def initialize(message = DEFAULT_MSG)
+        super(message)
       end
     end
 
     class DeploymentTimeOutError < PatternDeployerError
-      DEFAULT_MSG = 'Deployment timeout'
+      DEFAULT_MSG = "Deployment timeout."
 
-      def initialize(options = {})
-        message = DEFAULT_MSG
-        message = options[:message] if options[:message]
-
-        super(message, self.class.name.demodulize, 400, options[:inner_exception])
+      def initialize(message = DEFAULT_MSG)
+        super(message)
       end
     end
 
-    class AccessDeniedError < PatternDeployerError
-      DEFAULT_MSG = "Permission denied, please contact the site admin to grant you permissions"
+    class InvalidOperationError < PatternDeployerError; end
 
-      def initialize(options = {})
-        message = DEFAULT_MSG
-        message = options[:message] if options[:message]
+    class NotFoundError < PatternDeployerError; end
 
-        super(message, self.class.name.demodulize, 403, options[:inner_exception])
+    class PatternValidationError < PatternDeployerError; end
+
+    class ParametersValidationError < PatternDeployerError
+      attr_accessor :active_record
+
+      DEFAULT_MSG = "The request parameter(s) is/are invalid."
+
+      def initialize(message = DEFAULT_MSG)
+        super(message)
+      end
+
+      def message
+        message = super
+        message << "\n"
+        message << active_record.errors.full_messages.join(";") if active_record
+        message
       end
     end
 
-    class InternalServerError < PatternDeployerError
-      DEFAULT_MSG = "Unexpected error"
-
-      def initialize(options = {})
-        message = DEFAULT_MSG
-        message = options[:message] if options[:message]
-
-        super(message, self.class.name.demodulize, 500, options[:inner_exception])
-      end
-    end
+    class RemoteError < PatternDeployerError; end
 
   end
 end

@@ -16,6 +16,7 @@
 #
 require 'pattern_deployer/artifact'
 require 'pattern_deployer/chef'
+require 'pattern_deployer/cloud'
 require 'pattern_deployer/deployer'
 require 'pattern_deployer/errors'
 require 'pattern_deployer/pattern'

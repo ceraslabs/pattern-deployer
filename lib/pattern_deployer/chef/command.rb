@@ -49,7 +49,7 @@ module PatternDeployer
         when UPDATE
           @command  = build_update_command
         else
-          raise "unexpected command type #{command_type}"
+          fail "Invalid command type #{command_type}."
         end
       end
 
@@ -65,7 +65,7 @@ module PatternDeployer
         elsif cloud_unspecified? && @server_ip
           command_builder = BootstrapCommandBuilder.new(@node_name, @node_info, @services, @server_ip)
         else
-          raise "Unexpected cloud #{@node_info["cloud"]}"
+          fail "Unexpected execution path."
         end
         command_builder.build_create_command
       end
@@ -81,7 +81,7 @@ module PatternDeployer
         elsif openstack?
           command_builder = OpenStackCommandBuilder.new(@node_name, @node_info, @services)
         else
-          raise "Unexpected cloud #{@node_info["cloud"]}"
+          fail "Unable to delete instance '#{instance_id}' in cloud '#{@node_info["cloud"]}'."
         end
         command_builder.build_delete_command(instance_id)
       end
@@ -89,9 +89,12 @@ module PatternDeployer
       def execute
         # avoid execute multiple knife commands at the same time
         sleep rand(10)
-        # execute
         log "About to execute command: #{@command}"
+
+        # execute
+        @success = nil
         @success = execute_and_cpature_output
+
         log "Command finished for deploying #{@node_name}"
         @success
       end

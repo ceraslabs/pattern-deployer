@@ -44,7 +44,7 @@ class Node < ActiveRecord::Base
   after_initialize :set_default_values
   after_create :set_topology
   after_save :set_topology
-  before_destroy :node_destroyable!
+  before_destroy :node_destroyable
 
 
   def rename(name)
@@ -55,8 +55,8 @@ class Node < ActiveRecord::Base
   def add_template(template_id)
     template = Template.where(:template_id => template_id).first 
     if template.nil?
-      err_msg = "Cannot find a template with name #{template_id}"
-      raise ParametersValidationError.new(:message => err_msg)
+      err_msg = "Cannot find a template with name #{template_id}."
+      fail ParametersValidationError, err_msg
     end
     templates << template
     self.save!
@@ -66,7 +66,7 @@ class Node < ActiveRecord::Base
     template = templates.where(:template_id => template_id).first
     if template.nil?
       err_msg = "The template '#{template_id}' was not added, so cannot remove."
-      raise ParametersValidationError.new(:message => err_msg)
+      fail ParametersValidationError, err_msg
     end
 
     templates.delete(template)
@@ -79,7 +79,7 @@ class Node < ActiveRecord::Base
   end
 
   def remove_attr(key)
-    raise ParametersValidationError.new(:message => "The attribute key doesnot exist") unless self.attrs.has_key?(key)
+    fail ParametersValidationError, "The attribute key doesnot exist." unless self.attrs.has_key?(key)
     self.attrs.delete(key)
     self.save!
   end
@@ -90,14 +90,13 @@ class Node < ActiveRecord::Base
       if element.name == "service"
         service = create_service_scaffold(element, self, self.owner)
         service.update_service_attributes(element)
-      elsif element.name == "nest_within" || element.name == "use_template"
+      elsif element.name == "use_template"
         next
       elsif hash_format?(element)
         node_attr = xml_element_to_hash(element)
         self.attrs.merge!(node_attr)
       else
-        err_msg = "Invalid node element: #{element.to_s}"
-        raise XmlValidationError.new(:message => err_msg)
+        fail PatternValidationError, "Invalid node element: #{element}."
       end
     end
 
@@ -109,43 +108,24 @@ class Node < ActiveRecord::Base
       if element.name == "use_template"
         template_name = element["name"]
         unless template_name
-          err_msg = "The 'use_template' element does not contain attribute 'name'"
-          raise XmlValidationError.new(:message => err_msg)
+          err_msg = "The 'use_template' element does not contain attribute 'name'."
+          fail PatternValidationError, err_msg
         end
 
         self.templates.each do |my_template|
           if my_template.template_id == template_name
-            err_msg = "The template #{template_name} have already been used"
-            raise XmlValidationError.new(:message => err_msg)
+            err_msg = "The template #{template_name} have already been used."
+            fail PatternValidationError, err_msg
           end
         end
 
         template = Template.where(:topology_id => get_topology.id, :template_id => template_name).first
         unless template
-          err_msg = "Cannot find template '#{template_name}' within topology '#{topology.topology_id}'"
-          raise XmlValidationError.new(:message => err_msg)
+          err_msg = "Cannot find template '#{template_name}' within topology '#{topology.topology_id}'."
+          fail PatternValidationError, err_msg
         end
 
         self.templates << template
-      elsif element.name == "nest_within"
-        container_node_id = element.attributes["node"]
-        unless container_node_id
-          err_msg = "The 'nest_within' element does not contain attribute 'node'"
-          raise XmlValidationError.new(:message => err_msg)
-        end
-
-        if self.node_id == container_node_id
-          err_msg = "The node #{self.node_id} is nest within itself"
-          raise XmlValidationError.new(:message => err_msg)
-        end
-
-        container_node = Node.where(:topology_id => topology.id, :node_id => container_node_id).first
-        unless container_node
-          err_msg = "Cannot find node #{container_node_id} within topology #{topology.topology_id}"
-          raise XmlValidationError.new(:message => err_msg)
-        end
-
-        self.container_node = container_node
       elsif element.name == "service"
         service = self.services.find_by_service_id!(element["name"])
         service.update_service_connections(element)
@@ -164,7 +144,7 @@ class Node < ActiveRecord::Base
     elsif parent_type == "Topology"
       return Topology.find(parent_id)
     else
-      raise "Unexpected parent type #{parent_type}"
+      fail "Unexpected parent type #{parent_type}."
     end
   end
 
@@ -195,10 +175,10 @@ class Node < ActiveRecord::Base
     end
   end
 
-  def node_destroyable!
+  def node_destroyable
     if get_topology.locked?
-      msg = "Node #{node_id} cannot be destroyed. Please make sure its topology is not deployed or deploying"
-      raise ParametersValidationError.new(:message => msg)
+      msg = "Node #{node_id} cannot be destroyed. Please make sure its topology is not deployed or deploying."
+      fail InvalidOperationError, msg
     end
   end
 

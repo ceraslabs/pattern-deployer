@@ -57,7 +57,7 @@ class UploadedFile < ActiveRecord::Base
       self.file_name = new_name
       @dirty = true
       self.save!
-    rescue Exception => ex
+    rescue Exception
       FileUtils.mv(temp_path, old_path) if File.exists?(temp_path)
       raise
     end
@@ -139,8 +139,8 @@ class UploadedFile < ActiveRecord::Base
 
   def file_mutable
     if self.topologies.any?{ |t| t.state != UNDEPLOY }
-      msg = "Uploaded file #{file_name} cannot be modified. Please make sure it is not being used by any topology"
-      raise ParametersValidationError.new(:message => msg)
+      msg = "Uploaded file #{file_name} cannot be modified. Please make sure it is not being used by any topology."
+      fail InvalidOperationError, msg
     end
   end
 

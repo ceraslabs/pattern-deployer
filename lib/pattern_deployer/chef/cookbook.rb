@@ -92,7 +92,7 @@ module PatternDeployer
       end
 
       def lock
-        raise "Unexpected missing of block" unless block_given?
+        fail "Unexpected missing of block" unless block_given?
 
         FileUtils.mkdir_p(File.dirname(lock_file))
         File.open(lock_file, "w") do |file|

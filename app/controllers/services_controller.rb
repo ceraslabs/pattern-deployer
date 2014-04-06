@@ -484,8 +484,8 @@ class ServicesController < RestfulController
   def update
     operation = params[:operation]
     if operation.nil?
-      err_msg = "Parameter 'operation' is missing"
-      raise ParametersValidationError.new(:message => err_msg)
+      err_msg = "Parameter 'operation' is missing."
+      fail ParametersValidationError, err_msg
     end
 
     @topology, @container, @node, @template, @service = get_resource params[:topology_id], params[:container_id], params[:node_id], params[:template_id], params[:id]
@@ -494,11 +494,11 @@ class ServicesController < RestfulController
     when ServiceOp::RENAME
       @service.rename(params[:name])
     when ServiceOp::REDEFINE
-      raise ParametersValidationError.new(:message => "parameter 'definition' is missing") unless params[:definition]
+      fail ParametersValidationError, "parameter 'definition' is missing." unless params[:definition]
       @service.redefine parse_xml(params[:definition])
     else
-      err_msg = "Invalid operation. Supported operations are #{get_operations(ServiceOp).join(',')}"
-      raise ParametersValidationError.new(:message => err_msg)
+      err_msg = "Invalid operation. Supported operations are #{get_operations(ServiceOp).join(',')}."
+      fail ParametersValidationError, err_msg
     end
 
     @pattern = get_pattern(@service)
@@ -519,8 +519,8 @@ class ServicesController < RestfulController
     end
 
     service
-  rescue ActiveRecord::RecordInvalid => ex
-    raise XmlValidationError.new(:message => ex.message, :inner_exception => ex)
+  rescue ActiveRecord::RecordInvalid => e
+    fail PatternValidationError, e.message, e.backtrace
   end
 
   def get_list_resources(topology_id, container_id, node_id, template_id)

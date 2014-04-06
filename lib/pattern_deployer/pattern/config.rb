@@ -25,10 +25,7 @@ module PatternDeployer
 
       def self.parse_configs(element_name, config_specs, element = nil)
         config_spec = find_config_spec(element_name, config_specs)
-        if config_spec.nil?
-          msg = "Cannot config specification for element #{element_name}"
-          raise InternalServerError.new(:message => msg)
-        end
+        fail "No config specification for '#{element_name}'." if config_spec.nil?
 
         configs = Hash.new
         config_key = config_spec[:key]
@@ -58,7 +55,7 @@ module PatternDeployer
       def self.validate_config_value!(value, allow_values)
         unless allow_values.include?(value)
           msg = "The value '#{value}' is not allowed. Allowed values: #{allow_values.inspect}."
-          raise XmlValidationError.new(:message => msg)
+          fail PatternValidationError, msg
         end
       end
 

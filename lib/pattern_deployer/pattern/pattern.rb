@@ -32,16 +32,18 @@ module PatternDeployer
       include PatternDeployer::Utils
       include PatternDeployer::Utils::Xml
 
-      def initialize(topology_xml)
-        @doc = self.class.validate_xml(topology_xml, Rails.application.config.schema_file)
-      end
-
       def self.validate_xml(xml, schema_file)
         schema_document = XML::Document.file(schema_file)
         schema = XML::Schema.document(schema_document)
         doc = XML::Document.string(xml)
         doc.validate_schema(schema)
         doc
+      rescue LibXML::XML::Error => e
+        fail PatternValidationError, e.message, e.backtrace
+      end
+
+      def initialize(topology_xml)
+        @doc = self.class.validate_xml(topology_xml, Rails.application.config.schema_file)
       end
 
       def get_nodes
@@ -58,12 +60,12 @@ module PatternDeployer
           if hash_format?(child_element)
             node_info.merge!(xml_element_to_hash(child_element))
           else
-            msg = "Invalid element '#{child_element.name}': it is not in hash format"
-            raise XmlValidationError.new(:message => msg)
+            msg = "The element '#{child_element.name}' in node '#{node}' is invalid: it is not in hash format."
+            fail PatternValidationError, msg
           end
         end
 
-        validate_node_info(node_info)
+        validate_node_info(node_info, node)
         node_info
       end
 
@@ -117,8 +119,7 @@ module PatternDeployer
           begin
             num_of_copies = Integer(parent_element["num_of_copies"])
           rescue ArgumentError
-            msg = "Invalid value for 'num_of_copies' attribute: it is not a number"
-            raise InternalServerError.new(:message => msg)
+            fail "The value of 'num_of_copies' attribute (#{parent_element["num_of_copies"]}) is not a number."
           end
         end
         num_of_copies
@@ -168,8 +169,8 @@ module PatternDeployer
       def reference_to_connections(reference)
         unless (reference.refer_from_node? || reference.refer_from_template?) &&
                reference.refer_to_node?
-          msg = "The reference #{reference} cannot be converted to connection"
-          raise InternalServerError.new(:message => msg)
+          msg = "The reference is invalid: #{reference}."
+          fail PatternValidationError, msg
         end
 
         if reference.refer_from_template?
@@ -223,9 +224,9 @@ module PatternDeployer
           end
         else
           msg = "The dependencies from node '#{source_node}' to node '#{sink_node}' is invalid. "
-          msg += "For valid dependencies, the depending node and the depended node must have same number of copies "
-          msg += "or at least one of them has just one copy"
-          raise XmlValidationError.new(:message => msg)
+          msg << "For valid dependencies, the depending node and the depended node must have same number of copies "
+          msg << "or at least one of them has just one copy."
+          fail PatternValidationError, msg
         end
         connections
       end
@@ -265,8 +266,7 @@ module PatternDeployer
         if node_element
           node_element
         else
-          msg = "The node '#{node}' does not exist"
-          raise InternalServerError.new(:message => msg)
+          fail "The node '#{node}' does not exist."
         end
       end
 
@@ -275,8 +275,7 @@ module PatternDeployer
         if container_element
           container_element
         else
-          msg = "The node '#{container}' does not exist"
-          raise InternalServerError.new(:message => msg)
+          fail "The node '#{container}' does not exist."
         end
       end
 
@@ -285,8 +284,7 @@ module PatternDeployer
         if template_element
           template_element
         else
-          msg = "The node '#{template}' does not exist"
-          raise InternalServerError.new(:message => msg)
+          fail "The template '#{template}' does not exist."
         end
       end
 
@@ -324,8 +322,23 @@ module PatternDeployer
         element["name"] == "database_server"
       end
 
-      def validate_node_info(node_info)
-        self.class.validate_cloud!(node_info["cloud"])
+      def validate_node_info(node_info, node)
+        validate_cloud(node_info, node)
+      end
+
+      def validate_cloud(node_info, node)
+        cloud = node_info["cloud"]
+        ip = node_info["server_ip"]
+        if self.class.cloud_unspecified?(cloud) && ip.nil?
+          msg = "Either element 'cloud' or 'server_ip' is missing in node '#{node}'."
+          fail PatternValidationError, msg
+        elsif self.class.cloud_specified?(cloud) && !self.class.cloud_supported?(cloud)
+          msg = "In node '#{node}', the value of element cloud (#{cloud}) is incorrect or unsupported. "
+          msg << "Valid values are #{Rails.application.config.supported_clouds.inspect}."
+          fail PatternValidationError, msg
+        else
+          # It is valid.
+        end
       end
 
     end

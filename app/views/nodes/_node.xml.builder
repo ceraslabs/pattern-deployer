@@ -5,8 +5,6 @@ xml.node("id" => node.node_id) do
 
   xml << render("services/services", :services => node.services).gsub(/^/, "  ") if node.services.size > 0
 
-  xml.nest_within(:node => node.container_node.node_id) if node.container_node
-
   node.attrs.each do |key, value|
     if value.class == Hash
       xml.tag!(key) do

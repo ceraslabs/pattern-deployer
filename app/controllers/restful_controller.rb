@@ -27,9 +27,10 @@ class RestfulController < ApplicationController
   before_filter :remove_undefined_params
 
   rescue_from Exception, :with => :render_internal_error
-  rescue_from ActiveRecord::RecordInvalid, :with => :render_validation_error_when_record_invalid
-  rescue_from ActiveRecord::RecordNotFound, :with => :render_validation_error_when_record_not_found
-  rescue_from PatternDeployerError, :with => :render_app_error
+  rescue_from ActiveRecord::RecordInvalid, :with => :render_bad_request_error_when_record_invalid
+  rescue_from ActiveRecord::RecordNotFound, :with => :render_bad_request_error
+  rescue_from PatternDeployerError, :with => :render_bad_request_error
+  rescue_from ApiError, :with => :render_api_error
   rescue_from CanCan::AccessDenied, :with => :render_access_denied
 
   def http_authenticate
@@ -37,17 +38,17 @@ class RestfulController < ApplicationController
   end
 
   def render_404
-    err_msg = "'#{request.method} #{params[:path]}' does not match to any resource" if params[:path]
-    exception = InvalidUrlError.new(:message => err_msg)
-    render_app_error(exception)
+    err_msg = "'#{request.method} #{params[:path]}' does not match to any resource." if params[:path]
+    exception = InvalidUrlError.new(err_msg)
+    render_api_error(exception)
   end
 
   def get_resources_readable_by_me(resources)
-    resources.delete_if {|res| cannot? :read, res}
+    resources.delete_if { |res| cannot? :read, res }
   end
 
   def get_resources_own_by_me(resources)
-    resources.delete_if {|res| res.owner.id != current_user.id}
+    resources.delete_if { |res| res.owner.id != current_user.id }
   end
 
   def get_artifacts(topology)
@@ -60,22 +61,23 @@ class RestfulController < ApplicationController
   end
 
   def find_resource_by_id!(resources, id)
-    resource = resources.select{|res| res.id == Integer(id)}.first
+    resource = resources.find { |res| res.id == Integer(id) }
     unless resource
-      if resources.empty?
-        err_msg = "Cannot find the required resource with id #{id}"
-      else
-        err_msg = "Cannot find the required resource '#{resources.first.class.name}' with id #{id}"
-      end
-      raise ParametersValidationError.new(:message => err_msg)
+      err_msg = if resources.empty?
+                  "Cannot find the required resource with id #{id}."
+                else
+                  "Cannot find the required resource '#{resources.first.class.name}' with id #{id}."
+                end
+      fail ParametersValidationError, err_msg
     end
     resource
   end
 
   def destroy_resource_by_id!(resources, id)
-    resource = resources.select{|res| res.id == Integer(id)}.first
+    resource = resources.find { |res| res.id == Integer(id) }
     unless resource
-      raise ParametersValidationError.new(:message => "Cannot find the required resource with id #{id}")
+      msg = "Cannot find the required resource with id #{id}."
+      fail ParametersValidationError, msg
     end
     resource.destroy
     resources.delete(resource)
@@ -95,40 +97,34 @@ class RestfulController < ApplicationController
 
   protected
 
-  def render_app_error(exception)
-    @exception = exception
-    render :formats => "json", :template => "restful/error", :status => exception.http_error_code
+  def render_api_error(error)
+    @exception = error
+    render formats: "json",
+           template: "restful/error",
+           status: error.http_error_code
   end
 
-  def render_internal_error(exception)
-    @exception = InternalServerError.new(:message => exception.message, :inner_exception => exception)
-    @exception.set_backtrace(exception.backtrace)
-    render :formats => "json", :template => "restful/error", :status => 500
+  def render_internal_error(error)
+    internal_error = InternalServerError.create(error)
+    render_api_error(internal_error)
   end
 
-  def render_validation_error_when_record_invalid(invalid_record)
-    err_msg = invalid_record.record.errors.full_messages.join(";")
-    @exception = ParametersValidationError.new(:message => err_msg, :inner_exception => invalid_record)
-    @exception.set_backtrace(invalid_record.backtrace)
-    render :formats => "json",
-           :template => "restful/error",
-           :status => 400
+  def render_bad_request_error_when_record_invalid(invalid_record_error)
+    validation_error = ParametersValidationError.new(invalid_record_error.message)
+    validation_error.set_backtrace(invalid_record_error.backtrace)
+    validation_error.active_record = invalid_record_error.record
+    bad_request = BadRequestError.create(validation_error)
+    render_api_error(bad_request)
   end
 
-  def render_validation_error_when_record_not_found(exception)
-    @exception = ParametersValidationError.new(:message => exception.message, :inner_exception => exception)
-    @exception.set_backtrace(exception.backtrace)
-    render :formats => "json",
-           :template => "restful/error",
-           :status => 400
+  def render_bad_request_error(error)
+    bad_request = BadRequestError.create(error)
+    render_api_error(bad_request)
   end
 
-  def render_access_denied(exception)
-    @exception = AccessDeniedError.new(:message => exception.message, :inner_exception => exception)
-    @exception.set_backtrace(exception.backtrace)
-    render :formats => "json",
-           :template => "restful/error",
-           :status => 403
+  def render_access_denied(error)
+    access_denied = AccessDeniedError.create(error)
+    render_api_error(access_denied)
   end
 
   def remove_undefined_params

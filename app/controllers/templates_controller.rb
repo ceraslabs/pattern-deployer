@@ -62,6 +62,7 @@ class TemplatesController < RestfulController
 
   include RestfulHelper
   include TemplatesHelper
+  include PatternDeployer::Deployer::State
   include PatternDeployer::Errors
 
 
@@ -129,7 +130,9 @@ class TemplatesController < RestfulController
     else
       @template = @topology.templates.create(:template_id => params[:name], :owner => current_user)
       unless @template.save
-        raise ParametersValidationError.new(:ar_obj => @template)
+        error = ParametersValidationError.new
+        error.active_record = @template
+        fail error
       end
     end
 
@@ -264,27 +267,29 @@ class TemplatesController < RestfulController
 
     case operation = params[:operation]
     when TemplateOp::RENAME
-      raise ParametersValidationError.new(:message => "Parameter name is missing") unless params[:name]
+      fail ParametersValidationError, "Parameter name is missing." unless params[:name]
       @template.rename params[:name]
     when TemplateOp::EXTEND
-      raise ParametersValidationError.new(:message => "Parameter template is missing") unless params[:base_template]
+      fail ParametersValidationError, "Parameter template is missing." unless params[:base_template]
       @template.extend params[:base_template]
     when TemplateOp::UNEXTEND
-      raise ParametersValidationError.new(:message => "Parameter template is missing") unless params[:base_template]
+      fail ParametersValidationError, "Parameter template is missing." unless params[:base_template]
       @template.unextend params[:base_template]
     when TemplateOp::SET_ATTR
-      raise ParametersValidationError.new(:message => "Cannot find attribute's key or value to set") unless params[:attribute_key] && params[:attribute_value]
+      fail ParametersValidationError, "Cannot find attribute's key or value to set." unless params[:attribute_key] && params[:attribute_value]
       @template.set_attr params[:attribute_key], params[:attribute_value]
     when TemplateOp::REMOVE_ATTR
-      raise ParametersValidationError.new(:message => "Cannot find attribute's key to remove") unless params[:attribute_key]
+      fail ParametersValidationError, "Cannot find attribute's key to remove." unless params[:attribute_key]
       @template.remove_attr params[:attribute_key]
     else
-      err_msg = "Invalid operation. Supported operations are #{get_operations(TemplateOp).join(',')}"
-      raise ParametersValidationError.new(:message => err_msg)
+      err_msg = "Invalid operation. Supported operations are #{get_operations(TemplateOp).join(',')}."
+      fail ParametersValidationError, err_msg
     end
 
     unless @template.save
-      raise ParametersValidationError.new(:ar_obj => @template)
+      error = ParametersValidationError.new
+      error.active_record = @template
+      fail error
     end
 
     @pattern = get_pattern(@template)
@@ -304,8 +309,8 @@ class TemplatesController < RestfulController
     end
 
     template
-  rescue ActiveRecord::RecordInvalid => ex
-    raise XmlValidationError.new(:message => ex.message, :inner_exception => ex)
+  rescue ActiveRecord::RecordInvalid => e
+    fail PatternValidationError, e.message, e.backtrace
   end
 
   def get_list_resources(topology_id)

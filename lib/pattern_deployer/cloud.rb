@@ -27,21 +27,18 @@ module PatternDeployer
         cloud && cloud.downcase == OPENSTACK
       end
 
+      def cloud_specified?(cloud)
+        !cloud_unspecified?(cloud)
+      end
+
       def cloud_unspecified?(cloud)
         cloud.nil? || cloud.downcase == UNSPECIFIED
       end
 
-      def validate_cloud(cloud)
-        ec2?(cloud) || openstack?(cloud) || cloud_unspecified?(cloud)
+      def cloud_supported?(cloud)
+        Rails.application.config.supported_clouds.include?(cloud && cloud.downcase)
       end
 
-      def validate_cloud!(cloud)
-        unless validate_cloud(cloud)
-          msg = "The cloud '#{cloud}' is incorrect or unsupported. "
-          msg << "The list of supported clouds are #{Rails.application.config.supported_clouds.inspect}."
-          raise XmlValidationError.new(:message => msg)
-        end
-      end
     end
 
     EC2 = Rails.application.config.ec2

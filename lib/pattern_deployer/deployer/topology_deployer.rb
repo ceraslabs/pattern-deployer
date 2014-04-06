@@ -33,7 +33,7 @@ module PatternDeployer
 
       class Edge
         def initialize(from, to, type)
-          validate_type!(type)
+          validate_type(type)
 
           @from = from
           @to = to
@@ -78,8 +78,8 @@ module PatternDeployer
 
         @@valid_types = [:database_node, :balancer_members, :chef_server, :monitor_clients]
 
-        def validate_type!(type)
-          raise "Unexpected type of edge #{type}" unless @@valid_types.include?(type)
+        def validate_type(type)
+          fail "Unexpected type of edge '#{type}'." unless @@valid_types.include?(type)
         end
       end #class Edge
 
@@ -117,8 +117,8 @@ module PatternDeployer
         end
 
         def ==(vertex)
-          raise "Unexpected type of vertex: #{vertex.class}" if vertex.class != Vertex
-          raise "get_id return nil" if self.get_id.nil? || vertex.get_id.nil?
+          fail "Unexpected type of vertex: #{vertex.class}." unless vertex.kind_of?(Vertex)
+          fail "Cannot get id." if self.get_id.nil? || vertex.get_id.nil?
           return self.get_id == vertex.get_id
         end
 
@@ -273,10 +273,10 @@ module PatternDeployer
         deployer_id
       end
 
-      def validate_deployment!
+      def validate_deployment_graph
         if circular_dependency?
-          msg = "The topology cannot be deployed. Make sure nodes does not have circular dependencies"
-          raise XmlValidationError.new(:message => msg)
+          msg = "The topology cannot be deployed. Make sure nodes does not have circular dependencies."
+          fail PatternValidationError, msg
         end
       end
 
@@ -311,7 +311,7 @@ module PatternDeployer
         set_fields(pattern, artifacts)
         initialize_deployment_graph(:reset_children => true)
         establish_connection
-        validate_deployment!
+        validate_deployment_graph
 
         super()
 
@@ -342,7 +342,7 @@ module PatternDeployer
           @dirty_vertice = delete_vertice(vertice_to_delete, nodes)
           vertice_to_delete.each_value{|vertex| vertex.undeploy}
         else
-          raise "Unexpected diff"
+          fail "There is nothing to scale."
         end
 
         prepare_update_deployment
@@ -399,7 +399,7 @@ module PatternDeployer
       end
 
       def update_deployment
-        raise "NOT IMPLEMENT"
+        fail "Not implemented"
       end
 
       def undeploy(pattern, artifacts)
@@ -504,7 +504,7 @@ module PatternDeployer
           new_vertice = options[:new_vertice] || Hash.new
           dirty_vertice = options[:dirty_vertice] || Hash.new
         else
-          raise "Unexpected action #{action}"
+          fail "Unexpected action '#{action}'."
         end
 
         while true
@@ -532,7 +532,7 @@ module PatternDeployer
             elsif action == :update_deployment
               deployment_failed ? on_update_failed(get_children_error) : on_update_success
             else
-              raise "Unexpected action #{action}"
+              fail "Unexpected action '#{action}'."
             end
 
             break
@@ -558,7 +558,7 @@ module PatternDeployer
           elsif action == :update_vertice
             vertex.update if vertex.can_update?
           else
-            raise "Unexpected action #{action}"
+            fail "Unexpected action '#{action}'."
           end
           vertex.on_depending_vertex_failed if vertex.depending_vertex_failed?
 

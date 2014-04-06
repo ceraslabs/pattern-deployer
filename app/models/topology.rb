@@ -45,7 +45,7 @@ class Topology < ActiveRecord::Base
   validate :topology_mutable
 
   after_initialize :set_default_values
-  before_destroy :topology_destroyable!
+  before_destroy :topology_destroyable
 
 
   def update_topology_attributes(topology_element)
@@ -65,7 +65,7 @@ class Topology < ActiveRecord::Base
       elsif element.name == "description"
         self.description = element.content
       else
-        raise XmlValidationError.new(:message => "unexpect element '#{element.to_s}', element must be container, node, or instance_templates")
+        fail PatternValidationError, "Element must be container, node, or instance_templates. Invalid element: #{element}."
       end
     end
 
@@ -94,11 +94,11 @@ class Topology < ActiveRecord::Base
   def deploy(topology_xml, resources)
     my_state = get_state
     if my_state == DEPLOY_SUCCESS
-      err_msg = "The topology '#{self.topology_id}' have already been deployed"
-      raise DeploymentError.new(:message => err_msg)
+      err_msg = "The topology '#{self.topology_id}' have already been deployed."
+      fail InvalidOperationError, err_msg
     elsif my_state == DEPLOYING
-      err_msg = "The topology '#{self.topology_id}' is being deployed by another process"
-      raise DeploymentError.new(:message => err_msg)
+      err_msg = "The topology '#{self.topology_id}' is being deployed by another process."
+      fail InvalidOperationError, err_msg
     end
 
     deployer = get_deployer
@@ -112,8 +112,8 @@ class Topology < ActiveRecord::Base
   def scale(topology_xml, resources, nodes, diff)
     my_state = get_state
     if my_state != DEPLOY_SUCCESS
-      err_msg = "The status of topology '#{self.topology_id}' is not '#{DEPLOY_SUCCESS}'"
-      raise DeploymentError.new(:message => err_msg)
+      err_msg = "The status of topology '#{self.topology_id}' is not '#{DEPLOY_SUCCESS}'."
+      fail InvalidOperationError, err_msg
     end
 
     deployer = get_deployer
@@ -127,8 +127,8 @@ class Topology < ActiveRecord::Base
   def repair(topology_xml, resources)
     my_state = get_state
     if my_state != DEPLOY_FAIL
-      err_msg = "The status of topology '#{self.topology_id}' is not '#{DEPLOY_FAIL}', nothing to repair"
-      raise DeploymentError.new(:message => err_msg)
+      err_msg = "The status of topology '#{self.topology_id}' is not '#{DEPLOY_FAIL}', nothing to repair."
+      fail InvalidOperationError, err_msg
     end
 
     deployer = get_deployer
@@ -142,8 +142,8 @@ class Topology < ActiveRecord::Base
   def undeploy(topology_xml, resources)
     my_state = get_state
     if my_state == UNDEPLOY
-      err_msg = "The topology '#{self.topology_id}' is not deployed before"
-      raise DeploymentError.new(:message => err_msg)
+      err_msg = "The topology '#{self.topology_id}' is not deployed before."
+      fail InvalidOperationError, err_msg
     end
 
     deployer = get_deployer
@@ -223,16 +223,16 @@ class Topology < ActiveRecord::Base
     end
   end
 
-  def topology_destroyable!
+  def topology_destroyable
     if self.locked?
-      msg = "Topology #{topology_id} cannot be destroyed. Please make sure it is not deployed or deploying"
-      raise ParametersValidationError.new(:message => msg)
+      msg = "Topology #{topology_id} cannot be destroyed. Please make sure it is not deployed or deploying."
+      fail InvalidOperationError, msg
     end
   end
 
   def set_state(state)
     return if self.state == state
-    raise "Cannot set state, the record is dirty: #{self.changes}" if self.changes.size > 0
+    fail "Cannot set state, the record is dirty: #{self.changes}." if self.changes.size > 0
     self.state = state
     self.unlock{self.save!}
   end

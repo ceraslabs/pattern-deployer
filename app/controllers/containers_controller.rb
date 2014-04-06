@@ -239,10 +239,10 @@ class ContainersController < RestfulController
 
     case operation = params[:operation]
     when ContainerOp::RENAME
-      raise ParametersValidationError.new(:message => "Parameter name is missing") unless params[:name]
+      fail ParametersValidationError, "Parameter name is missing." unless params[:name]
       @container.rename(params[:name])
     when ContainerOp::SCALE
-      raise ParametersValidationError.new(:message => "Parameter num_of_copies is missing") unless params[:num_of_copies]
+      fail ParametersValidationError, "Parameter num_of_copies is missing." unless params[:num_of_copies]
 
       if scale_at_runtime?
         artifacts = get_artifacts(@topology)
@@ -251,10 +251,14 @@ class ContainersController < RestfulController
         nodes = @container.nodes.map{|node| node.node_id}
 
         @container.num_of_copies = params[:num_of_copies]
-        raise ParametersValidationError.new(:ar_obj => @container) unless @topology.unlock{@container.valid?}
+        unless @topology.unlock { @container.valid? }
+          error = ParametersValidationError.new
+          error.active_record = @container
+          fail error
+        end
 
         diff = @container.num_of_copies - @container.num_of_copies_was
-        raise ParametersValidationError.new(:message => "num_of_copies unchanged") if diff == 0
+        fail ParametersValidationError, "The num_of_copies is unchanged." if diff == 0
 
         @topology.scale(topology_xml, artifacts, nodes, diff)
         @topology.unlock{@container.save!}
@@ -263,8 +267,8 @@ class ContainersController < RestfulController
         @container.save!
       end
     else
-      err_msg = "Invalid operation. Supported operations are #{get_operations(ContainerOp).join(',')}"
-      raise ParametersValidationError.new(:message => err_msg)
+      err_msg = "Invalid operation. Supported operations are #{get_operations(ContainerOp).join(',')}."
+      fail ParametersValidationError, err_msg
     end
 
     @pattern = get_pattern(@container)
@@ -284,8 +288,8 @@ class ContainersController < RestfulController
     end
 
     container
-  rescue ActiveRecord::RecordInvalid => ex
-    raise XmlValidationError.new(:message => ex.message, :inner_exception => ex)
+  rescue ActiveRecord::RecordInvalid => e
+    fail PatternValidationError, e.message, e.backtrace
   end
 
   def get_list_resources(topology_id)

@@ -58,7 +58,7 @@ module PatternDeployer
       end
 
       def get_id
-        raise "No implementation of method get_id: this method should be overwritten by class #{self.class}"
+        fail "Not implemented."
       end
 
       def self.get_id_prefix
@@ -174,10 +174,7 @@ module PatternDeployer
       end
 
       def ==(deployer)
-        unless deployer.kind_of?(self.class)
-          msg = "Unexpected type of deployer: #{deployer.class.name}"
-          raise InternalServerError.new(:message => msg)
-        end
+        fail "Unexpected class: #{deployer.class.name}." unless deployer.kind_of?(self.class)
         get_id == deployer.get_id
       end
 
@@ -210,10 +207,7 @@ module PatternDeployer
       end
 
       def save
-        unless primary_deployer?
-          msg = "Unexpected call to save method"
-          raise InternalServerError.new(:message => msg)
-        end
+        fail "Invalid method call." unless primary_deployer?
         @databag_manager.write(databag_name, attributes)
       end
 
@@ -240,29 +234,26 @@ module PatternDeployer
       end
 
       def self.summarize_errors(msgs)
-        my_msgs = msgs.select do |msg|
-          !msg.blank?
-        end
-
+        my_msgs = msgs.select { |msg| !msg.blank? }
         my_msgs.join("\n===============================================\n")
       end
 
       def self.build_err_msg(exception, deployer)
         lines = Array.new
-        lines << "An error occurred when deploying '#{deployer.get_id}': #{exception.message}"
+        lines << "An error occurred when deploying '#{deployer.get_id}': #{exception.message}."
         lines << backtrace_to_s(exception.backtrace)
-        if exception.class == DeploymentError
-          inner_msg = exception.get_inner_message
-          if inner_msg
-            lines << "Caused by:"
-            lines << inner_msg
-          end
+        remote_exception = exception.remote_exception if exception.respond_to?(:remote_exception)
+        if remote_exception
+          lines << "Caused by:"
+          lines << remote_exception.inspect
+          lines << backtrace_to_s(remote_exception.backtrace)
         end
+
         lines.join("\n")
       end
 
       def lock_topology(options={})
-        raise InternalServerError.new unless block_given?
+        fail "Unexpected missing of block." unless block_given?
 
         FileUtils.mkdir_p(File.dirname(lock_file))
         File.open(lock_file, "w") do |file|
@@ -308,8 +299,7 @@ module PatternDeployer
         elsif error_type == UPDATE_ERROR
           type_of_state = UPDATE_STATE
         else
-          msg = "unexpected error_type #{error_type}"
-          raise InternalServerError(:message => msg)
+          fail "Unexpected error_type #{error_type}."
         end
 
         if get_state_by_type(type_of_state) != State::DEPLOY_FAIL

@@ -39,7 +39,7 @@ class Service < ActiveRecord::Base
   after_initialize :set_default_values
   after_create :set_topology
   after_save :set_topology
-  before_destroy :service_destroyable!
+  before_destroy :service_destroyable
 
 
   def rename(name)
@@ -55,8 +55,8 @@ class Service < ActiveRecord::Base
       clear_service_connections
       update_service_connections(service_element)
     end
-  rescue ActiveRecord::RecordInvalid => ex
-    raise XmlValidationError.new(:message => ex.message, :inner_exception => ex)
+  rescue ActiveRecord::RecordInvalid => e
+    fail PatternValidationError, e.message, e.backtrace
   end
 
   def update_service_attributes(service_element)
@@ -77,8 +77,8 @@ class Service < ActiveRecord::Base
       ref_node_id = element["node"]
       ref_node = Node.where(:topology_id => get_topology.id, :node_id => ref_node_id).first
       unless ref_node
-        err_msg = "The node '#{ref_node_id}' dose not exist. The invalid element is: #{service_element.to_s}"
-        raise XmlValidationError.new(:message => err_msg)
+        err_msg = "The node '#{ref_node_id}' dose not exist. The invalid element is: #{service_element}."
+        fail PatternValidationError, err_msg
       end
       ref = ServiceToNodeRef.new(:ref_name => element.name.to_s, :service => self, :node => ref_node)
       self.service_to_node_refs << ref
@@ -97,7 +97,7 @@ class Service < ActiveRecord::Base
       node = Node.find(service_container_id)
       return node.get_topology
     else
-      raise "Unexpected service container type #{service_container_type}"
+      fail "Unexpected service container type #{service_container_type}."
     end
   end
 
@@ -131,10 +131,10 @@ class Service < ActiveRecord::Base
     end
   end
 
-  def service_destroyable!
+  def service_destroyable
     if get_topology.locked?
-      msg = "Service #{service_id} cannot be destroyed. Please make sure its topology is not deployed or deploying"
-      raise ParametersValidationError.new(:message => msg)
+      msg = "Service #{service_id} cannot be destroyed. Please make sure its topology is not deployed or deploying."
+      fail InvalidOperationError, msg
     end
   end
 

@@ -107,8 +107,7 @@ module PatternDeployer
         if metadata
           metadata
         else
-          msg = "Cannot find metadata for with options #{options}"
-          raise InternalServerError.new(:message => msg)
+          fail "Cannot find metadata for with options #{options.inspect}."
         end
       end
 
@@ -159,8 +158,7 @@ module PatternDeployer
           if element.parent?
             element = element.parent
           else
-            msg = "Cannot find the element refer from"
-            raise InternalServerError.new(:message => msg)
+            fail "Cannot find the element refer from."
           end
         end
         element

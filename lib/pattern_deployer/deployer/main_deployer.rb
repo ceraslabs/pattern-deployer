@@ -139,9 +139,7 @@ module PatternDeployer
         is_deploy = case method
                     when METHOD::DEPLOY then true
                     when METHOD::SCALE, METHOD::REPAIR then false
-                    else
-                      msg = "unexpected method #{method}"
-                      raise InternalServerError.new(:message => msg)
+                    else fail "Unexpected method #{method}."
                     end
         MainDeployersManager.instance.add_active_deployer(self)
 
@@ -149,12 +147,12 @@ module PatternDeployer
         @topology_deployer.send(method)
 
         # Wait for completion of running and do error checking.
-        raise DeploymentTimeoutError.new unless wait_to_finish
-        raise get_children_error if failed?
+        fail DeploymentTimeoutError unless wait_to_finish
+        fail DeploymentError, get_children_error if failed?
         is_deploy ? on_deploy_success : on_update_success
       rescue Exception => e
-        is_deploy ? on_deploy_failed(e.message) : on_update_failed(e.message)
         log e.message, e.backtrace #DEBUG
+        is_deploy ? on_deploy_failed(e.message) : on_update_failed(e.message)
         raise e
       ensure
         MainDeployersManager.instance.delete_active_deployer(self)

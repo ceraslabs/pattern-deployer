@@ -20,11 +20,7 @@ module PatternDeployer
   module Utils
     module Xml
       def hash_format?(element)
-        unless element.element?
-          msg = "Unexpected element: #{element}"
-          raise InternalServerError.new(:message => msg)
-        end
-
+        fail "Unexpected element: #{element}." unless element.element?
         return false if element.attributes?
 
         if has_child_element?(element)

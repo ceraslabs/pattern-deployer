@@ -241,18 +241,18 @@ class TopologiesController < RestfulController
     else
       @topology = Topology.new(:topology_id => params[:name], :description => params[:description], :state => UNDEPLOY, :owner => current_user)
       unless @topology.save
-        raise ParametersValidationError.new(:ar_obj => @topology)
+        error = ParametersValidationError.new
+        error.active_record = @topology
+        fail error
       end
     end
 
     @pattern = get_pattern(@topology)
-    begin
-      Pattern.validate_xml(@pattern, Rails.application.config.schema_file)
-      render :action => "show", :formats => "json"
-    rescue LibXML::XML::Error => ex
-      @topology.destroy
-      raise XmlValidationError.new(:message => ex.message, :inner_exception => ex)
-    end
+    Pattern.validate_xml(@pattern, Rails.application.config.schema_file)
+    render :action => "show", :formats => "json"
+  rescue PatternValidationError
+    @topology.destroy
+    raise
   end
 
 
@@ -350,11 +350,11 @@ class TopologiesController < RestfulController
     
     case operation = params[:operation]
     when TopologyOp::RENAME
-      raise ParametersValidationError.new(:message => "Parameter name is missing") unless params[:name]
+      fail ParametersValidationError, "Parameter name is missing." unless params[:name]
       @topology.topology_id = params[:name]
       @topology.save!
     when TopologyOp::UPDATE_DESC
-      raise ParametersValidationError.new(:message => "Parameter description is missing") unless params[:description]
+      fail ParametersValidationError, "Parameter description is missing." unless params[:description]
       @topology.description = params[:description]
       @topology.save!
     when TopologyOp::DEPLOY, TopologyOp::UNDEPLOY, TopologyOp::REPAIR
@@ -369,8 +369,8 @@ class TopologiesController < RestfulController
         @topology.repair(topology_xml, artifacts)
       end
     else
-      err_msg = "Invalid operation. Supported operations are #{get_operations(TopologyOp).join(',')}"
-      raise ParametersValidationError.new(:message => err_msg)
+      err_msg = "Invalid operation. Supported operations are #{get_operations(TopologyOp).join(',')}."
+      fail ParametersValidationError, err_msg
     end
 
     @pattern = get_pattern(@topology)
@@ -390,8 +390,8 @@ class TopologiesController < RestfulController
     end
 
     topology
-  rescue ActiveRecord::RecordInvalid => ex
-    raise XmlValidationError.new(:message => ex.message, :inner_exception => ex)
+  rescue ActiveRecord::RecordInvalid => e
+    fail PatternValidationError, e.message, e.backtrace
   end
 
   def get_model_name(options={})

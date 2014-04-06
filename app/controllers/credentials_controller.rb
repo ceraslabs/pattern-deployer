@@ -155,14 +155,16 @@ class CredentialsController < RestfulController
                                             :openstack_endpoint => params[:auth_url])
     else
       msg = "The cloud '#{for_cloud}' is not supported. "
-      msg << "List of supported clouds #{Rails.application.config.supported_clouds.inspect}"
-      raise ParametersValidationError.new(:message => msg)
+      msg << "List of supported clouds #{Rails.application.config.supported_clouds.inspect}."
+      fail ParametersValidationError, msg
     end
 
     if @credential.save
       render :formats => "json", :action => "show"
     else
-      raise ParametersValidationError.new(:ar_obj => @credential)
+      error = ParametersValidationError.new
+      error.active_record = @credential
+      fail error
     end
   end
 
@@ -271,7 +273,7 @@ class CredentialsController < RestfulController
 
     case operation = params[:operation]
     when CredentialOp::RENAME
-      raise ParametersValidationError.new(:message => "parameter 'name' is not provided") unless params[:name]
+      fail ParametersValidationError, "Parameter 'name' is not provided." unless params[:name]
       @credential.credential_id = params[:name]
     when CredentialOp::REDEF
       if @credential.class == Ec2Credential
@@ -284,12 +286,14 @@ class CredentialsController < RestfulController
         @credential.openstack_endpoint = params[:auth_url] || @credential.openstack_endpoint
       end
     else
-      err_msg = "Invalid operation. Supported operations are #{get_operations(CredentialOp).join(',')}"
-      raise ParametersValidationError.new(:message => err_msg)
+      err_msg = "Invalid operation. Supported operations are #{get_operations(CredentialOp).join(',')}."
+      fail ParametersValidationError, err_msg
     end
 
     unless @credential.save
-      raise ParametersValidationError.new(:ar_obj => @credential)
+      error = ParametersValidationError.new
+      error.active_record = @credential
+      fail error
     end
 
     render :action => "show", :formats => "json"

@@ -23,13 +23,13 @@ module ServicesHelper
 
   def validate_service_element!(element)
     unless element.name == "service"
-      err_msg = "The root element is not of name 'service'. The invalid XML documnet is: #{element.to_s}"
-      raise XmlValidationError.new(:message => err_msg)
+      err_msg = "The root element is not of name 'service'. The invalid XML documnet is: #{element}."
+      fail PatternValidationError, err_msg
     end
 
     unless element["name"]
-      err_msg = "The service element doesnot have attribute 'name'. The invalid XML documnet is: #{element.to_s}"
-      raise XmlValidationError.new(:message => err_msg)
+      err_msg = "The service element doesnot have attribute 'name'. The invalid XML documnet is: #{element}."
+      fail PatternValidationError, err_msg
     end
   end
 
