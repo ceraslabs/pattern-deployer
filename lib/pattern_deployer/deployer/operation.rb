@@ -14,12 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require 'pattern_deployer/artifact'
-require 'pattern_deployer/chef'
-require 'pattern_deployer/cloud'
-require 'pattern_deployer/delegator'
-require 'pattern_deployer/deployer'
-require 'pattern_deployer/deployment_graph'
-require 'pattern_deployer/errors'
-require 'pattern_deployer/pattern'
-require 'pattern_deployer/utils'
+module PatternDeployer
+  module Deployer
+    module Operation
+      DEPLOY = :deploy
+      SCALE = :scale
+      REPAIR = :repair
+      UNDEPLOY = :undeploy
+      LIST = :list
+    end
+  end
+end

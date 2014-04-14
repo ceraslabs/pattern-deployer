@@ -32,18 +32,17 @@ module PatternDeployer
       DEPLOY_ERROR = "deploy_error"
       UPDATE_ERROR = "update_error"
 
-      attr_accessor :deployer_id, :topology_id, :topology_owner_id
+      attr_reader :deployer_id, :topology_id, :topology_owner_id, :parent_deployer
       # these attributes persist in Chef Databag
       attribute_accessor :deploy_state, :deploy_error, :update_state, :update_error
 
-      alias :databag_name :deployer_id
+      alias_method :databag_name, :deployer_id
 
       def initialize(deployer_id, parent_deployer = nil, topology_id = nil, topology_owner_id = nil)
-        self.deployer_id = deployer_id
-        self.topology_id = topology_id || parent_deployer.topology_id
-        self.topology_owner_id = topology_owner_id || parent_deployer.topology_owner_id
-
-        @parent = parent_deployer if parent_deployer
+        @deployer_id = deployer_id
+        @topology_id = topology_id || parent_deployer.topology_id
+        @topology_owner_id = topology_owner_id || parent_deployer.topology_owner_id
+        @parent_deployer = parent_deployer if parent_deployer
         @children = Array.new
         @databag_manager = DatabagsManager.instance
       end
@@ -51,6 +50,10 @@ module PatternDeployer
       def update
         data = @databag_manager.read(databag_name)
         self.attributes = data if data
+      end
+
+      def update_if_needed
+        update unless topology_locked_by_me?
       end
 
       def reset
@@ -69,7 +72,7 @@ module PatternDeployer
         @children
       end
 
-      def get_child_by_name(name)
+      def get_child_deployer(name)
         @children.find{ |child| child.get_name == name }
       end
 
@@ -98,12 +101,12 @@ module PatternDeployer
       end
 
       def undeploy(*args)
+        @worker_thread && @worker_thread.kill
+        @worker_thread = nil
+
         @children.each { |child| child.undeploy(*args) }
         @children.clear
         @children = nil
-
-        @worker_thread && @worker_thread.kill
-        @worker_thread = nil
 
         @databag_manager.delete(databag_name)
         attributes.clear
@@ -182,7 +185,8 @@ module PatternDeployer
         @children << child_deployer
       end
 
-      def delete_child(child)
+      def delete_child_deployer(name)
+        child = get_child_deployer(name)
         @children.delete(child)
       end
 
@@ -207,8 +211,32 @@ module PatternDeployer
       end
 
       def save
-        fail "Invalid method call." unless primary_deployer?
+        fail "Invalid method call." unless topology_locked_by_me?
         @databag_manager.write(databag_name, attributes)
+      end
+
+      def undeploy?
+        get_deploy_state == State::UNDEPLOY
+      end
+
+      def deploy_success?
+        get_deploy_state == State::DEPLOY_SUCCESS
+      end
+
+      def deploy_failed?
+        get_update_state == State::UNDEPLOY && get_deploy_state == State::DEPLOY_FAIL
+      end
+
+      def deploy_finished?
+        get_deploy_state == State::DEPLOY_SUCCESS || get_deploy_state == State::DEPLOY_FAIL
+      end
+
+      def update_success?
+        get_update_state == State::DEPLOY_SUCCESS
+      end
+
+      def update_failed?
+        get_update_state == State::DEPLOY_FAIL
       end
 
       protected
@@ -266,7 +294,7 @@ module PatternDeployer
         end
       end
 
-      def primary_deployer?
+      def topology_locked_by_me?
         return false unless File.exists?(pid_file)
 
         File.open(pid_file, "r") do |file|
@@ -321,18 +349,6 @@ module PatternDeployer
           child.get_update_error == "" ? child.get_deploy_error : child.get_update_error
         end
         self.class.summarize_errors(errors)
-      end
-
-      def undeploy?
-        get_deploy_state == State::UNDEPLOY
-      end
-
-      def deploy_failed?
-        get_update_state == State::UNDEPLOY && get_deploy_state == State::DEPLOY_FAIL
-      end
-
-      def update_failed?
-        get_update_state == State::DEPLOY_FAIL
       end
 
       def on_deploy_success

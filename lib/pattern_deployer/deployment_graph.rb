@@ -14,12 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require 'pattern_deployer/artifact'
-require 'pattern_deployer/chef'
-require 'pattern_deployer/cloud'
-require 'pattern_deployer/delegator'
-require 'pattern_deployer/deployer'
-require 'pattern_deployer/deployment_graph'
-require 'pattern_deployer/errors'
-require 'pattern_deployer/pattern'
-require 'pattern_deployer/utils'
+require 'pattern_deployer/deployment_graph/deployment_graph'
+require 'pattern_deployer/deployment_graph/edge'
+require 'pattern_deployer/deployment_graph/vertex'

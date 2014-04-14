@@ -14,12 +14,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-require 'pattern_deployer/artifact'
-require 'pattern_deployer/chef'
-require 'pattern_deployer/cloud'
-require 'pattern_deployer/delegator'
-require 'pattern_deployer/deployer'
-require 'pattern_deployer/deployment_graph'
-require 'pattern_deployer/errors'
-require 'pattern_deployer/pattern'
-require 'pattern_deployer/utils'
+module PatternDeployer
+  module Delegator
+    attr_reader :delegatee
+
+    def delegator_of(delegatee)
+      @delegatee = delegatee
+      delegatee.public_methods.each do |method|
+        unless respond_to?(method)
+          define_delegate_method(method)
+        end
+      end
+    end
+
+    protected
+
+    def define_delegate_method(name)
+      metaclass.class_eval do
+        define_method(name) do |*args, &block|
+          delegatee.send(name, *args, &block)
+        end
+      end
+    end
+
+    def metaclass
+      class << self
+        self
+      end
+    end
+
+  end
+end

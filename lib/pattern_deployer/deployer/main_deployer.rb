@@ -16,9 +16,10 @@
 #
 require 'pattern_deployer/chef'
 require 'pattern_deployer/deployer/base_deployer'
-require 'pattern_deployer/deployer/topology_deployer'
 require 'pattern_deployer/deployer/main_deployers_manager'
+require 'pattern_deployer/deployer/operation'
 require 'pattern_deployer/deployer/state'
+require 'pattern_deployer/deployer/topology_deployer'
 require 'pattern_deployer/errors'
 require 'pattern_deployer/pattern'
 
@@ -53,8 +54,9 @@ module PatternDeployer
 
       def deploy
         # start a new thread to do the deployment
+        @worker_thread.kill if @worker_thread
         @worker_thread = Thread.new do
-          run(METHOD::DEPLOY)
+          run(Operation::DEPLOY)
         end
       end
 
@@ -74,7 +76,7 @@ module PatternDeployer
         # start a new thread to do the deployment
         @worker_thread.kill if @worker_thread
         @worker_thread = Thread.new do
-          run(METHOD::SCALE)
+          run(Operation::SCALE)
         end
       end
 
@@ -93,7 +95,7 @@ module PatternDeployer
       def repair
         @worker_thread.kill if @worker_thread
         @worker_thread = Thread.new do
-          run(METHOD::REPAIR)
+          run(Operation::REPAIR)
         end
       end
 
@@ -108,7 +110,7 @@ module PatternDeployer
 
       def list_nodes(topology_xml)
         lock_topology(:read_only => true) do
-          update unless primary_deployer?
+          update_if_needed
 
           if get_deploy_state != State::UNDEPLOY
             initialize_child_deployers
@@ -122,29 +124,23 @@ module PatternDeployer
 
       def get_state
         lock_topology(:read_only => true) do
-          update unless primary_deployer?
+          update_if_needed
           get_update_state == State::UNDEPLOY ? get_deploy_state : get_update_state
         end
       end
 
       protected
 
-      module METHOD
-        DEPLOY = :deploy
-        SCALE = :scale
-        REPAIR = :repair
-      end
-
-      def run(method)
-        is_deploy = case method
-                    when METHOD::DEPLOY then true
-                    when METHOD::SCALE, METHOD::REPAIR then false
-                    else fail "Unexpected method #{method}."
+      def run(operation)
+        is_deploy = case operation
+                    when Operation::DEPLOY then true
+                    when Operation::SCALE, Operation::REPAIR then false
+                    else fail "Unexpected operation #{operation}."
                     end
         MainDeployersManager.instance.add_active_deployer(self)
 
         # Performs the actual 'run'.
-        @topology_deployer.send(method)
+        @topology_deployer.send(operation)
 
         # Wait for completion of running and do error checking.
         fail DeploymentTimeoutError unless wait_to_finish

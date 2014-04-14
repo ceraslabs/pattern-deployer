@@ -28,6 +28,10 @@ module PatternDeployer
         tokens.join("-")
       end
 
+      def split(name)
+        name.split("-")
+      end
+
       def to_bool(obj)
         if obj.class == String
           "true".casecmp(obj) == 0
@@ -60,6 +64,7 @@ module PatternDeployer
     end
 
     # instance methods
+
     def to_bool(obj)
       self.class.to_bool(obj)
     end

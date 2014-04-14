@@ -28,20 +28,23 @@ module PatternDeployer
       include PatternDeployer::Chef
       include PatternDeployer::Errors
 
-      attr_accessor :short_name, :services, :artifacts
+      attr_reader :short_name, :services, :artifacts
       # these attributes persist in Chef Databag
       attribute_accessor :node_info, :database, :instance_id, :cloud_credential, :identity_file,
                          :war_file, :sql_script_file, :public_ip, :private_ip, :web_server
 
+      def self.create(name, template)
+        deployer = new(name, template.parent_deployer)
+        deployer.reset
+        deployer.set_fields(template.node_info, template.services, template.artifacts)
+        deployer.load_attributes(template)
+        deployer
+      end
+
       def initialize(name, parent_deployer)
         my_id = create_deployer_id(name, parent_deployer)
         super(my_id, parent_deployer)
-
-        self.short_name = name
-      end
-
-      def update
-        super
+        @short_name = name
       end
 
       def reset
@@ -52,17 +55,15 @@ module PatternDeployer
 
       def set_fields(node_info, services, artifacts)
         self.node_info = node_info.deep_dup
-        self.services = services
-        self.artifacts = artifacts
-
+        @services = services
+        @artifacts = artifacts
         self.node_info && self.node_info["node_name"] = deployer_id
       end
 
       def set_fields_if_not_before(node_info, services, artifacts)
         self.node_info ||= node_info.deep_dup if node_info
-        self.services ||= services if services
-        self.artifacts ||= artifacts if artifacts
-
+        @services ||= services
+        @artifacts ||= artifacts
         self.node_info && self.node_info["node_name"] ||= deployer_id
       end
 
@@ -74,8 +75,11 @@ module PatternDeployer
         short_name
       end
 
-      def get_pretty_name
-        short_name
+      def cluster
+        # Remove the suffix in the name (e.g., 'name-1' will become 'name').
+        tokens = self.class.split(short_name)
+        tokens.pop
+        self.class.join(tokens)
       end
 
       def prepare_deploy
@@ -85,6 +89,7 @@ module PatternDeployer
       end
 
       def deploy
+        @worker_thread.kill if @worker_thread
         @worker_thread = Thread.new do
           run(ChefCommand::DEPLOY)
         end
@@ -98,6 +103,7 @@ module PatternDeployer
       end
 
       def update_deployment
+        @worker_thread.kill if @worker_thread
         @worker_thread = Thread.new do
           run(ChefCommand::UPDATE)
         end
@@ -112,16 +118,16 @@ module PatternDeployer
 
         delete_chef_node
         delete_chef_client
-        self.short_name = nil
-        self.services = nil
-        self.artifacts = nil
+        @short_name = nil
+        @services = nil
+        @artifacts = nil
         self.node_info = nil
         super
       end
 
-      def kill(options={})
+      def kill
         @chef_command && @chef_command.stop
-        super()
+        super
       end
 
       def get_server_ip
@@ -178,7 +184,7 @@ module PatternDeployer
       end
 
       def server_created?
-        !public_ip.nil?
+        !get_server_ip.nil?
       end
 
       def set_web_server_configs(configs)
@@ -193,17 +199,29 @@ module PatternDeployer
 
       # This method is a callback by Chef Command. It is called by ChefCommand instance to set attributes in Databag.
       def on_data(key, value)
-        return if attributes.key?(key)
+        key &&= key.to_s
+        return if attributes[key]
 
-        key = :public_ip if openstack? && key == :floating_ip
-        attributes[key.to_s] = value
+        key = "public_ip" if openstack? && key == "floating_ip"
+        attributes[key] = value
         save
 
         begin
-          @parent.on_data(key, value, get_name) if @parent.respond_to?(:on_data)
+          parent_deployer.on_data(key, value, get_name) if parent_deployer.respond_to?(:on_data)
         rescue StandardError => e
           log e.message, e.backtrace # DEBUG
           # Suppress the exception here, since the chef command needs to be running until finish.
+        end
+      end
+
+      def on_deploy_not_started
+        on_deploy_failed("The deployment was not able to be started.")
+      end
+
+      def load_attributes(template)
+        attrs = [FileType::WAR_FILE, FileType::IDENTITY_FILE, FileType::SQL_SCRIPT_FILE, "cloud_credential"]
+        attrs.each do |key|
+          attributes[key] = template[key].deep_dup if template[key]
         end
       end
 
@@ -372,7 +390,7 @@ module PatternDeployer
         cookbook_name = Rails.configuration.chef_cookbook_name
         cookbook = ChefCookbookWrapper.create(cookbook_name)
         [FileType::WAR_FILE, FileType::SQL_SCRIPT_FILE].each do |file_type|
-          next unless attributes.key?(file_type)
+          next unless attributes[file_type]
 
           file = find_file(file_type)
           if file
@@ -435,7 +453,7 @@ module PatternDeployer
 
         # The attribute 'output' is optionally set by individual node to pass message back to PDS.
         # The data stored in this attribute should be of the Hash format.
-        attributes.merge!(chef_node["output"]) if chef_node.key?("output")
+        attributes.merge!(chef_node["output"]) if chef_node["output"]
         self.public_ip ||= chef_node.get_server_ip if chef_node.get_server_ip
         self.private_ip ||= chef_node.get_private_ip if chef_node.get_private_ip
         self.instance_id ||= chef_node.get_instance_id(cloud)
