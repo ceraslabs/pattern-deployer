@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require 'pattern_deployer/delegator'
+
 module PatternDeployer
   module Artifact
     module ArtifactType
@@ -30,13 +32,17 @@ module PatternDeployer
     end
 
     # Artifact is actually a wrapper of Rails Active Record that
-    # represents the artifact (UploadedFile or Credential)
+    # represents the artifact (UploadedFile or Credential).
     class Artifact
+      include PatternDeployer::Delegator
+
       def initialize(artifact_record, artifact_type, context)
         @record = artifact_record
         @type = artifact_type
         @context = context
         @selected = false
+
+        delegator_of(@record)
       end
 
       def type
@@ -61,23 +67,11 @@ module PatternDeployer
 
       def readable_by_me?
         record = @record
-        @context.instance_eval{ can? :read, record }
+        @context.instance_eval { can? :read, record }
       end
 
       def get_current_user
-        @context.instance_eval{ current_user }
-      end
-
-      def respond_to?(sym)
-        @record.respond_to?(sym) || super(sym)
-      end
-
-      def method_missing(sym, *args, &block)
-        if @record.respond_to?(sym)
-          return @record.send(sym, *args, &block)
-        else
-          super(sym, *args, &block)
-        end
+        @context.instance_eval { current_user }
       end
 
     end
