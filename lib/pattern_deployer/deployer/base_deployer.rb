@@ -345,8 +345,15 @@ module PatternDeployer
       end
 
       def get_children_error
-        errors = @children.map do |child|
-          child.get_update_error == "" ? child.get_deploy_error : child.get_update_error
+        errors = Array.new
+        @children.each do |child|
+          if child.update_failed?
+            errors << child.get_update_error
+          elsif child.deploy_failed?
+            errors << child.get_deploy_error
+          else
+            # nothing
+          end
         end
         self.class.summarize_errors(errors)
       end
