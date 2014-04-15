@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140313171310) do
+ActiveRecord::Schema.define(version: 20140415165040) do
 
   create_table "containers", force: true do |t|
     t.string   "container_id"
@@ -45,12 +45,11 @@ ActiveRecord::Schema.define(version: 20140313171310) do
   create_table "nodes", force: true do |t|
     t.string   "node_id"
     t.text     "attrs"
-    t.datetime "created_at",        null: false
-    t.datetime "updated_at",        null: false
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
     t.integer  "parent_id"
     t.string   "parent_type"
-    t.integer  "container_node_id"
-    t.integer  "user_id",           null: false
+    t.integer  "user_id",     null: false
     t.integer  "topology_id"
   end
 

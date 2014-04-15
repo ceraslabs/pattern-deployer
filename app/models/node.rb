@@ -24,13 +24,11 @@ class Node < ActiveRecord::Base
   has_and_belongs_to_many :templates
   has_many :services, :dependent => :destroy, :as => :service_container
   has_many :service_to_node_refs, :dependent => :destroy
-  has_many :nested_nodes, :dependent => :destroy, :class_name => "Node", :foreign_key => "container_node_id"
-  belongs_to :container_node, :class_name => "Node"
   belongs_to :parent, :autosave => true, :polymorphic => true
   belongs_to :owner, :class_name => "User", :foreign_key => "user_id", :inverse_of => :nodes
   belongs_to :topology
 
-  attr_accessible :attrs, :node_id, :templates, :services, :nested_nodes, :container_node, :parent, :owner, :id, :topology
+  attr_accessible :attrs, :node_id, :templates, :services, :parent, :owner, :id, :topology
 
   #TODO underscore in node name is deprecated
   validates :node_id, :format => { :with => /\A[[:alnum:]_]+\z/,
