@@ -275,8 +275,18 @@ class ContainersController < RestfulController
     render :action => "show", :formats => "json"
   end
 
-
   protected
+
+  def token_authenticate
+    return unless params[:api_token].present?
+
+    token = Token.find_first(token: params[:api_token])
+    if token && token.topology?(params[:topology_id])
+      sign_in(token.user, store: false)
+    else
+      fail AccessDeniedError
+    end
+  end
 
   def create_resource_from_xml(xml, topology)
     container = nil
@@ -284,7 +294,7 @@ class ContainersController < RestfulController
       container_element = parse_xml(xml)
       container = create_container_scaffold(container_element, topology, current_user)
       container.update_container_attributes(container_element)
-      container .update_container_connections(container_element)
+      container.update_container_connections(container_element)
     end
 
     container

@@ -23,7 +23,7 @@ PatternDeployer::Application.routes.draw do
 
   get "/api" => "api#index", :as => :api_root
 
-  scope "/api" do
+  scope "/api(/:api_token)", defaults: {api_token: ""} do
     resources :topologies, :only => [:index, :show, :create, :destroy, :update] do
       resources :containers, :only => [:index, :show, :create, :destroy, :update] do
         resources :nodes, :only => [:index, :show, :create, :destroy, :update] do

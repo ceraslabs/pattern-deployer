@@ -42,7 +42,9 @@ module PatternDeployer
     end
 
     class AccessDeniedError < ApiError
-      def initialize(message)
+      DEFAULT_MSG = "Permission denied."
+
+      def initialize(message = DEFAULT_MSG)
         super(message, 403)
       end
     end

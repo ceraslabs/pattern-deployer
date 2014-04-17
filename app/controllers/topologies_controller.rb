@@ -158,6 +158,9 @@ require "pattern_deployer"
 ##~ field = fields.link
 ##~ field.set :type => "string", :description => "The link of the topology"
 ##
+##~ field = fields.link_to_share
+##~ field.set :type => "string", :description => "The link for sharing the topology"
+##
 ##~ field = fields.templates
 ##~ field.set :type => "List", :description => "The list of templates of the topology", :items => {:$ref => "Template"}
 ##
@@ -312,6 +315,8 @@ class TopologiesController < RestfulController
     DEPLOY = "deploy"
     UNDEPLOY = "undeploy"
     REPAIR = "repair"
+    SHARE = "share"
+    UNSHARE = "unshare"
   end
 
 
@@ -334,8 +339,8 @@ class TopologiesController < RestfulController
   ##
   ##~ param = op.parameters.add
   ##~ param.set :name => "operation", :dataType => "string", :allowMultiple => false, :required => true, :paramType => "query"
-  ##~ param.description = "The operation which the topology is going to be executed with. 'deploy' is to deploy the topology to cloud. 'undeploy' is to undeploy the already deployed topology."
-  ##~ param.allowableValues = {:valueType => "LIST", :values => ["rename", "update_description", "deploy", "undeploy", "repair"]}
+  ##~ param.description = "The operation which the topology is going to be executed with. Operation 'deploy'/'undeploy' is for deploying/undeploying the topology. Operation 'repair' is for recovering a failed deployment. Operation 'share'/'unshare' is for sharing/unsharing the topology."
+  ##~ param.allowableValues = {:valueType => "LIST", :values => ["rename", "update_description", "deploy", "undeploy", "repair", "share", "unshare"]}
   ##
   ##~ param = op.parameters.add
   ##~ param.set :name => "name", :dataType => "string", :allowMultiple => false, :required => false, :paramType => "query"
@@ -368,6 +373,10 @@ class TopologiesController < RestfulController
       elsif operation == TopologyOp::REPAIR
         @topology.repair(topology_xml, artifacts)
       end
+    when TopologyOp::SHARE
+      @topology.share(current_user)
+    when TopologyOp::UNSHARE
+      @topology.unshare(current_user)
     else
       err_msg = "Invalid operation. Supported operations are #{get_operations(TopologyOp).join(',')}."
       fail ParametersValidationError, err_msg
@@ -377,8 +386,18 @@ class TopologiesController < RestfulController
     render :action => "show", :formats => "json"
   end
 
-
   protected
+
+  def token_authenticate
+    return unless params[:api_token].present?
+
+    token = Token.find_first(token: params[:api_token])
+    if token && token.topology?(params[:id])
+      sign_in(token.user, store: false)
+    else
+      fail AccessDeniedError
+    end
+  end
 
   def create_resource_from_xml(xml)
     topology = nil

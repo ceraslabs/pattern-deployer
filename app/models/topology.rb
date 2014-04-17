@@ -31,6 +31,7 @@ class Topology < ActiveRecord::Base
   has_many   :containers, :dependent => :destroy, :inverse_of => :topology
   has_many   :nodes, :dependent => :destroy, :as => :parent
   has_many   :templates, :dependent => :destroy, :inverse_of => :topology
+  has_many   :tokens, :dependent => :destroy, :inverse_of => :topology
   has_and_belongs_to_many :uploaded_files
   has_and_belongs_to_many :credentials
 
@@ -46,7 +47,6 @@ class Topology < ActiveRecord::Base
 
   after_initialize :set_default_values
   before_destroy :topology_destroyable
-
 
   def update_topology_attributes(topology_element)
     self.topology_id = topology_element["id"]
@@ -157,6 +157,24 @@ class Topology < ActiveRecord::Base
     end
   end
 
+  def share(user)
+    token = Token.generate(self, user)
+    unless token.valid?
+      msg = token.errors.full_messages.join(";")
+      fail InvalidOperationError, msg
+    end
+  end
+
+  def unshare(user)
+    token = Token.find_first(topology: self, user: user)
+    if token
+      token.destroy
+    else
+      msg = "Topology '#{topology_id}' was not shared by you (#{user.email}) before."
+      fail InvalidOperationError, msg
+    end
+  end
+
   def get_state
     if self.state == DEPLOYING
       self.set_state(get_deployer.get_state)
@@ -201,6 +219,10 @@ class Topology < ActiveRecord::Base
     (self.state == DEPLOYING || self.state == DEPLOY_SUCCESS) && !@unlocked
   end
 
+  def token(user)
+    record = tokens.where(user: user).first
+    record && record.token
+  end
 
   protected
 

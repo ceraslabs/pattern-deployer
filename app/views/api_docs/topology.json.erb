@@ -219,12 +219,14 @@
                   "deploy",
                   "rename",
                   "repair",
+                  "share",
                   "undeploy",
+                  "unshare",
                   "update_description"
                 ]
               },
               "dataType": "string",
-              "description": "The operation which the topology is going to be executed with. 'deploy' is to deploy the topology to cloud. 'undeploy' is to undeploy the already deployed topology.",
+              "description": "The operation which the topology is going to be executed with. Operation 'deploy'/'undeploy' is for deploying/undeploying the topology. Operation 'repair' is for recovering a failed deployment. Operation 'share'/'unshare' is for sharing/unsharing the topology.",
               "name": "operation",
               "paramType": "query",
               "required": true
@@ -448,6 +450,10 @@
         },
         "link": {
           "description": "The link of the topology",
+          "type": "string"
+        },
+        "link_to_share": {
+          "description": "The link for sharing the topology",
           "type": "string"
         },
         "name": {

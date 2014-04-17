@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140415165040) do
+ActiveRecord::Schema.define(version: 20140416030826) do
 
   create_table "containers", force: true do |t|
     t.string   "container_id"
@@ -114,6 +114,14 @@ ActiveRecord::Schema.define(version: 20140415165040) do
   end
 
   add_index "templates", ["template_id"], name: "index_templates_on_template_id", using: :btree
+
+  create_table "tokens", force: true do |t|
+    t.string   "token"
+    t.integer  "user_id"
+    t.integer  "topology_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "topologies", force: true do |t|
     t.string   "topology_id"

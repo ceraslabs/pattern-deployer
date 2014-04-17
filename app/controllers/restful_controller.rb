@@ -21,6 +21,7 @@ class RestfulController < ApplicationController
   include PatternDeployer::Errors
 
   #protect_from_forgery
+  before_filter :token_authenticate
   before_filter :http_authenticate
   load_and_authorize_resource
 
@@ -32,10 +33,6 @@ class RestfulController < ApplicationController
   rescue_from PatternDeployerError, :with => :render_bad_request_error
   rescue_from ApiError, :with => :render_api_error
   rescue_from CanCan::AccessDenied, :with => :render_access_denied
-
-  def http_authenticate
-    request_http_basic_authentication unless user_signed_in?
-  end
 
   def render_404
     err_msg = "'#{request.method} #{params[:path]}' does not match to any resource." if params[:path]
@@ -96,6 +93,12 @@ class RestfulController < ApplicationController
   end
 
   protected
+
+  def token_authenticate; end
+
+  def http_authenticate
+    request_http_basic_authentication unless user_signed_in?
+  end
 
   def render_api_error(error)
     @exception = error
