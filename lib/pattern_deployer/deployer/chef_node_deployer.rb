@@ -250,7 +250,7 @@ module PatternDeployer
         log e.message, e.backtrace # DEBUG
         msg = self.class.build_err_msg(e, self)
         is_deploy ? on_deploy_failed(msg) : on_update_failed(msg)
-        raise e
+        # Eat the exception here because an unhandled exception may abort the main program.
       end
 
       def assert_execution_success(timeout = 60)

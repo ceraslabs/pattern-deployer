@@ -246,7 +246,7 @@ module PatternDeployer
         end # end loop
       rescue Exception => e
         log e.message, e.backtrace # DEBUG
-        raise e
+        # Eat the exception here because an unhandled exception may abort the main program.
       end
 
       def create_more_deployers(nodes, how_many)

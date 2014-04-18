@@ -149,7 +149,7 @@ module PatternDeployer
       rescue Exception => e
         log e.message, e.backtrace #DEBUG
         is_deploy ? on_deploy_failed(e.message) : on_update_failed(e.message)
-        raise e
+        # Eat the exception here because an unhandled exception may abort the main program.
       ensure
         MainDeployersManager.instance.delete_active_deployer(self)
       end
