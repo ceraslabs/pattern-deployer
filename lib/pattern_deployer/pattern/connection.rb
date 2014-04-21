@@ -39,8 +39,8 @@ module PatternDeployer
           }
         when ReferenceType::MON_SERVER
           connection = {
-            monitoring_server: source_node,
-            monitoring_client: sink_node
+            monitoring_client: source_node,
+            monitoring_server: sink_node
           }
         else
           fail "The reference type '#{ref_type}' is invalid or undefined."
