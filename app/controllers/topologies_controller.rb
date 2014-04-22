@@ -392,7 +392,7 @@ class TopologiesController < RestfulController
     return unless params[:api_token].present?
 
     token = Token.find_first(token: params[:api_token])
-    if token && token.topology?(params[:id])
+    if token && (request.get? || token.topology?(params[:id]))
       sign_in(token.user, store: false)
     else
       fail AccessDeniedError
