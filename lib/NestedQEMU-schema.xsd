@@ -202,7 +202,7 @@
       <xs:sequence>
         <xs:element ref="file_name"/>
         <xs:element ref="datasource" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element ref="context_params"/>
+        <xs:element ref="context_params" minOccurs="0"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element>

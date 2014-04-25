@@ -162,7 +162,7 @@ class UploadedFilesController < RestfulController
       render :formats => "json", :action => "show"
     else
       error = ParametersValidationError.new
-      error.active_recrod = @file
+      error.active_record = @file
       fail error
     end
   end
