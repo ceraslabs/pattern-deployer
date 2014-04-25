@@ -18,69 +18,62 @@ require 'pattern_deployer/pattern/config'
 
 module PatternDeployer
   module Pattern
-    class DatabaseConfig
+    class DatabaseConfig < PatternDeployer::Pattern::Config
       CONFIG_SPECS = [
         {
-          element:        'service',
-          key:            'database',
-          child_elements: ['database_system', 'database_name', 'database_user', 'database_password', 'database_port', 'script']
+          element_name:   "service",
+          name:           "database",
+          child_elements: ["database_system", "database_name", "database_user", "database_password", "database_port", "script"]
         },
         {
-          element:        'database_system',
-          key:            'system',
-          default_value:  'mysql',
-          allow_values:   ['mysql', 'postgresql']
+          element_name:   "database_system",
+          name:           "system",
+          default_value:  "mysql",
+          allow_values:   ["mysql", "postgresql"]
         },
         {
-          element:        'database_name',
-          key:            'name',
-          default_value:  'mydb'
+          element_name:   "database_name",
+          name:           "name",
+          default_value:  "mydb"
         },
         {
-          element:        'database_user',
-          key:            'user',
-          default_value:  'myuser'
+          element_name:   "database_user",
+          name:           "user",
+          default_value:  "myuser"
         },
         {
-          element:        'database_password',
-          key:            'password',
-          default_value:  'mypass'
+          element_name:   "database_password",
+          name:           "password",
+          default_value:  "mypass"
         },
         {
-          element:        'database_port',
-          key:            'port',
+          element_name:   "database_port",
+          name:           "port",
         },
         {
-          element:        'script',
-          key:            'script'
+          element_name:   "script",
+          name:           "script"
         }
       ]
 
       def self.get(element)
-        configs = Config::parse_configs(element.name, CONFIG_SPECS, element)
-        case configs['database']['system']
-        when 'mysql'
-          configs['database']['port'] ||= '3306'
-          configs['database']['admin_user'] = 'root'
-        when 'postgresql'
-          configs['database']['port'] ||= '5432'
-          configs['database']['admin_user'] = 'postgres'
+        spec = ConfigSpec.new(CONFIG_SPECS, element.name)
+        configs = parse_configs(element, spec)
+        case configs["database"]["system"]
+        when "mysql"
+          configs["database"]["port"] ||= "3306"
+          configs["database"]["admin_user"] = "root"
+        when "postgresql"
+          configs["database"]["port"] ||= "5432"
+          configs["database"]["admin_user"] = "postgres"
         else
-          # should not be reached
+          fail "Unexpected database system '#{configs["database"]["system"]}'."
         end
         new(configs)
       end
 
-      def initialize(configs)
-        @configs = configs
-      end
-
-      def to_hash
-        @configs
-      end
-
       def db_script_file
-        {'name' => @configs['database']['script']}
+        {"name" => @configs["database"]["script"]}
       end
 
     end

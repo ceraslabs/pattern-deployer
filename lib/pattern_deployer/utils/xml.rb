@@ -36,7 +36,7 @@ module PatternDeployer
       def xml_element_to_hash(element)
         hash = Hash.new
         if key_value_format?(element)
-          hash[element.name] = element.content
+          hash[element.name] = element.content.strip
         else
           sub_hash = Hash.new
           element.each_element do |child_element|
@@ -51,6 +51,10 @@ module PatternDeployer
         element.children.any? do |child_element|
           child_element.element?
         end
+      end
+
+      def find_child_element(element, name)
+        element.find_first(name)
       end
 
       def key_value_format?(element)

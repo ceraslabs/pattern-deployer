@@ -18,43 +18,36 @@ require 'pattern_deployer/pattern/config'
 
 module PatternDeployer
   module Pattern
-    class WebServerConfig
+    class WebServerConfig < PatternDeployer::Pattern::Config
       CONFIG_SPECS = [
         {
-          element:        'service',
-          key:            'web_server',
-          child_elements: ['war_file']
+          element_name:   "service",
+          name:           "web_server",
+          child_elements: ["war_file"]
         },
         {
-          element:        'war_file',
-          key:            'war_file',
-          child_elements: ['file_name', 'datasource']
+          element_name:   "war_file",
+          name:           "war_file",
+          child_elements: ["file_name", "datasource"]
         },
         {
-          element:        'file_name',
-          key:            'name'
+          element_name:   "file_name",
+          name:           "name"
         },
         {
-          element:        'datasource',
-          key:            'datasource'
+          element_name:   "datasource",
+          name:           "datasource"
         }
       ]
 
       def self.get(element)
-        configs = Config::parse_configs(element.name, CONFIG_SPECS, element)
+        spec = ConfigSpec.new(CONFIG_SPECS, element.name)
+        configs = parse_configs(element, spec)
         new(configs)
       end
 
-      def initialize(configs)
-        @configs = configs
-      end
-
-      def to_hash
-        @configs
-      end
-
       def war_file
-        @configs['web_server']['war_file']
+        @configs["web_server"]["war_file"]
       end
 
     end

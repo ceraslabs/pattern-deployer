@@ -19,54 +19,92 @@ require 'pattern_deployer/utils'
 
 module PatternDeployer
   module Pattern
-    module Config
+    class Config
       include PatternDeployer::Errors
       extend PatternDeployer::Utils::Xml
 
-      def self.parse_configs(element_name, config_specs, element = nil)
-        config_spec = find_config_spec(element_name, config_specs)
-        fail "No config specification for '#{element_name}'." if config_spec.nil?
+      class ConfigSpec
+        def initialize(specs, name)
+          @specs = specs
+          @spec = find_spec(name)
+        end
 
+        def find(name)
+          self.class.new(@specs, name)
+        end
+
+        def config_name
+          @spec[:name]
+        end
+
+        def element_name
+          @spec[:element_name]
+        end
+
+        def has_child_elements?
+          @spec[:child_elements].present?
+        end
+
+        def child_element_names
+          @spec[:child_elements]
+        end
+
+        def validate_config_value(value)
+          allow_values = @spec[:allow_values]
+          if allow_values.present? && allow_values.include?(value)
+            msg = "The value '#{value}' is not allowed. Allowed values: #{allow_values.inspect}."
+            fail PatternValidationError, msg
+          end
+        end
+
+        def default_config
+          name = @spec[:name]
+          value = @spec[:default_value]
+          value ? {name => value} : {}
+        end
+
+        protected
+
+        def find_spec(element_name)
+          spec = @specs.find { |s| s[:element_name] == element_name }
+          fail "Cannot find specification for element '#{element_name}'." if spec.nil?
+          spec
+        end
+
+      end # End ConfigSpec class.
+
+      def self.parse_configs(element, spec)
         configs = Hash.new
-        config_key = config_spec[:key]
-        if config_spec[:child_elements]
-          sub_configs = Hash.new
-          config_spec[:child_elements].each do |child_element_name|
-            child_element = find_child_element(element, child_element_name) if element
-            sub_configs.merge!(parse_configs(child_element_name, config_specs, child_element))
+        config_name = spec.config_name
+        if spec.has_child_elements?
+          child_configs = Hash.new
+          spec.child_element_names.each do |name|
+            child_element = find_child_element(element, name)
+            child_config_spec = spec.find(name)
+            child_config = if child_element
+                             parse_configs(child_element, child_config_spec)
+                           else
+                             child_config_spec.default_config
+                           end
+            child_configs.merge!(child_config)
           end
-          configs[config_key]= sub_configs
+          configs[config_name]= child_configs
         else
-          config_value = element.content.strip if element
-          config_value ||= config_spec[:default_value]
-          if config_value
-            if config_spec[:allow_values]
-              validate_config_value!(config_value, config_spec[:allow_values])
-            end
-            configs[config_key] = config_value
-          end
+          hash = xml_element_to_hash(element)
+          config_value = hash[spec.element_name]
+          spec.validate_config_value(config_value)
+          configs[config_name]= config_value
         end
 
         configs
       end
 
-      protected
-
-      def self.validate_config_value!(value, allow_values)
-        unless allow_values.include?(value)
-          msg = "The value '#{value}' is not allowed. Allowed values: #{allow_values.inspect}."
-          fail PatternValidationError, msg
-        end
+      def initialize(configs)
+        @configs = configs
       end
 
-      def self.find_config_spec(element_name, config_specs)
-        config_specs.find do |spec|
-          spec[:element] == element_name
-        end
-      end
-
-      def self.find_child_element(parent_element, name)
-        parent_element.find_first(name)
+      def to_hash
+        @configs
       end
 
     end
