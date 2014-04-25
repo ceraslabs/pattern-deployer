@@ -202,11 +202,19 @@
       <xs:sequence>
         <xs:element ref="file_name"/>
         <xs:element ref="datasource" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="context_params"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="file_name" type="xs:string"/>
   <xs:element name="datasource" type="xs:string"/>
+  <xs:element name="context_params">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:any processContents="skip" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="script" type="xs:string"/>
   <xs:element name="member">
     <xs:complexType>

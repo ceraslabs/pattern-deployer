@@ -28,7 +28,7 @@ module PatternDeployer
         {
           element_name:   "war_file",
           name:           "war_file",
-          child_elements: ["file_name", "datasource"]
+          child_elements: ["file_name", "datasource", "context_params"]
         },
         {
           element_name:   "file_name",
@@ -37,6 +37,10 @@ module PatternDeployer
         {
           element_name:   "datasource",
           name:           "datasource"
+        },
+        {
+          element_name:   "context_params",
+          name:           "context_params"
         }
       ]
 
