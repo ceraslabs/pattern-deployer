@@ -40,7 +40,7 @@ module PatternDeployer
         else
           sub_hash = Hash.new
           element.each_element do |child_element|
-            sub_hash[child_element.name] = xml_element_to_hash(child_element)
+            sub_hash.merge!(xml_element_to_hash(child_element))
           end
           hash[element.name]= sub_hash
         end
