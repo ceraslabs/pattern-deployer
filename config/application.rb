@@ -164,18 +164,22 @@ module PatternDeployer
     end
 
     # A list of nodes definition. Node declared here can be reference without declared in pattern.
-    config.nodes = [
-      "<node id='PDS'>
-        <is_external>true</is_external>
-        <server_ip>#{config.public_ip}</server_ip>
-      </node>",
-      "<node id='PDSPrivate'>
-        <is_external>true</is_external>
-        <server_ip>#{config.private_ip}</server_ip>
-      </node>"
-    ]
+    config.nodes = Array.new
+    if config.respond_to?(:public_ip)
+      config.nodes << "<node id='PDS'>
+                         <is_external>true</is_external>
+                         <server_ip>#{config.public_ip}</server_ip>
+                       </node>"
+    end
+    if config.respond_to?(:private_ip)
+      config.nodes << "<node id='PDSPrivate'>
+                         <is_external>true</is_external>
+                         <server_ip>#{config.private_ip}</server_ip>
+                       </node>"
+    end
 
-    config.host = config.public_ip || config.private_ip
+    # A place holder.
+    config.host = ""
 
   end
 end
