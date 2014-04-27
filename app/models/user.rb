@@ -20,6 +20,7 @@ class User < ActiveRecord::Base
   # :lockable, :timeoutable and :omniauthable
   devise :database_authenticatable, :registerable, 
          :rememberable, :trackable, :validatable
+  include PatternDeployer::Errors
 
   # Setup accessible (or protected) attributes for your model
   attr_accessible :email, :password, :password_confirmation, :remember_me, :role
@@ -34,6 +35,8 @@ class User < ActiveRecord::Base
 
   validates :role, :inclusion => { :in => %w(user admin), :message => "%{value} is not a valid role" }
 
+  delegate :can?, :cannot?, :to => :ability
+
   before_save :default_values
 
   def default_values
@@ -45,4 +48,48 @@ class User < ActiveRecord::Base
   def admin?
     self.role == "admin"
   end
+
+  def share(topology)
+    fail AccessDeniedError if cannot?(:update, topology)
+    token = Token.generate(topology, self)
+    if token.valid?
+      true
+    else
+      return false, token.errors.full_messages.join(";")
+    end
+  end
+
+  def share!(topology)
+    success, msg = share(topology)
+    fail InvalidOperationError, msg unless success
+  end
+
+  def unshare(topology)
+    fail AccessDeniedError if cannot?(:update, topology)
+    record = Token.find_first(topology: topology, user: self)
+    if record
+      record.destroy
+      true
+    else
+      false
+    end
+  end
+
+  def unshare!(topology)
+    unless unshare(topology)
+      msg = "Topology '#{topology.topology_id}' was not shared by you (#{email}) before."
+      fail InvalidOperationError, msg
+    end
+  end
+
+  def has_shared?(topology)
+    Token.find_first(topology: topology, user: self).present?
+  end
+
+  protected
+
+  def ability
+    @ability ||= Ability.new(self)
+  end
+
 end

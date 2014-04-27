@@ -47,12 +47,7 @@ node :link do
   topology_path topology, only_path: false
 end
 node :link_to_share do
-  token = topology.token(current_user)
-  if token
-    topology_path topology, only_path: false, api_token: token
-  else
-    nil
-  end
+  topology.url_shared_by(current_user)
 end
 child topology.nodes => :nodes do
   extends "nodes/node"

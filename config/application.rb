@@ -149,16 +149,7 @@ module PatternDeployer
       public_ip = Excon.get(query_url, :connect_timeout => 5).body
       config.public_ip = IPAddr.new(public_ip).to_s
     rescue ArgumentError, Excon::Errors::Timeout
-      alternative_url = "http://ifconfig.me/ip"
-      if query_url != alternative_url
-        query_url = alternative_url
-        retry
-      end
-
-      # Use Ohai if none of above work
-      ohai = Ohai::System.new
-      ohai.all_plugins
-      config.public_ip = ohai[:ipaddress]
+      # nothing
     end
 
     begin
@@ -166,7 +157,7 @@ module PatternDeployer
       private_ip = Excon.get(query_url, :connect_timeout => 5).body
       config.private_ip = IPAddr.new(private_ip).to_s
     rescue ArgumentError, Excon::Errors::Timeout
-      # Use Ohai if none of above work
+      # Get IP address by using Ohai.
       ohai = Ohai::System.new
       ohai.all_plugins
       config.private_ip = ohai[:ipaddress]
@@ -183,5 +174,8 @@ module PatternDeployer
         <server_ip>#{config.private_ip}</server_ip>
       </node>"
     ]
+
+    config.host = config.public_ip || config.private_ip
+
   end
 end

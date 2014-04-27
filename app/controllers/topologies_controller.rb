@@ -253,8 +253,8 @@ class TopologiesController < RestfulController
     @pattern = get_pattern(@topology)
     Pattern.validate_xml(@pattern, Rails.application.config.schema_file)
     render :action => "show", :formats => "json"
-  rescue PatternValidationError
-    @topology.destroy
+  rescue
+    @topology.destroy if @topology
     raise
   end
 
@@ -352,7 +352,7 @@ class TopologiesController < RestfulController
   ##
   def update
     @topology = Topology.find(params[:id])
-    
+
     case operation = params[:operation]
     when TopologyOp::RENAME
       fail ParametersValidationError, "Parameter name is missing." unless params[:name]
@@ -374,9 +374,9 @@ class TopologiesController < RestfulController
         @topology.repair(topology_xml, artifacts)
       end
     when TopologyOp::SHARE
-      @topology.share(current_user)
+      current_user.share!(@topology)
     when TopologyOp::UNSHARE
-      @topology.unshare(current_user)
+      current_user.unshare!(@topology)
     else
       err_msg = "Invalid operation. Supported operations are #{get_operations(TopologyOp).join(',')}."
       fail ParametersValidationError, err_msg

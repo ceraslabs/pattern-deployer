@@ -48,6 +48,10 @@ class Topology < ActiveRecord::Base
   after_initialize :set_default_values
   before_destroy :topology_destroyable
 
+  def self.find_by_name!(name)
+    find_by_topology_id!(name)
+  end
+
   def update_topology_attributes(topology_element)
     self.topology_id = topology_element["id"]
     topology_element.each_element do |element|
@@ -157,21 +161,16 @@ class Topology < ActiveRecord::Base
     end
   end
 
-  def share(user)
-    token = Token.generate(self, user)
-    unless token.valid?
-      msg = token.errors.full_messages.join(";")
-      fail InvalidOperationError, msg
-    end
-  end
-
-  def unshare(user)
-    token = Token.find_first(topology: self, user: user)
-    if token
-      token.destroy
+  def url_shared_by(user)
+    token_record = Token.find_first(topology: self, user: user)
+    if token_record
+      options = {
+        api_token: token_record.token,
+        host: Rails.configuration.host
+      }
+      Rails.application.routes.url_helpers.topology_url(self, options)
     else
-      msg = "Topology '#{topology_id}' was not shared by you (#{user.email}) before."
-      fail InvalidOperationError, msg
+      nil
     end
   end
 
@@ -217,11 +216,6 @@ class Topology < ActiveRecord::Base
 
   def locked?
     (self.state == DEPLOYING || self.state == DEPLOY_SUCCESS) && !@unlocked
-  end
-
-  def token(user)
-    record = tokens.where(user: user).first
-    record && record.token
   end
 
   protected

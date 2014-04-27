@@ -37,6 +37,7 @@
 ##~ @services["standalone_installation"] = "Install this application without a server"
 ##~ @services["xcamp_monitoring_agent"] = "Install an Ganglia monitoring daemon(gmond), which will collect and share various performance metric of this server"
 ##~ @services["xcamp_monitoring_server"] = "Install an Ganglia meta deamon(gmetad) and Ganglia web frontend, which present the collected performance metric to users"
+##~ @services["xcamp_management_logic"] = "Deploy a management logic, which is a web application"
 ##~ @services_desc = "<h4>Available services</h4><table><thead><tr><th>attribut key</th><th>description</th></tr></thead>" + @services.sort.map{|key, value| "<tr><td>#{key}</td><td>#{value}</td></tr>"}.join + "</table>"
 ##
 ## * Model Service

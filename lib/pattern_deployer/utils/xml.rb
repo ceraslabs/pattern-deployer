@@ -47,6 +47,21 @@ module PatternDeployer
         hash
       end
 
+      def hash_to_xml_element(element_name, hash)
+        element = XML::Node.new(element_name)
+        hash.each do |key, value|
+          key = key.to_s
+          if value.kind_of?(Hash)
+            element << hash_to_xml_element(key, value);
+          elsif value.kind_of?(String)
+            element << XML::Node.new(key, value.strip)
+          else
+            fail "Invalid value: #{value.inspect}."
+          end
+        end
+        element
+      end
+
       def has_child_element?(element)
         element.children.any? do |child_element|
           child_element.element?

@@ -24,8 +24,8 @@ class RestfulController < ApplicationController
   before_filter :token_authenticate
   before_filter :http_authenticate
   load_and_authorize_resource
-
   before_filter :remove_undefined_params
+  before_filter :set_host
 
   rescue_from Exception, :with => :render_internal_error
   rescue_from ActiveRecord::RecordInvalid, :with => :render_bad_request_error_when_record_invalid
@@ -144,6 +144,10 @@ class RestfulController < ApplicationController
     end
     self.formats = [:xml]
     render_to_string(:partial => model_name, :locals => {model_name.to_sym => obj}).squish
+  end
+
+  def set_host
+    Rails.application.config.host = request.host_with_port
   end
 
 end

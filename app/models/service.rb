@@ -17,8 +17,8 @@
 require 'pattern_deployer'
 
 class Service < ActiveRecord::Base
-
   include ServicesHelper
+  include XcampServiceHelper
   include PatternDeployer::Errors
 
   has_many :service_to_node_refs, :dependent => :destroy
@@ -60,14 +60,15 @@ class Service < ActiveRecord::Base
   end
 
   def update_service_attributes(service_element)
+    preprocess_element(service_element)
     self.service_id = service_element["name"]
     service_element.each_element do |element|
       unless element["node"]
-        self.properties << element.to_s
+        properties << element.to_s
       end
     end
 
-    self.save!
+    save!
   end
 
   def update_service_connections(service_element)
@@ -100,7 +101,6 @@ class Service < ActiveRecord::Base
       fail "Unexpected service container type #{service_container_type}."
     end
   end
-
 
   protected
 
@@ -136,6 +136,10 @@ class Service < ActiveRecord::Base
       msg = "Service #{service_id} cannot be destroyed. Please make sure its topology is not deployed or deploying."
       fail InvalidOperationError, msg
     end
+  end
+
+  def preprocess_element(service_element)
+    process_management_logic(service_element)
   end
 
   #def service_is_supported
