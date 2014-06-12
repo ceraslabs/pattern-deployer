@@ -241,7 +241,7 @@ class CredentialsController < RestfulController
   ##~ param.allowableValues = {:valueType => "LIST", :values => ["rename", "redefine"]}
   ##
   ##~ param = op.parameters.add
-  ##~ param.set :name => "name", :dataType => "string", :allowMultiple => false, :required => true, :paramType => "query"
+  ##~ param.set :name => "name", :dataType => "string", :allowMultiple => false, :required => false, :paramType => "query"
   ##~ param.description = "The new name of the credential. Used in 'rename' operation"
   ##
   ##~ param = op.parameters.add

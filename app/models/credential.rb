@@ -18,6 +18,7 @@ require "pattern_deployer"
 
 class Credential < ActiveRecord::Base
   include PatternDeployer::Deployer::State
+  include PatternDeployer::Errors
 
   belongs_to :owner, :autosave => true, :class_name => "User", :foreign_key => "user_id", :inverse_of => :credentials
   has_and_belongs_to_many :topologies
