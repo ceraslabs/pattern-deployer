@@ -14,7 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require "pattern_deployer"
+
 class Credential < ActiveRecord::Base
+  include PatternDeployer::Deployer::State
 
   belongs_to :owner, :autosave => true, :class_name => "User", :foreign_key => "user_id", :inverse_of => :credentials
   has_and_belongs_to_many :topologies
@@ -55,7 +58,7 @@ class Credential < ActiveRecord::Base
   protected
 
   def credential_mutable
-    if self.topologies.any? { |t| t.state != State::UNDEPLOY }
+    if self.topologies.any? { |t| t.state != UNDEPLOY }
       msg = "Credential #{credential_id} cannot be modified. Please make sure it is not being used by any topology."
       fail InvalidOperationError, msg
     end
