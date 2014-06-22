@@ -14,7 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require "pattern_deployer"
+
 module TemplatesHelper
+
+  include PatternDeployer::Errors
 
   def create_template_scaffold(element, parent, owner)
     validate_template_element(element)

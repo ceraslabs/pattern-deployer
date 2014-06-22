@@ -17,7 +17,9 @@
 require 'pattern_deployer'
 
 module TopologiesHelper
+
   include PatternDeployer::Deployer::State
+  include PatternDeployer::Errors
 
   def create_topology_scaffold(element, owner)
     validate_topology_element(element)

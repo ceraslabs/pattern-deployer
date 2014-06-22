@@ -14,7 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require "pattern_deployer"
+
 module ServicesHelper
+
+  include PatternDeployer::Errors
 
   def create_service_scaffold(element, parent, owner)
     validate_service_element!(element)

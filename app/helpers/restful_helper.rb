@@ -15,8 +15,12 @@
 # limitations under the License.
 #
 require "libxml"
+require "pattern_deployer"
 
 module RestfulHelper
+
+  include PatternDeployer::Errors
+
   def parse_xml(xml)
     LibXML::XML::Document.string(xml).root
   rescue LibXML::XML::Error => e

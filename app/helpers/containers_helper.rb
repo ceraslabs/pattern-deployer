@@ -14,7 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require "pattern_deployer"
+
 module ContainersHelper
+
+  include PatternDeployer::Errors
 
   def create_container_scaffold(element, topology, owner)
     validate_container_element!(element)

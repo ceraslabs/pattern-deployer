@@ -14,7 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require "pattern_deployer"
+
 module NodesHelper
+
+  include PatternDeployer::Errors
 
   def create_node_scaffold(element, parent, owner)
     validate_node_element!(element)
